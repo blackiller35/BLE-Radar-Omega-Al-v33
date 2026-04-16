@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  test-and-menus:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Create venv and install dependencies
+        shell: bash
+        run: |
+          set -e
+          python -m venv .venv
+          source .venv/bin/activate
+          python -m pip install --upgrade pip setuptools wheel
+          if [[ -f "requirements.txt" ]]; then
+            pip install -r requirements.txt
+          fi
+          pip install pytest bleak
+
+      - name: Run pytest
+        shell: bash
+        run: |
+          set -e
+          source .venv/bin/activate
+          python -m pytest -q
+
+      - name: Run auto menu tests
+        shell: bash
+        run: |
+          set -e
+          source .venv/bin/activate
+          chmod +x ./auto_menu_test.sh
+          ./auto_menu_test.sh
