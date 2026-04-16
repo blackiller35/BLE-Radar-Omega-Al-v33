@@ -83,6 +83,7 @@ def test_commander_smoke_callable_without_traceback(sample_devices, sample_histo
     assert isinstance(brief, dict)
     assert "next_action" in brief
     assert "threat_state" in brief
+    assert "top_priority" in brief
 
 
 @pytest.mark.parametrize(
