@@ -1,16 +1,12 @@
 .venv/
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
 
 logs/
 backups_old/
-ble_radar/__pycache__/
-history/daily_reports/
-history/watch_sessions/
 reports/
 snapshots/
+history/daily_reports/
+history/watch_sessions/
 
-.DS_Store
 .vscode/settings.json
