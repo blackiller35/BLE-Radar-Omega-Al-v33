@@ -81,6 +81,12 @@ from ble_radar.centers.snapshot_center import (
     create_snapshot as _create_snapshot_impl,
     batch39_snapshots_restore_pro as _batch39_snapshots_restore_pro_impl,
 )
+from ble_radar.centers.oracle_center import (
+    show_oracle_quick_summary as _show_oracle_quick_summary_impl,
+    oracle_dashboard as _oracle_dashboard_impl,
+    oracle_targets_view as _oracle_targets_view_impl,
+    oracle_center as _oracle_center_impl,
+)
 
 
 def active_profile():
@@ -1825,81 +1831,19 @@ def aegis_center():
 
 
 def show_oracle_quick_summary(devices):
-    report = build_oracle_report(devices, load_scan_history())
-    print()
-    print(color("ORACLE quick summary", CYAN, bold=True))
-    print(hr())
-    for line in oracle_lines(report)[:8]:
-        print(line)
+    return _show_oracle_quick_summary_impl(devices)
 
 
 def oracle_dashboard():
-    devices = load_last_scan()
-    clear()
-    banner()
-    print(color("\nORACLE — Forecast dashboard", CYAN, bold=True))
-    print(hr())
-
-    if not devices:
-        print(color("Aucun dernier scan disponible.", YELLOW, bold=True))
-        pause()
-        return
-
-    report = build_oracle_report(devices, load_scan_history())
-    for line in oracle_lines(report):
-        print(line)
-    pause()
+    return _oracle_dashboard_impl()
 
 
 def oracle_targets_view():
-    devices = load_last_scan()
-    clear()
-    banner()
-    print(color("\nORACLE — Risques à venir", CYAN, bold=True))
-    print(hr())
-
-    if not devices:
-        print(color("Aucun dernier scan disponible.", YELLOW, bold=True))
-        pause()
-        return
-
-    rows = project_rankings(devices, load_scan_history(), 20)
-    if not rows:
-        print(color("Aucune projection.", GREEN, bold=True))
-        pause()
-        return
-
-    for row in rows:
-        d = row["device"]
-        print(
-            f"- {d.get('name','Inconnu')} | {d.get('address','-')} | "
-            f"curr={row['current_priority']} -> proj={row['projected_priority']} | "
-            f"state={row['future_state']} | conf={row['confidence']} | "
-            f"drivers={', '.join(row['drivers']) if row['drivers'] else '-'}"
-        )
-    pause()
+    return _oracle_targets_view_impl()
 
 
 def oracle_center():
-    while True:
-        clear()
-        banner()
-        print(color("\nORACLE Center", CYAN, bold=True))
-        print(hr())
-        print("1) Forecast dashboard")
-        print("2) Risques à venir")
-        print("3) Retour")
-
-        choice = input("Choix > ").strip()
-        if choice == "1":
-            oracle_dashboard()
-        elif choice == "2":
-            oracle_targets_view()
-        elif choice == "3":
-            break
-        else:
-            print(color("Choix invalide", RED, bold=True))
-            pause()
+    return _oracle_center_impl()
 
 
 
