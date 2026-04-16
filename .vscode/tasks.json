@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run BLE Radar Omega",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "-m",
+        "ble_radar.app"
+      ],
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run auto menu tests",
+      "type": "shell",
+      "command": "./auto_menu_test.sh",
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
