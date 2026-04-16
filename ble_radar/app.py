@@ -77,6 +77,10 @@ from ble_radar.commander import MANUAL_FILE, build_startup_status, startup_lines
 from ble_radar.stableplus import build_stableplus_report, stableplus_lines
 from ble_radar.eventlog import read_events
 from ble_radar.automation import load_automation_config, toggle_automation_engine, toggle_rule_by_index, run_automation_pipeline
+from ble_radar.centers.snapshot_center import (
+    create_snapshot as _create_snapshot_impl,
+    batch39_snapshots_restore_pro as _batch39_snapshots_restore_pro_impl,
+)
 
 
 def active_profile():
@@ -4654,64 +4658,10 @@ def batch39_doctor_integrity_pro():
 
 
 def create_snapshot(devices=None):
-    if devices is None:
-        for _name in ("devices", "last_devices", "current_devices", "scan_results", "results"):
-            _val = globals().get(_name)
-            if isinstance(_val, (list, tuple)):
-                devices = list(_val)
-                break
-        else:
-            devices = []
-    return atlas_snapshot(devices)
+    return _create_snapshot_impl(devices, globals())
 
 def batch39_snapshots_restore_pro():
-    while True:
-        clear()
-        banner()
-        print(color("\n28) Snapshots / Restore Pro", CYAN, bold=True))
-        print(hr())
-
-        try:
-            snaps = list_snapshots()
-            print(f"Snapshots disponibles : {len(snaps)}")
-        except Exception:
-            print("Snapshots disponibles : ?")
-
-        print()
-        print("1) Ouvrir Snapshots / restauration")
-        print("2) Créer un snapshot")
-        print("3) Voir les snapshots récents")
-        print("4) Retour")
-
-        choice = input("Choix > ").strip()
-
-        if choice == "1":
-            snapshot_menu()
-        elif choice == "2":
-            result = create_snapshot()
-            clear()
-            banner()
-            print(color("\nSnapshot créé", CYAN, bold=True))
-            print(hr())
-            print(result)
-            pause()
-        elif choice == "3":
-            clear()
-            banner()
-            print(color("\nSnapshots récents", CYAN, bold=True))
-            print(hr())
-            snaps = list_snapshots()
-            if not snaps:
-                print(color("Aucun snapshot.", YELLOW, bold=True))
-            else:
-                for s in snaps[:20]:
-                    print(f"- {s}")
-            pause()
-        elif choice == "4":
-            break
-        else:
-            print(color("Choix invalide", RED, bold=True))
-            pause()
+    return _batch39_snapshots_restore_pro_impl(create_snapshot_fn=create_snapshot)
 
 
 def batch39_nexus_center_pro():
