@@ -1,0 +1,17 @@
+Scan BLE - 2026-04-15_15-14-50
+
+Inconnu | 2F:47:6D:6B:74:DA | RSSI: -63 | Score: 40 | nom inconnu, proche
+Inconnu | 1C:29:BF:AD:86:83 | RSSI: -75 | Score: 30 | nom inconnu
+Inconnu | 65:66:6D:30:2D:65 | RSSI: -67 | Score: 30 | nom inconnu
+Inconnu | C8:5A:CF:18:12:80 | RSSI: -99 | Score: 30 | nom inconnu
+Inconnu | 1E:54:62:1C:96:DF | RSSI: -88 | Score: 30 | nom inconnu
+Inconnu | 04:3D:16:C7:C6:B8 | RSSI: -93 | Score: 30 | nom inconnu
+Inconnu | 1E:B8:96:A0:DF:F9 | RSSI: -94 | Score: 30 | nom inconnu
+Inconnu | 38:14:B4:6C:84:2B | RSSI: -94 | Score: 30 | nom inconnu
+Inconnu | 34:36:E5:D7:96:80 | RSSI: -94 | Score: 30 | nom inconnu
+Inconnu | 0B:21:A3:78:1D:16 | RSSI: -97 | Score: 30 | nom inconnu
+Inconnu | 09:C3:C0:AE:49:9F | RSSI: -96 | Score: 30 | nom inconnu
+65" Crystal UHD | B0:F2:F6:60:CA:48 | RSSI: -86 | Score: 0 | normal
+Samsung AU8000 43 TV | D0:C2:4E:EE:2B:B3 | RSSI: -70 | Score: 0 | normal
+ALAM (68:49:AC) | B8:3A:9D:68:49:AD | RSSI: -87 | Score: 0 | normal
+Asus | 80:E1:26:75:73:41 | RSSI: -65 | Score: 0 | normal

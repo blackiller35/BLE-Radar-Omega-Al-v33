@@ -1,0 +1,755 @@
+{
+  "generated_at": "2026-04-16 00:13:40",
+  "top_priority": 33,
+  "critical_count": 0,
+  "high_count": 0,
+  "tracker_count": 0,
+  "watch_hits": 0,
+  "escalations": [],
+  "campaigns": [],
+  "ranked": [
+    {
+      "device": {
+        "name": "Inconnu",
+        "address": "56:2B:EF:D7:4E:30",
+        "rssi": -78,
+        "score": 30,
+        "classification": "normal",
+        "reason": "nom inconnu",
+        "vendor": "Unknown",
+        "whitelisted": false,
+        "watched": false,
+        "watch_hit": false,
+        "is_new_device": true,
+        "seen_count": 1,
+        "near_count": 0,
+        "persistent_nearby": false,
+        "risk_score": 30,
+        "follow_score": 0,
+        "confidence_score": 40,
+        "final_score": 18,
+        "threat_score": 18,
+        "alert_level": "faible",
+        "possible_suivi": false,
+        "profile": "general_ble",
+        "flags": [
+          "new"
+        ],
+        "reason_full": [
+          "nom inconnu"
+        ],
+        "reason_short": "nom inconnu"
+      },
+      "knowledge": {},
+      "behavior": {
+        "device": {
+          "name": "Inconnu",
+          "address": "56:2B:EF:D7:4E:30",
+          "rssi": -78,
+          "score": 30,
+          "classification": "normal",
+          "reason": "nom inconnu",
+          "vendor": "Unknown",
+          "whitelisted": false,
+          "watched": false,
+          "watch_hit": false,
+          "is_new_device": true,
+          "seen_count": 1,
+          "near_count": 0,
+          "persistent_nearby": false,
+          "risk_score": 30,
+          "follow_score": 0,
+          "confidence_score": 40,
+          "final_score": 18,
+          "threat_score": 18,
+          "alert_level": "faible",
+          "possible_suivi": false,
+          "profile": "general_ble",
+          "flags": [
+            "new"
+          ],
+          "reason_full": [
+            "nom inconnu"
+          ],
+          "reason_short": "nom inconnu"
+        },
+        "behavior": {
+          "occurrences": 1,
+          "avg_rssi": -78,
+          "avg_score": 18,
+          "max_score": 18,
+          "days_seen": 1,
+          "max_alert": "faible",
+          "known_vendor": "Unknown",
+          "known_profile": "general_ble"
+        },
+        "anomaly_score": 12,
+        "anomalies": [
+          "présence historiquement rare"
+        ]
+      },
+      "persistence": {
+        "address": "56:2B:EF:D7:4E:30",
+        "name": "Inconnu",
+        "vendor": "Unknown",
+        "profile": "general_ble",
+        "occurrences": 1,
+        "unique_days": 1,
+        "near_hits": 0,
+        "watch_hits": 0,
+        "tracker_hits": 0,
+        "random_hits": 0,
+        "alerts": 0,
+        "max_score": 18,
+        "avg_score": 18.0,
+        "first_seen": "2026-04-16_00-13-40",
+        "last_seen": "2026-04-16_00-13-40",
+        "persistence_score": 16,
+        "patterns": []
+      },
+      "trust_label": "unknown",
+      "priority_score": 33,
+      "reasons": [
+        "persistance historique",
+        "anomalie comportementale"
+      ]
+    },
+    {
+      "device": {
+        "name": "Inconnu",
+        "address": "2D:FE:6D:B8:18:E2",
+        "rssi": -83,
+        "score": 30,
+        "classification": "normal",
+        "reason": "nom inconnu",
+        "vendor": "Unknown",
+        "whitelisted": false,
+        "watched": false,
+        "watch_hit": false,
+        "is_new_device": true,
+        "seen_count": 1,
+        "near_count": 0,
+        "persistent_nearby": false,
+        "risk_score": 30,
+        "follow_score": 0,
+        "confidence_score": 40,
+        "final_score": 18,
+        "threat_score": 18,
+        "alert_level": "faible",
+        "possible_suivi": false,
+        "profile": "general_ble",
+        "flags": [
+          "new"
+        ],
+        "reason_full": [
+          "nom inconnu"
+        ],
+        "reason_short": "nom inconnu"
+      },
+      "knowledge": {},
+      "behavior": {
+        "device": {
+          "name": "Inconnu",
+          "address": "2D:FE:6D:B8:18:E2",
+          "rssi": -83,
+          "score": 30,
+          "classification": "normal",
+          "reason": "nom inconnu",
+          "vendor": "Unknown",
+          "whitelisted": false,
+          "watched": false,
+          "watch_hit": false,
+          "is_new_device": true,
+          "seen_count": 1,
+          "near_count": 0,
+          "persistent_nearby": false,
+          "risk_score": 30,
+          "follow_score": 0,
+          "confidence_score": 40,
+          "final_score": 18,
+          "threat_score": 18,
+          "alert_level": "faible",
+          "possible_suivi": false,
+          "profile": "general_ble",
+          "flags": [
+            "new"
+          ],
+          "reason_full": [
+            "nom inconnu"
+          ],
+          "reason_short": "nom inconnu"
+        },
+        "behavior": {
+          "occurrences": 1,
+          "avg_rssi": -83,
+          "avg_score": 18,
+          "max_score": 18,
+          "days_seen": 1,
+          "max_alert": "faible",
+          "known_vendor": "Unknown",
+          "known_profile": "general_ble"
+        },
+        "anomaly_score": 12,
+        "anomalies": [
+          "présence historiquement rare"
+        ]
+      },
+      "persistence": {
+        "address": "2D:FE:6D:B8:18:E2",
+        "name": "Inconnu",
+        "vendor": "Unknown",
+        "profile": "general_ble",
+        "occurrences": 1,
+        "unique_days": 1,
+        "near_hits": 0,
+        "watch_hits": 0,
+        "tracker_hits": 0,
+        "random_hits": 0,
+        "alerts": 0,
+        "max_score": 18,
+        "avg_score": 18.0,
+        "first_seen": "2026-04-16_00-13-40",
+        "last_seen": "2026-04-16_00-13-40",
+        "persistence_score": 16,
+        "patterns": []
+      },
+      "trust_label": "unknown",
+      "priority_score": 33,
+      "reasons": [
+        "persistance historique",
+        "anomalie comportementale"
+      ]
+    },
+    {
+      "device": {
+        "name": "Inconnu",
+        "address": "B0:D2:78:08:F6:24",
+        "rssi": -79,
+        "score": 30,
+        "classification": "normal",
+        "reason": "nom inconnu",
+        "vendor": "Unknown",
+        "whitelisted": false,
+        "watched": false,
+        "watch_hit": false,
+        "is_new_device": true,
+        "seen_count": 1,
+        "near_count": 0,
+        "persistent_nearby": false,
+        "risk_score": 30,
+        "follow_score": 0,
+        "confidence_score": 40,
+        "final_score": 18,
+        "threat_score": 18,
+        "alert_level": "faible",
+        "possible_suivi": false,
+        "profile": "general_ble",
+        "flags": [
+          "new"
+        ],
+        "reason_full": [
+          "nom inconnu"
+        ],
+        "reason_short": "nom inconnu"
+      },
+      "knowledge": {},
+      "behavior": {
+        "device": {
+          "name": "Inconnu",
+          "address": "B0:D2:78:08:F6:24",
+          "rssi": -79,
+          "score": 30,
+          "classification": "normal",
+          "reason": "nom inconnu",
+          "vendor": "Unknown",
+          "whitelisted": false,
+          "watched": false,
+          "watch_hit": false,
+          "is_new_device": true,
+          "seen_count": 1,
+          "near_count": 0,
+          "persistent_nearby": false,
+          "risk_score": 30,
+          "follow_score": 0,
+          "confidence_score": 40,
+          "final_score": 18,
+          "threat_score": 18,
+          "alert_level": "faible",
+          "possible_suivi": false,
+          "profile": "general_ble",
+          "flags": [
+            "new"
+          ],
+          "reason_full": [
+            "nom inconnu"
+          ],
+          "reason_short": "nom inconnu"
+        },
+        "behavior": {
+          "occurrences": 1,
+          "avg_rssi": -79,
+          "avg_score": 18,
+          "max_score": 18,
+          "days_seen": 1,
+          "max_alert": "faible",
+          "known_vendor": "Unknown",
+          "known_profile": "general_ble"
+        },
+        "anomaly_score": 12,
+        "anomalies": [
+          "présence historiquement rare"
+        ]
+      },
+      "persistence": {
+        "address": "B0:D2:78:08:F6:24",
+        "name": "Inconnu",
+        "vendor": "Unknown",
+        "profile": "general_ble",
+        "occurrences": 1,
+        "unique_days": 1,
+        "near_hits": 0,
+        "watch_hits": 0,
+        "tracker_hits": 0,
+        "random_hits": 0,
+        "alerts": 0,
+        "max_score": 18,
+        "avg_score": 18.0,
+        "first_seen": "2026-04-16_00-13-40",
+        "last_seen": "2026-04-16_00-13-40",
+        "persistence_score": 16,
+        "patterns": []
+      },
+      "trust_label": "unknown",
+      "priority_score": 33,
+      "reasons": [
+        "persistance historique",
+        "anomalie comportementale"
+      ]
+    },
+    {
+      "device": {
+        "name": "Inconnu",
+        "address": "3D:39:2A:EF:4C:5C",
+        "rssi": -75,
+        "score": 30,
+        "classification": "normal",
+        "reason": "nom inconnu",
+        "vendor": "Unknown",
+        "whitelisted": false,
+        "watched": false,
+        "watch_hit": false,
+        "is_new_device": true,
+        "seen_count": 1,
+        "near_count": 0,
+        "persistent_nearby": false,
+        "risk_score": 30,
+        "follow_score": 0,
+        "confidence_score": 40,
+        "final_score": 18,
+        "threat_score": 18,
+        "alert_level": "faible",
+        "possible_suivi": false,
+        "profile": "general_ble",
+        "flags": [
+          "new"
+        ],
+        "reason_full": [
+          "nom inconnu"
+        ],
+        "reason_short": "nom inconnu"
+      },
+      "knowledge": {},
+      "behavior": {
+        "device": {
+          "name": "Inconnu",
+          "address": "3D:39:2A:EF:4C:5C",
+          "rssi": -75,
+          "score": 30,
+          "classification": "normal",
+          "reason": "nom inconnu",
+          "vendor": "Unknown",
+          "whitelisted": false,
+          "watched": false,
+          "watch_hit": false,
+          "is_new_device": true,
+          "seen_count": 1,
+          "near_count": 0,
+          "persistent_nearby": false,
+          "risk_score": 30,
+          "follow_score": 0,
+          "confidence_score": 40,
+          "final_score": 18,
+          "threat_score": 18,
+          "alert_level": "faible",
+          "possible_suivi": false,
+          "profile": "general_ble",
+          "flags": [
+            "new"
+          ],
+          "reason_full": [
+            "nom inconnu"
+          ],
+          "reason_short": "nom inconnu"
+        },
+        "behavior": {
+          "occurrences": 1,
+          "avg_rssi": -75,
+          "avg_score": 18,
+          "max_score": 18,
+          "days_seen": 1,
+          "max_alert": "faible",
+          "known_vendor": "Unknown",
+          "known_profile": "general_ble"
+        },
+        "anomaly_score": 12,
+        "anomalies": [
+          "présence historiquement rare"
+        ]
+      },
+      "persistence": {
+        "address": "3D:39:2A:EF:4C:5C",
+        "name": "Inconnu",
+        "vendor": "Unknown",
+        "profile": "general_ble",
+        "occurrences": 1,
+        "unique_days": 1,
+        "near_hits": 0,
+        "watch_hits": 0,
+        "tracker_hits": 0,
+        "random_hits": 0,
+        "alerts": 0,
+        "max_score": 18,
+        "avg_score": 18.0,
+        "first_seen": "2026-04-16_00-13-40",
+        "last_seen": "2026-04-16_00-13-40",
+        "persistence_score": 16,
+        "patterns": []
+      },
+      "trust_label": "unknown",
+      "priority_score": 33,
+      "reasons": [
+        "persistance historique",
+        "anomalie comportementale"
+      ]
+    },
+    {
+      "device": {
+        "name": "Samsung AU8000 43 TV",
+        "address": "D0:C2:4E:EE:2B:B3",
+        "rssi": -69,
+        "score": 0,
+        "classification": "normal",
+        "reason": "normal",
+        "vendor": "Unknown",
+        "whitelisted": false,
+        "watched": false,
+        "watch_hit": false,
+        "is_new_device": true,
+        "seen_count": 2,
+        "near_count": 0,
+        "persistent_nearby": false,
+        "risk_score": 0,
+        "follow_score": 12,
+        "confidence_score": 48,
+        "final_score": 10,
+        "threat_score": 10,
+        "alert_level": "faible",
+        "possible_suivi": false,
+        "profile": "general_ble",
+        "flags": [
+          "new"
+        ],
+        "reason_full": [
+          "réapparition x2"
+        ],
+        "reason_short": "réapparition x2"
+      },
+      "knowledge": {},
+      "behavior": {
+        "device": {
+          "name": "Samsung AU8000 43 TV",
+          "address": "D0:C2:4E:EE:2B:B3",
+          "rssi": -69,
+          "score": 0,
+          "classification": "normal",
+          "reason": "normal",
+          "vendor": "Unknown",
+          "whitelisted": false,
+          "watched": false,
+          "watch_hit": false,
+          "is_new_device": true,
+          "seen_count": 2,
+          "near_count": 0,
+          "persistent_nearby": false,
+          "risk_score": 0,
+          "follow_score": 12,
+          "confidence_score": 48,
+          "final_score": 10,
+          "threat_score": 10,
+          "alert_level": "faible",
+          "possible_suivi": false,
+          "profile": "general_ble",
+          "flags": [
+            "new"
+          ],
+          "reason_full": [
+            "réapparition x2"
+          ],
+          "reason_short": "réapparition x2"
+        },
+        "behavior": {
+          "occurrences": 1,
+          "avg_rssi": -69,
+          "avg_score": 10,
+          "max_score": 10,
+          "days_seen": 1,
+          "max_alert": "faible",
+          "known_vendor": "Unknown",
+          "known_profile": "general_ble"
+        },
+        "anomaly_score": 12,
+        "anomalies": [
+          "présence historiquement rare"
+        ]
+      },
+      "persistence": {
+        "address": "D0:C2:4E:EE:2B:B3",
+        "name": "Samsung AU8000 43 TV",
+        "vendor": "Unknown",
+        "profile": "general_ble",
+        "occurrences": 1,
+        "unique_days": 1,
+        "near_hits": 1,
+        "watch_hits": 0,
+        "tracker_hits": 0,
+        "random_hits": 0,
+        "alerts": 0,
+        "max_score": 10,
+        "avg_score": 10.0,
+        "first_seen": "2026-04-16_00-13-40",
+        "last_seen": "2026-04-16_00-13-40",
+        "persistence_score": 20,
+        "patterns": []
+      },
+      "trust_label": "unknown",
+      "priority_score": 27,
+      "reasons": [
+        "persistance historique",
+        "anomalie comportementale"
+      ]
+    },
+    {
+      "device": {
+        "name": "65\" Crystal UHD",
+        "address": "B0:F2:F6:60:CA:48",
+        "rssi": -98,
+        "score": 0,
+        "classification": "normal",
+        "reason": "normal",
+        "vendor": "Unknown",
+        "whitelisted": false,
+        "watched": false,
+        "watch_hit": false,
+        "is_new_device": true,
+        "seen_count": 2,
+        "near_count": 0,
+        "persistent_nearby": false,
+        "risk_score": 0,
+        "follow_score": 12,
+        "confidence_score": 48,
+        "final_score": 10,
+        "threat_score": 10,
+        "alert_level": "faible",
+        "possible_suivi": false,
+        "profile": "general_ble",
+        "flags": [
+          "new"
+        ],
+        "reason_full": [
+          "réapparition x2"
+        ],
+        "reason_short": "réapparition x2"
+      },
+      "knowledge": {},
+      "behavior": {
+        "device": {
+          "name": "65\" Crystal UHD",
+          "address": "B0:F2:F6:60:CA:48",
+          "rssi": -98,
+          "score": 0,
+          "classification": "normal",
+          "reason": "normal",
+          "vendor": "Unknown",
+          "whitelisted": false,
+          "watched": false,
+          "watch_hit": false,
+          "is_new_device": true,
+          "seen_count": 2,
+          "near_count": 0,
+          "persistent_nearby": false,
+          "risk_score": 0,
+          "follow_score": 12,
+          "confidence_score": 48,
+          "final_score": 10,
+          "threat_score": 10,
+          "alert_level": "faible",
+          "possible_suivi": false,
+          "profile": "general_ble",
+          "flags": [
+            "new"
+          ],
+          "reason_full": [
+            "réapparition x2"
+          ],
+          "reason_short": "réapparition x2"
+        },
+        "behavior": {
+          "occurrences": 1,
+          "avg_rssi": -98,
+          "avg_score": 10,
+          "max_score": 10,
+          "days_seen": 1,
+          "max_alert": "faible",
+          "known_vendor": "Unknown",
+          "known_profile": "general_ble"
+        },
+        "anomaly_score": 12,
+        "anomalies": [
+          "présence historiquement rare"
+        ]
+      },
+      "persistence": {
+        "address": "B0:F2:F6:60:CA:48",
+        "name": "65\" Crystal UHD",
+        "vendor": "Unknown",
+        "profile": "general_ble",
+        "occurrences": 1,
+        "unique_days": 1,
+        "near_hits": 0,
+        "watch_hits": 0,
+        "tracker_hits": 0,
+        "random_hits": 0,
+        "alerts": 0,
+        "max_score": 10,
+        "avg_score": 10.0,
+        "first_seen": "2026-04-16_00-13-40",
+        "last_seen": "2026-04-16_00-13-40",
+        "persistence_score": 15,
+        "patterns": []
+      },
+      "trust_label": "unknown",
+      "priority_score": 25,
+      "reasons": [
+        "persistance historique",
+        "anomalie comportementale"
+      ]
+    },
+    {
+      "device": {
+        "name": "Asus",
+        "address": "80:E1:26:75:73:41",
+        "rssi": -85,
+        "score": 0,
+        "classification": "normal",
+        "reason": "normal",
+        "vendor": "Unknown",
+        "whitelisted": false,
+        "watched": false,
+        "watch_hit": false,
+        "is_new_device": true,
+        "seen_count": 2,
+        "near_count": 1,
+        "persistent_nearby": false,
+        "risk_score": 0,
+        "follow_score": 12,
+        "confidence_score": 48,
+        "final_score": 10,
+        "threat_score": 10,
+        "alert_level": "faible",
+        "possible_suivi": false,
+        "profile": "general_ble",
+        "flags": [
+          "new"
+        ],
+        "reason_full": [
+          "réapparition x2"
+        ],
+        "reason_short": "réapparition x2"
+      },
+      "knowledge": {},
+      "behavior": {
+        "device": {
+          "name": "Asus",
+          "address": "80:E1:26:75:73:41",
+          "rssi": -85,
+          "score": 0,
+          "classification": "normal",
+          "reason": "normal",
+          "vendor": "Unknown",
+          "whitelisted": false,
+          "watched": false,
+          "watch_hit": false,
+          "is_new_device": true,
+          "seen_count": 2,
+          "near_count": 1,
+          "persistent_nearby": false,
+          "risk_score": 0,
+          "follow_score": 12,
+          "confidence_score": 48,
+          "final_score": 10,
+          "threat_score": 10,
+          "alert_level": "faible",
+          "possible_suivi": false,
+          "profile": "general_ble",
+          "flags": [
+            "new"
+          ],
+          "reason_full": [
+            "réapparition x2"
+          ],
+          "reason_short": "réapparition x2"
+        },
+        "behavior": {
+          "occurrences": 1,
+          "avg_rssi": -85,
+          "avg_score": 10,
+          "max_score": 10,
+          "days_seen": 1,
+          "max_alert": "faible",
+          "known_vendor": "Unknown",
+          "known_profile": "general_ble"
+        },
+        "anomaly_score": 12,
+        "anomalies": [
+          "présence historiquement rare"
+        ]
+      },
+      "persistence": {
+        "address": "80:E1:26:75:73:41",
+        "name": "Asus",
+        "vendor": "Unknown",
+        "profile": "general_ble",
+        "occurrences": 1,
+        "unique_days": 1,
+        "near_hits": 0,
+        "watch_hits": 0,
+        "tracker_hits": 0,
+        "random_hits": 0,
+        "alerts": 0,
+        "max_score": 10,
+        "avg_score": 10.0,
+        "first_seen": "2026-04-16_00-13-40",
+        "last_seen": "2026-04-16_00-13-40",
+        "persistence_score": 15,
+        "patterns": []
+      },
+      "trust_label": "unknown",
+      "priority_score": 25,
+      "reasons": [
+        "persistance historique",
+        "anomalie comportementale"
+      ]
+    }
+  ],
+  "threat_state": "bruit_normal"
+}

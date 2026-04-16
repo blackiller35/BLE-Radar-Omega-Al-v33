@@ -1,0 +1,499 @@
+from pathlib import Path
+import time
+
+from ble_radar.config import FULL_SCAN_SECONDS, LIVE_SCAN_SECONDS
+from ble_radar.engine import run_engine_scan, run_engine_cycle, summarize_engine_result
+from ble_radar.selectors import only_alerts, only_trackers, sort_by_score
+from ble_radar.views import (
+    view_critical,
+    view_high_plus,
+    view_trackers,
+    view_watch_hits,
+    view_new_devices,
+    view_nearby,
+    view_apple_like,
+    view_random_mac,
+    view_unknown_vendor,
+    view_top_hot,
+    summarize_views,
+)
+from ble_radar.state import (
+    load_last_scan,
+    load_live_history,
+    load_whitelist,
+    save_whitelist,
+    load_watchlist,
+    save_watchlist,
+    load_scan_history,
+)
+from ble_radar.query import query_devices, query_history, suggest_queries
+from ble_radar.inspector import pick_top_devices
+from ble_radar.search import compare_last_two_scans
+from ble_radar.router import (
+    open_html_report,
+    render_devices,
+    show_engine_summary,
+    show_report_paths,
+    show_vendor_summary,
+    show_comparison_summary,
+    show_named_list,
+    show_history_view,
+    show_inspection_view,
+    show_history_search_results,
+    show_query_suggestions_list,
+    select_device_interactive,
+    investigation_menu,
+)
+from ble_radar.ui import *
+
+
+def do_scan():
+    result = run_engine_cycle(seconds=FULL_SCAN_SECONDS)
+    devices = result["devices"]
+
+    if not devices:
+        clear()
+        banner()
+        print(color("\nAucun appareil détecté.", YELLOW, bold=True))
+        pause()
+        return
+
+    render_devices(devices, "Scan complet IA")
+    show_engine_summary(summarize_engine_result(result))
+    if result.get("paths"):
+        show_report_paths(result["paths"])
+        open_html_report(result["paths"]["html"])
+    show_vendor_summary(devices)
+    show_comparison_summary(result.get("comparison"))
+    pause()
+
+
+def show_alerts_only():
+    devices = only_alerts(run_engine_scan(FULL_SCAN_SECONDS), "moyen")
+
+    if not devices:
+        clear()
+        banner()
+        print(color("\nAucune alerte active.", GREEN, bold=True))
+        pause()
+        return
+
+    render_devices(devices, "Alertes actives")
+    pause()
+
+
+def show_trackers_only():
+    devices = only_trackers(run_engine_scan(FULL_SCAN_SECONDS))
+
+    if not devices:
+        clear()
+        banner()
+        print(color("\nAucun tracker probable.", GREEN, bold=True))
+        pause()
+        return
+
+    render_devices(devices, "Trackers probables")
+    pause()
+
+
+def run_view(title, fn):
+    devices = fn(run_engine_scan(FULL_SCAN_SECONDS))
+    devices = sort_by_score(devices)
+
+    if not devices:
+        clear()
+        banner()
+        print(color(f"\nAucun résultat pour: {title}", YELLOW, bold=True))
+        pause()
+        return
+
+    render_devices(devices, title)
+    pause()
+
+
+def smart_views_menu():
+    while True:
+        clear()
+        banner()
+        print(color("\nVues intelligentes", CYAN, bold=True))
+        print(hr())
+        print("1) Critiques")
+        print("2) Élevés +")
+        print("3) Trackers probables")
+        print("4) Watchlist hits")
+        print("5) Nouveaux appareils")
+        print("6) Proximité persistante")
+        print("7) Apple-like")
+        print("8) MAC random")
+        print("9) Vendor inconnu")
+        print("10) Top appareils chauds")
+        print("11) Résumé des vues")
+        print("12) Retour")
+
+        choice = input("Choix > ").strip()
+
+        if choice == "1":
+            run_view("Vue critique", view_critical)
+        elif choice == "2":
+            run_view("Vue élevés +", view_high_plus)
+        elif choice == "3":
+            run_view("Vue trackers", view_trackers)
+        elif choice == "4":
+            run_view("Vue watchlist hits", view_watch_hits)
+        elif choice == "5":
+            run_view("Vue nouveaux appareils", view_new_devices)
+        elif choice == "6":
+            run_view("Vue proximité persistante", view_nearby)
+        elif choice == "7":
+            run_view("Vue Apple-like", view_apple_like)
+        elif choice == "8":
+            run_view("Vue MAC random", view_random_mac)
+        elif choice == "9":
+            run_view("Vue vendor inconnu", view_unknown_vendor)
+        elif choice == "10":
+            run_view("Vue top appareils chauds", lambda d: view_top_hot(d, 15))
+        elif choice == "11":
+            devices = run_engine_scan(FULL_SCAN_SECONDS)
+            summary = summarize_views(devices)
+            clear()
+            banner()
+            print(color("\nRésumé des vues", CYAN, bold=True))
+            print(hr())
+            for k, v in summary.items():
+                print(f"{k}: {v}")
+            pause()
+        elif choice == "12":
+            break
+        else:
+            print(color("Choix invalide", RED, bold=True))
+            pause()
+
+
+def open_last():
+    files = sorted(
+        Path("reports").glob("*.html"),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    clear()
+    banner()
+    if files:
+        print(color(f"\nOuverture: {files[0]}", GREEN, bold=True))
+        open_html_report(files[0])
+    else:
+        print(color("\nAucun rapport HTML trouvé.", YELLOW, bold=True))
+    pause()
+
+
+def show_history():
+    show_history_view(load_live_history())
+
+
+def show_whitelist():
+    show_named_list("Whitelist", load_whitelist())
+
+
+def show_watchlist():
+    show_named_list("Watchlist", load_watchlist())
+
+
+def add_last_seen_to_named_list(target="white"):
+    hist = load_live_history()
+    if not hist:
+        clear()
+        banner()
+        print(color("\nHistorique vide.", YELLOW, bold=True))
+        pause()
+        return
+
+    clear()
+    banner()
+    title = "Ajouter à la whitelist" if target == "white" else "Ajouter à la watchlist"
+    print(color(f"\n{title}", CYAN, bold=True))
+    print(hr())
+
+    items = sorted(hist.items(), key=lambda x: x[1].get("seen_count", 0), reverse=True)
+    for i, (addr, info) in enumerate(items[:20], start=1):
+        print(f"{i}) {info.get('name','Inconnu')} | {addr} | vus:{info.get('seen_count', 0)}")
+    print("0) Retour")
+
+    raw = input("Choix > ").strip()
+    try:
+        idx = int(raw)
+    except Exception:
+        pause()
+        return
+
+    if idx == 0 or not (1 <= idx <= min(20, len(items))):
+        return
+
+    addr, info = items[idx - 1]
+    entry = {"address": addr, "name": info.get("name", "Inconnu")}
+
+    if target == "white":
+        data = load_whitelist()
+        data.append(entry)
+        save_whitelist(data)
+    else:
+        data = load_watchlist()
+        data.append(entry)
+        save_watchlist(data)
+
+    print(color(f"\nAjouté: {addr}", GREEN, bold=True))
+    pause()
+
+
+def remove_from_named_list(target="white"):
+    if target == "white":
+        data = load_whitelist()
+        title = "Supprimer de la whitelist"
+        saver = save_whitelist
+    else:
+        data = load_watchlist()
+        title = "Supprimer de la watchlist"
+        saver = save_watchlist
+
+    clear()
+    banner()
+    print(color(f"\n{title}", CYAN, bold=True))
+    print(hr())
+
+    if not data:
+        print(color("Liste vide.", YELLOW, bold=True))
+        pause()
+        return
+
+    for i, item in enumerate(data, start=1):
+        print(f"{i}) {item.get('name','')} | {item.get('address','')}")
+    print("0) Retour")
+
+    raw = input("Choix > ").strip()
+    try:
+        idx = int(raw)
+    except Exception:
+        pause()
+        return
+
+    if idx == 0 or not (1 <= idx <= len(data)):
+        return
+
+    removed = data.pop(idx - 1)
+    saver(data)
+    print(color(f"\nSupprimé: {removed.get('address','')}", GREEN, bold=True))
+    pause()
+
+
+def show_top_recurrents():
+    hist = load_live_history()
+    clear()
+    banner()
+    print(color("\nTop récurrents", CYAN, bold=True))
+    print(hr())
+
+    if not hist:
+        print(color("Historique vide.", YELLOW, bold=True))
+        pause()
+        return
+
+    items = sorted(
+        hist.items(),
+        key=lambda x: (
+            x[1].get("possible_suivi", False),
+            x[1].get("near_count", 0),
+            x[1].get("seen_count", 0),
+        ),
+        reverse=True,
+    )
+
+    for addr, info in items[:20]:
+        print(
+            f"{info.get('name','Inconnu')} | {addr} | vus:{info.get('seen_count',0)} | "
+            f"near:{info.get('near_count',0)} | alert:{info.get('last_alert_level','faible')} | "
+            f"profile:{info.get('last_profile','unknown')} | "
+            f"suivi?: {info.get('possible_suivi', False)}"
+        )
+    pause()
+
+
+def search_last_scan_interactive():
+    devices = load_last_scan()
+    clear()
+    banner()
+    if not devices:
+        print(color("\nAucun dernier scan disponible. Lance un scan complet IA d'abord.", YELLOW, bold=True))
+        pause()
+        return
+
+    query = input(color("\nRecherche dernier scan > ", CYAN, bold=True)).strip()
+    results = query_devices(devices, query, 20)
+
+    if not results:
+        print(color("\nAucun résultat.", YELLOW, bold=True))
+        pause()
+        return
+
+    render_devices(results, f"Recherche dernier scan: {query}")
+    pause()
+
+
+def search_history_interactive():
+    history = load_scan_history()
+    clear()
+    banner()
+
+    if not history:
+        print(color("\nHistorique vide.", YELLOW, bold=True))
+        pause()
+        return
+
+    query = input(color("\nRecherche historique > ", CYAN, bold=True)).strip()
+    results = query_history(history, query, 25)
+    show_history_search_results(query, results)
+
+
+def inspect_last_scan_device():
+    devices = pick_top_devices(sort_by_score(load_last_scan()), 20)
+    if not devices:
+        clear()
+        banner()
+        print(color("\nAucun dernier scan disponible.", YELLOW, bold=True))
+        pause()
+        return
+
+    selected = select_device_interactive(devices, "Choisis un appareil du dernier scan", 20)
+    if not selected:
+        return
+
+    show_inspection_view(selected)
+
+
+def show_last_two_scan_compare():
+    comp = compare_last_two_scans()
+    clear()
+    banner()
+    print(color("\nComparaison des 2 derniers scans", CYAN, bold=True))
+    print(hr())
+
+    if not comp:
+        print(color("Pas assez d'historique pour comparer.", YELLOW, bold=True))
+        pause()
+        return
+
+    show_comparison_summary(comp)
+
+    if comp["added"]:
+        print(color("\nTop nouveaux", BLUE, bold=True))
+        for d in comp["added"][:8]:
+            print(f"- {d.get('name','Inconnu')} | {d.get('address','-')} | {d.get('vendor','Unknown')}")
+
+    if comp["removed"]:
+        print(color("\nTop disparus", BLUE, bold=True))
+        for d in comp["removed"][:8]:
+            print(f"- {d.get('name','Inconnu')} | {d.get('address','-')} | {d.get('vendor','Unknown')}")
+
+    pause()
+
+
+def show_query_suggestions():
+    devices = load_last_scan()
+    if not devices:
+        clear()
+        banner()
+        print(color("\nAucun dernier scan disponible.", YELLOW, bold=True))
+        pause()
+        return
+
+    show_query_suggestions_list(suggest_queries(devices))
+
+
+def open_investigation_menu():
+    investigation_menu({
+        "search_last": search_last_scan_interactive,
+        "search_history": search_history_interactive,
+        "inspect_last": inspect_last_scan_device,
+        "compare_last_two": show_last_two_scan_compare,
+        "suggest_queries": show_query_suggestions,
+    })
+
+
+def live_radar():
+    try:
+        while True:
+            devices = only_alerts(run_engine_scan(LIVE_SCAN_SECONDS), "moyen")
+            if not devices:
+                devices = run_engine_scan(LIVE_SCAN_SECONDS)
+
+            render_devices(devices, "Radar live IA (Ctrl+C pour sortir)")
+            show_vendor_summary(devices)
+            print()
+            print(color("Rafraîchissement auto toutes les 3 secondes...", CYAN, bold=True))
+            time.sleep(3)
+    except KeyboardInterrupt:
+        print()
+        print(color("Sortie du radar live.", GREEN, bold=True))
+        pause()
+
+
+def main_menu():
+    while True:
+        clear()
+        banner()
+        print(color("\nMenu principal batch 15.4\n", CYAN, bold=True))
+        print("1) Scan complet IA")
+        print("2) Alertes actives")
+        print("3) Trackers probables")
+        print("4) Centre d'investigation")
+        print("5) Vues intelligentes")
+        print("6) Ouvrir dernier HTML")
+        print("7) Historique local")
+        print("8) Radar live")
+        print("9) Voir whitelist")
+        print("10) Ajouter à la whitelist")
+        print("11) Supprimer de la whitelist")
+        print("12) Voir watchlist")
+        print("13) Ajouter à la watchlist")
+        print("14) Supprimer de la watchlist")
+        print("15) Top récurrents")
+        print("16) Quitter")
+
+        choice = input("Choix > ").strip()
+
+        if choice == "1":
+            do_scan()
+        elif choice == "2":
+            show_alerts_only()
+        elif choice == "3":
+            show_trackers_only()
+        elif choice == "4":
+            open_investigation_menu()
+        elif choice == "5":
+            smart_views_menu()
+        elif choice == "6":
+            open_last()
+        elif choice == "7":
+            show_history()
+        elif choice == "8":
+            live_radar()
+        elif choice == "9":
+            show_whitelist()
+        elif choice == "10":
+            add_last_seen_to_named_list("white")
+        elif choice == "11":
+            remove_from_named_list("white")
+        elif choice == "12":
+            show_watchlist()
+        elif choice == "13":
+            add_last_seen_to_named_list("watch")
+        elif choice == "14":
+            remove_from_named_list("watch")
+        elif choice == "15":
+            show_top_recurrents()
+        elif choice == "16":
+            break
+        else:
+            print(color("Choix invalide", RED, bold=True))
+            pause()
+
+
+def main():
+    main_menu()

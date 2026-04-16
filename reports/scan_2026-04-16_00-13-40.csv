@@ -1,0 +1,8 @@
+name,address,vendor,profile,rssi,risk_score,follow_score,confidence_score,final_score,classification,alert_level,reason_short,seen_count,near_count,possible_suivi,persistent_nearby,whitelisted,watched,watch_hit,random_mac,apple_prefix,is_new_device
+Inconnu,56:2B:EF:D7:4E:30,Unknown,general_ble,-78,30,0,40,18,normal,faible,nom inconnu,1,0,False,False,False,False,False,False,False,True
+Inconnu,2D:FE:6D:B8:18:E2,Unknown,general_ble,-83,30,0,40,18,normal,faible,nom inconnu,1,0,False,False,False,False,False,False,False,True
+Inconnu,B0:D2:78:08:F6:24,Unknown,general_ble,-79,30,0,40,18,normal,faible,nom inconnu,1,0,False,False,False,False,False,False,False,True
+Inconnu,3D:39:2A:EF:4C:5C,Unknown,general_ble,-75,30,0,40,18,normal,faible,nom inconnu,1,0,False,False,False,False,False,False,False,True
+Samsung AU8000 43 TV,D0:C2:4E:EE:2B:B3,Unknown,general_ble,-69,0,12,48,10,normal,faible,réapparition x2,2,0,False,False,False,False,False,False,False,True
+"65"" Crystal UHD",B0:F2:F6:60:CA:48,Unknown,general_ble,-98,0,12,48,10,normal,faible,réapparition x2,2,0,False,False,False,False,False,False,False,True
+Asus,80:E1:26:75:73:41,Unknown,general_ble,-85,0,12,48,10,normal,faible,réapparition x2,2,1,False,False,False,False,False,False,False,True

@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "thresholds": {
+    "priority_high": 70,
+    "priority_critical": 85,
+    "watch_hits": 1,
+    "critical_alerts": 1,
+    "high_alerts": 2,
+    "campaign_count": 1,
+    "tracker_cluster": 2,
+    "escalations": 2
+  }
+}

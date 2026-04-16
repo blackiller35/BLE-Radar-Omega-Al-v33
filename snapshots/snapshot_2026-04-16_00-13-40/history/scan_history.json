@@ -1,0 +1,290 @@
+[
+  {
+    "timestamp": "2026-04-15_15-08-27",
+    "count": 16,
+    "top_devices": [
+      {
+        "name": "Inconnu",
+        "address": "0D:B3:01:F8:3F:3E",
+        "score": 0
+      },
+      {
+        "name": "65\" Crystal UHD",
+        "address": "B0:F2:F6:60:CA:48",
+        "score": 0
+      },
+      {
+        "name": "Inconnu",
+        "address": "76:DE:0C:35:C6:12",
+        "score": 0
+      },
+      {
+        "name": "Inconnu",
+        "address": "2E:70:27:34:02:56",
+        "score": 0
+      },
+      {
+        "name": "Samsung AU8000 43 TV",
+        "address": "D0:C2:4E:EE:2B:B3",
+        "score": 0
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-04-15_15-14-50",
+    "count": 15,
+    "top_devices": [
+      {
+        "name": "Inconnu",
+        "address": "2F:47:6D:6B:74:DA",
+        "score": 40
+      },
+      {
+        "name": "Inconnu",
+        "address": "1C:29:BF:AD:86:83",
+        "score": 30
+      },
+      {
+        "name": "Inconnu",
+        "address": "65:66:6D:30:2D:65",
+        "score": 30
+      },
+      {
+        "name": "Inconnu",
+        "address": "C8:5A:CF:18:12:80",
+        "score": 30
+      },
+      {
+        "name": "Inconnu",
+        "address": "1E:54:62:1C:96:DF",
+        "score": 30
+      }
+    ]
+  },
+  {
+    "stamp": "2026-04-16_00-13-40",
+    "count": 7,
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "devices": [
+      {
+        "name": "Inconnu",
+        "address": "56:2B:EF:D7:4E:30",
+        "rssi": -78,
+        "score": 30,
+        "classification": "normal",
+        "reason": "nom inconnu",
+        "vendor": "Unknown",
+        "whitelisted": false,
+        "watched": false,
+        "watch_hit": false,
+        "is_new_device": true,
+        "seen_count": 1,
+        "near_count": 0,
+        "persistent_nearby": false,
+        "risk_score": 30,
+        "follow_score": 0,
+        "confidence_score": 40,
+        "final_score": 18,
+        "threat_score": 18,
+        "alert_level": "faible",
+        "possible_suivi": false,
+        "profile": "general_ble",
+        "flags": [
+          "new"
+        ],
+        "reason_full": [
+          "nom inconnu"
+        ],
+        "reason_short": "nom inconnu"
+      },
+      {
+        "name": "Inconnu",
+        "address": "2D:FE:6D:B8:18:E2",
+        "rssi": -83,
+        "score": 30,
+        "classification": "normal",
+        "reason": "nom inconnu",
+        "vendor": "Unknown",
+        "whitelisted": false,
+        "watched": false,
+        "watch_hit": false,
+        "is_new_device": true,
+        "seen_count": 1,
+        "near_count": 0,
+        "persistent_nearby": false,
+        "risk_score": 30,
+        "follow_score": 0,
+        "confidence_score": 40,
+        "final_score": 18,
+        "threat_score": 18,
+        "alert_level": "faible",
+        "possible_suivi": false,
+        "profile": "general_ble",
+        "flags": [
+          "new"
+        ],
+        "reason_full": [
+          "nom inconnu"
+        ],
+        "reason_short": "nom inconnu"
+      },
+      {
+        "name": "Inconnu",
+        "address": "B0:D2:78:08:F6:24",
+        "rssi": -79,
+        "score": 30,
+        "classification": "normal",
+        "reason": "nom inconnu",
+        "vendor": "Unknown",
+        "whitelisted": false,
+        "watched": false,
+        "watch_hit": false,
+        "is_new_device": true,
+        "seen_count": 1,
+        "near_count": 0,
+        "persistent_nearby": false,
+        "risk_score": 30,
+        "follow_score": 0,
+        "confidence_score": 40,
+        "final_score": 18,
+        "threat_score": 18,
+        "alert_level": "faible",
+        "possible_suivi": false,
+        "profile": "general_ble",
+        "flags": [
+          "new"
+        ],
+        "reason_full": [
+          "nom inconnu"
+        ],
+        "reason_short": "nom inconnu"
+      },
+      {
+        "name": "Inconnu",
+        "address": "3D:39:2A:EF:4C:5C",
+        "rssi": -75,
+        "score": 30,
+        "classification": "normal",
+        "reason": "nom inconnu",
+        "vendor": "Unknown",
+        "whitelisted": false,
+        "watched": false,
+        "watch_hit": false,
+        "is_new_device": true,
+        "seen_count": 1,
+        "near_count": 0,
+        "persistent_nearby": false,
+        "risk_score": 30,
+        "follow_score": 0,
+        "confidence_score": 40,
+        "final_score": 18,
+        "threat_score": 18,
+        "alert_level": "faible",
+        "possible_suivi": false,
+        "profile": "general_ble",
+        "flags": [
+          "new"
+        ],
+        "reason_full": [
+          "nom inconnu"
+        ],
+        "reason_short": "nom inconnu"
+      },
+      {
+        "name": "Samsung AU8000 43 TV",
+        "address": "D0:C2:4E:EE:2B:B3",
+        "rssi": -69,
+        "score": 0,
+        "classification": "normal",
+        "reason": "normal",
+        "vendor": "Unknown",
+        "whitelisted": false,
+        "watched": false,
+        "watch_hit": false,
+        "is_new_device": true,
+        "seen_count": 2,
+        "near_count": 0,
+        "persistent_nearby": false,
+        "risk_score": 0,
+        "follow_score": 12,
+        "confidence_score": 48,
+        "final_score": 10,
+        "threat_score": 10,
+        "alert_level": "faible",
+        "possible_suivi": false,
+        "profile": "general_ble",
+        "flags": [
+          "new"
+        ],
+        "reason_full": [
+          "réapparition x2"
+        ],
+        "reason_short": "réapparition x2"
+      },
+      {
+        "name": "65\" Crystal UHD",
+        "address": "B0:F2:F6:60:CA:48",
+        "rssi": -98,
+        "score": 0,
+        "classification": "normal",
+        "reason": "normal",
+        "vendor": "Unknown",
+        "whitelisted": false,
+        "watched": false,
+        "watch_hit": false,
+        "is_new_device": true,
+        "seen_count": 2,
+        "near_count": 0,
+        "persistent_nearby": false,
+        "risk_score": 0,
+        "follow_score": 12,
+        "confidence_score": 48,
+        "final_score": 10,
+        "threat_score": 10,
+        "alert_level": "faible",
+        "possible_suivi": false,
+        "profile": "general_ble",
+        "flags": [
+          "new"
+        ],
+        "reason_full": [
+          "réapparition x2"
+        ],
+        "reason_short": "réapparition x2"
+      },
+      {
+        "name": "Asus",
+        "address": "80:E1:26:75:73:41",
+        "rssi": -85,
+        "score": 0,
+        "classification": "normal",
+        "reason": "normal",
+        "vendor": "Unknown",
+        "whitelisted": false,
+        "watched": false,
+        "watch_hit": false,
+        "is_new_device": true,
+        "seen_count": 2,
+        "near_count": 1,
+        "persistent_nearby": false,
+        "risk_score": 0,
+        "follow_score": 12,
+        "confidence_score": 48,
+        "final_score": 10,
+        "threat_score": 10,
+        "alert_level": "faible",
+        "possible_suivi": false,
+        "profile": "general_ble",
+        "flags": [
+          "new"
+        ],
+        "reason_full": [
+          "réapparition x2"
+        ],
+        "reason_short": "réapparition x2"
+      }
+    ]
+  }
+]

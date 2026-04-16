@@ -1,0 +1,21 @@
+Date: 2026-04-16
+Généré: 2026-04-16 00:13:40
+Scans: 1
+Appareils uniques: 7
+Nouveaux vs précédent: 7
+Trackers: 0
+Watch hits: 0
+Critiques: 0
+Élevés: 0
+
+Appareils persistants du jour:
+- Samsung AU8000 43 TV | D0:C2:4E:EE:2B:B3 | persist=20 | occ=1 | patterns=-
+- Inconnu | 56:2B:EF:D7:4E:30 | persist=16 | occ=1 | patterns=-
+- Inconnu | 2D:FE:6D:B8:18:E2 | persist=16 | occ=1 | patterns=-
+- Inconnu | B0:D2:78:08:F6:24 | persist=16 | occ=1 | patterns=-
+- Inconnu | 3D:39:2A:EF:4C:5C | persist=16 | occ=1 | patterns=-
+- 65" Crystal UHD | B0:F2:F6:60:CA:48 | persist=15 | occ=1 | patterns=-
+- Asus | 80:E1:26:75:73:41 | persist=15 | occ=1 | patterns=-
+
+Événements du jour:
+- aucun

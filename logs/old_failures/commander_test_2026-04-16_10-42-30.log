@@ -1,0 +1,173 @@
+c[1m[36m╔════════════════════════════════════════════════════════════════════════════╗[0m
+[1m[36m║                              BLE RADAR OMEGA                               ║[0m
+[36m║               COMMANDER / CITADEL / NEBULA / ORACLE / AEGIS                ║[0m
+[36m║        HELIOS / ATLAS / SENTINEL / ARGUS / OMEGA-X / NEXUS / TITAN         ║[0m
+[32m║                  stable release • final polished edition                   ║[0m
+[1m[36m╚════════════════════════════════════════════════════════════════════════════╝[0m
+[1m[36m
+BLE RADAR OMEGA — COMMANDER CITADEL NEBULA ORACLE AEGIS HELIOS ATLAS SENTINEL ARGUS OMEGA-X NEXUS TITAN [Balanced | General Ops | FORTRESS OK]
+[0m
+1) Scan Hub Pro
+2) Alert Center Pro
+3) Tracker Hunt+ Pro
+4) Investigation Hub Pro
+5) Smart Views Pro
+6) Command Center Pro
+7) Query Vault+
+8) Audit Export Pro
+9) Metrics & Anomalies Pro
+10) Replay Lab Pro
+11) Operator Profiles Pro
+12) Mission Modes Pro
+13) Mission Dashboard Pro
+14) Guided Scenarios Pro
+15) HTML Dashboard Pro
+16) Historique Local Pro
+17) Radar Live Pro
+18) Whitelist View Pro
+19) Whitelist Add Pro
+20) Whitelist Remove Pro
+21) Watchlist View Pro
+22) Watchlist Add Pro
+23) Watchlist Remove Pro
+24) Top Récurrents Pro
+25) Event Log Pro
+26) Automation Center Pro
+27) Doctor / Integrity Pro
+28) Snapshots / Restore Pro
+29) NEXUS Center Pro
+30) OMEGA-X Center Pro
+31) ARGUS Center Pro
+32) SENTINEL Center Pro
+33) ATLAS Center Pro
+34) HELIOS Center Pro
+35) AEGIS Center Pro
+36) ORACLE Center Pro
+37) NEBULA Center Pro
+38) CITADEL Center Pro
+39) COMMANDER Center Pro
+40) Quitter Pro
+Choix > c[1m[36m╔════════════════════════════════════════════════════════════════════════════╗[0m
+[1m[36m║                              BLE RADAR OMEGA                               ║[0m
+[36m║               COMMANDER / CITADEL / NEBULA / ORACLE / AEGIS                ║[0m
+[36m║        HELIOS / ATLAS / SENTINEL / ARGUS / OMEGA-X / NEXUS / TITAN         ║[0m
+[32m║                  stable release • final polished edition                   ║[0m
+[1m[36m╚════════════════════════════════════════════════════════════════════════════╝[0m
+[1m[36m\n39) COMMANDER Center Pro[0m
+[2m[37m────────────────────────────────────────────────────────────────────────────────────────────────────[0m
+Devices=7 | Top=18 | Threat=bruit_normal | Next=surveillance standard
+
+Stable+=STABLE+ OK | Doublons=17
+
+1) Startup check
+2) Brief opérateur
+3) Mode simple
+4) Workflows
+5) Manuel local
+6) Audit Stable+
+7) Retour
+Choix > c[1m[36m╔════════════════════════════════════════════════════════════════════════════╗[0m
+[1m[36m║                              BLE RADAR OMEGA                               ║[0m
+[36m║               COMMANDER / CITADEL / NEBULA / ORACLE / AEGIS                ║[0m
+[36m║        HELIOS / ATLAS / SENTINEL / ARGUS / OMEGA-X / NEXUS / TITAN         ║[0m
+[32m║                  stable release • final polished edition                   ║[0m
+[1m[36m╚════════════════════════════════════════════════════════════════════════════╝[0m
+[1m[36m
+COMMANDER — Startup check[0m
+[2m[37m────────────────────────────────────────────────────────────────────────────────────────────────────[0m
+FORTRESS: FORTRESS OK
+Fichiers: 34/34
+Imports: 33/33
+JSON: 9/9
+Snapshots: 1
+Automation: ON
+AEGIS: ON
+Dossiers ouverts: 0
+Manual: OK
+[2m[37mEntrée pour continuer...[0mc[1m[36m╔════════════════════════════════════════════════════════════════════════════╗[0m
+[1m[36m║                              BLE RADAR OMEGA                               ║[0m
+[36m║               COMMANDER / CITADEL / NEBULA / ORACLE / AEGIS                ║[0m
+[36m║        HELIOS / ATLAS / SENTINEL / ARGUS / OMEGA-X / NEXUS / TITAN         ║[0m
+[32m║                  stable release • final polished edition                   ║[0m
+[1m[36m╚════════════════════════════════════════════════════════════════════════════╝[0m
+[1m[36m\n39) COMMANDER Center Pro[0m
+[2m[37m────────────────────────────────────────────────────────────────────────────────────────────────────[0m
+Devices=7 | Top=18 | Threat=bruit_normal | Next=surveillance standard
+
+Stable+=STABLE+ OK | Doublons=17
+
+1) Startup check
+2) Brief opérateur
+3) Mode simple
+4) Workflows
+5) Manuel local
+6) Audit Stable+
+7) Retour
+Choix > c[1m[36m╔════════════════════════════════════════════════════════════════════════════╗[0m
+[1m[36m║                              BLE RADAR OMEGA                               ║[0m
+[36m║               COMMANDER / CITADEL / NEBULA / ORACLE / AEGIS                ║[0m
+[36m║        HELIOS / ATLAS / SENTINEL / ARGUS / OMEGA-X / NEXUS / TITAN         ║[0m
+[32m║                  stable release • final polished edition                   ║[0m
+[1m[36m╚════════════════════════════════════════════════════════════════════════════╝[0m
+[1m[36m
+Audit Stable+[0m
+[2m[37m────────────────────────────────────────────────────────────────────────────────────────────────────[0m
+Status: STABLE+ OK
+Imports: 13/13
+Handlers: 40/40
+Menu patches: 9/9
+Duplicate functions: 17
+
+Duplicates:
+- _batch43_brief: lignes 4789, 5268
+- automation_center: lignes 171, 4504
+- batch35_command_center_pro: lignes 2770, 4829
+- batch39_nexus_center_pro: lignes 4717, 4867
+- batch39_omegax_center_pro: lignes 4752, 4896
+- batch40_aegis_center_pro: lignes 3807, 5035
+- batch40_argus_center_pro: lignes 3685, 4928
+- batch40_atlas_center_pro: lignes 3746, 4983
+- batch40_helios_center_pro: lignes 3778, 5009
+- batch40_sentinel_center_pro: lignes 3714, 4954
+- batch41_citadel_center_pro: lignes 3898, 5110
+- batch41_commander_center_pro: lignes 3933, 5139
+- batch41_exit_pro: lignes 3968, 5185, 5295
+- batch41_nebula_center_pro: lignes 3866, 5084
+- batch41_oracle_center_pro: lignes 3840, 5061
+- show_automation_result: lignes 127, 4458
+- show_event_log: lignes 154, 4485
+[2m[37mEntrée pour continuer...[0mc[1m[36m╔════════════════════════════════════════════════════════════════════════════╗[0m
+[1m[36m║                              BLE RADAR OMEGA                               ║[0m
+[36m║               COMMANDER / CITADEL / NEBULA / ORACLE / AEGIS                ║[0m
+[36m║        HELIOS / ATLAS / SENTINEL / ARGUS / OMEGA-X / NEXUS / TITAN         ║[0m
+[32m║                  stable release • final polished edition                   ║[0m
+[1m[36m╚════════════════════════════════════════════════════════════════════════════╝[0m
+[1m[36m\n39) COMMANDER Center Pro[0m
+[2m[37m────────────────────────────────────────────────────────────────────────────────────────────────────[0m
+Devices=7 | Top=18 | Threat=bruit_normal | Next=surveillance standard
+
+Stable+=STABLE+ OK | Doublons=17
+
+1) Startup check
+2) Brief opérateur
+3) Mode simple
+4) Workflows
+5) Manuel local
+6) Audit Stable+
+7) Retour
+Choix > Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/tigars20244/Bureau/BLE-Radar-Omega-AI-v33/ble_radar/app.py", line 5307, in <module>
+    main()
+    ~~~~^^
+  File "/home/tigars20244/Bureau/BLE-Radar-Omega-AI-v33/ble_radar/app.py", line 4456, in main
+    main_menu()
+    ~~~~~~~~~^^
+  File "/home/tigars20244/Bureau/BLE-Radar-Omega-AI-v33/ble_radar/app.py", line 4447, in main_menu
+    batch41_commander_center_pro()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/tigars20244/Bureau/BLE-Radar-Omega-AI-v33/ble_radar/app.py", line 5157, in batch41_commander_center_pro
+    choice = input("Choix > ").strip()
+             ~~~~~^^^^^^^^^^^^
+EOFError: EOF when reading a line

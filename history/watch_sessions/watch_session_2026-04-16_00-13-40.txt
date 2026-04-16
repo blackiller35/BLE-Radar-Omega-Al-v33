@@ -1,0 +1,19 @@
+Généré: 2026-04-16 00:13:40
+Threat state: bruit_normal
+Top priority: 33
+Critiques: 0
+Élevés: 0
+Trackers: 0
+Watch hits: 0
+Escalades: 0
+Campaigns: 0
+
+Top cibles:
+- Inconnu | 56:2B:EF:D7:4E:30 | priority=33 | trust=unknown | alert=faible
+- Inconnu | 2D:FE:6D:B8:18:E2 | priority=33 | trust=unknown | alert=faible
+- Inconnu | B0:D2:78:08:F6:24 | priority=33 | trust=unknown | alert=faible
+- Inconnu | 3D:39:2A:EF:4C:5C | priority=33 | trust=unknown | alert=faible
+- Samsung AU8000 43 TV | D0:C2:4E:EE:2B:B3 | priority=27 | trust=unknown | alert=faible
+
+Escalades:
+- aucune
