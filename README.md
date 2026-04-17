@@ -76,3 +76,14 @@ Puis modifier par exemple :
 ## Configuration locale
 
 Note importante : `ble_radar/config.json` est un fichier local de surcharge et ne doit pas être poussé sur GitHub.
+
+## Vérification avant release
+
+Avant de taguer une version, tu peux lancer :
+
+    ./scripts/release_check.sh
+
+Ce script exécute :
+- python -m pytest -q
+- ./auto_menu_test.sh
+- git status
