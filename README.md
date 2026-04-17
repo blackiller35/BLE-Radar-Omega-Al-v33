@@ -221,3 +221,16 @@ Le projet peut maintenant générer un incident pack local à partir d'un cas :
 Exemple d'usage :
 
     from ble_radar.incident_pack import build_incident_pack
+
+## Automation safe mode
+
+Le projet dispose maintenant d'un mode dry-run pour l'automation :
+
+- `ble_radar/automation_safe.py`
+- collecte des règles déclenchées
+- trace lisible du contexte
+- liste des actions proposées sans exécution réelle
+
+Exemple d'usage :
+
+    from ble_radar.automation_safe import build_dry_run_report
