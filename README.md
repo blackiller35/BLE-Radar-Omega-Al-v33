@@ -58,8 +58,11 @@ Puis modifier par exemple :
 
 ## Releases
 
-- v0.1.0 : baseline stable initiale
-- v0.1.1 : validation runtime config + tests supplémentaires
+- `v0.1.0` : baseline stable initiale
+- `v0.1.1` : validation runtime config + tests supplémentaires
+- `v0.1.2` : README amélioré + documentation config locale
+- `v0.1.3` : dépôt durci + config locale explicitement ignorée
+
 
 ## Statut
 
@@ -69,3 +72,7 @@ Puis modifier par exemple :
 - engine et app branchés
 - CI GitHub Actions active
 - 29 tests validés
+
+## Configuration locale
+
+Note importante : `ble_radar/config.json` est un fichier local de surcharge et ne doit pas être poussé sur GitHub.
