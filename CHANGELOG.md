@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.4.5
+- panneau `Session diff récent` ajouté au dashboard HTML
+- intégration de `latest_session_diff()` dans `dashboard.py`
+- lecture directe du diff courant vs précédent ajoutée
+- README / PROJECT_STATUS / CHANGELOG mis à jour
+- base de tests portée à 132 tests
+
 ## v0.4.4
 - module `ble_radar/session_diff_report.py` ajouté
 - export local JSON/Markdown du session diff ajouté

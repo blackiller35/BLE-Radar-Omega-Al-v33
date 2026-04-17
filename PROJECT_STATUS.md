@@ -57,3 +57,7 @@ Repository ready as a stable working baseline.
 ## v0.4.4 extension
 - v0.4.4 : export local du session diff
 - rapport JSON/Markdown du dernier diff disponible
+
+## v0.4.5 extension
+- v0.4.5 : panneau session diff dans le dashboard
+- vue rapide du dernier diff directement dans l'interface HTML

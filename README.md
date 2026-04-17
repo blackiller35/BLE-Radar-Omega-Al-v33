@@ -318,3 +318,17 @@ Le projet peut maintenant exporter un rapport local du diff entre les deux derni
 Exemple d'usage :
 
     from ble_radar.session_diff_report import save_latest_session_diff_report
+
+## Dashboard session diff
+
+Le dashboard HTML affiche maintenant un panneau dédié au dernier diff de session :
+
+- `Session diff récent`
+- scan courant vs précédent
+- deltas sur devices / critiques / watch hits / trackers
+- top vendor et top device comparés
+
+Exemple :
+- `Previous`
+- `Current`
+- `Devices delta`

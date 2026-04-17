@@ -3,6 +3,7 @@ from html import escape
 from ble_radar.device_contract import explain_device, normalize_device
 from ble_radar.intel import get_tracker_candidates, get_vendor_summary
 from ble_radar.investigation import list_cases
+from ble_radar.session_diff import latest_session_diff
 from ble_radar.state import load_scan_history
 
 
@@ -35,6 +36,7 @@ def render_dashboard_html(devices, stamp: str) -> str:
     top_trackers = get_tracker_candidates(devices)[:10]
     vendor_counts = get_vendor_summary(devices)[:8]
     cases = list_cases()[:5]
+    latest_diff = latest_session_diff()
 
     trend_rows = []
     for row in history:
@@ -86,6 +88,20 @@ def render_dashboard_html(devices, stamp: str) -> str:
             f"status={escape(str(case.get('status', '-')))} | "
             f"updated={escape(str(case.get('updated_at', '-')))}</li>"
         )
+
+    if latest_diff.get("has_diff"):
+        diff_lines = [
+            f"<li>Previous: {escape(str(latest_diff.get('previous_stamp', '-')))}</li>",
+            f"<li>Current: {escape(str(latest_diff.get('current_stamp', '-')))}</li>",
+            f"<li>Devices delta: {escape(str(latest_diff.get('device_count_delta', 0)))}</li>",
+            f"<li>Critical delta: {escape(str(latest_diff.get('critical_delta', 0)))}</li>",
+            f"<li>Watch hits delta: {escape(str(latest_diff.get('watch_hits_delta', 0)))}</li>",
+            f"<li>Trackers delta: {escape(str(latest_diff.get('tracker_candidates_delta', 0)))}</li>",
+            f"<li>Top vendor: {escape(str(latest_diff.get('previous_top_vendor', 'Unknown')))} -> {escape(str(latest_diff.get('current_top_vendor', 'Unknown')))}</li>",
+            f"<li>Top device: {escape(str(latest_diff.get('previous_top_device', 'Inconnu')))} -> {escape(str(latest_diff.get('current_top_device', 'Inconnu')))}</li>",
+        ]
+    else:
+        diff_lines = ['<li class="muted">Aucun diff comparable disponible</li>']
 
     comparison_lines = [
         f"<li>Total: {len(devices)} ({_delta_label(len(devices), previous.get('count') if previous else None)} vs précédent)</li>",
@@ -224,6 +240,12 @@ ul {{ margin:0; padding-left:18px; }}
       <h2>Répartition vendors</h2>
       {''.join(vendor_bars) if vendor_bars else '<div class="muted">Aucune donnée</div>'}
     </div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Session diff récent</h2>
+    <ul>{''.join(diff_lines)}</ul>
+    <div class="muted">Résumé du dernier manifest comparé au précédent.</div>
   </div>
 
   <div class="grid2">
