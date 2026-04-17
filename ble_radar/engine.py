@@ -1,4 +1,4 @@
-from ble_radar.config import FULL_SCAN_SECONDS
+from ble_radar.config import FULL_SCAN_SECONDS, load_runtime_config
 from ble_radar.scanner import run_scan
 from ble_radar.intel import build_intel, compare_device_sets
 from ble_radar.state import (
@@ -10,13 +10,19 @@ from ble_radar.reports import save_all_reports
 from ble_radar.selectors import sort_by_score
 
 
-def run_engine_scan(seconds=FULL_SCAN_SECONDS):
+def run_engine_scan(seconds=None):
+    cfg = load_runtime_config()
+    if seconds is None:
+        seconds = int(cfg.get("scan_timeout", FULL_SCAN_SECONDS))
     raw = run_scan(seconds)
     devices = build_intel(raw)
     return sort_by_score(devices)
 
 
-def run_engine_cycle(seconds=FULL_SCAN_SECONDS, persist=True, save_reports=True, save_last=True):
+def run_engine_cycle(seconds=None, persist=True, save_reports=True, save_last=True):
+    cfg = load_runtime_config()
+    if seconds is None:
+        seconds = int(cfg.get("scan_timeout", FULL_SCAN_SECONDS))
     devices = run_engine_scan(seconds)
     previous = load_last_scan()
     comparison = compare_device_sets(devices, previous)
