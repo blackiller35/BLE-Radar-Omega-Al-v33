@@ -2,7 +2,7 @@ from datetime import datetime
 from pathlib import Path
 import json
 
-from ble_radar.config import STATE_DIR, HISTORY_DIR
+from ble_radar.config import STATE_DIR, HISTORY_DIR, get_runtime_section
 from ble_radar.state import load_json, save_json
 from ble_radar.ops import radio_health
 from ble_radar.audit import build_audit_package, save_audit_package
@@ -13,7 +13,7 @@ AUTOMATION_FILE = STATE_DIR / "automation_rules.json"
 INCIDENTS_DIR = HISTORY_DIR / "incidents"
 INCIDENTS_DIR.mkdir(parents=True, exist_ok=True)
 
-DEFAULT_AUTOMATION = {
+DEFAULT_AUTOMATION = get_runtime_section("automation", {
     "enabled": True,
     "rules": [
         {
@@ -49,10 +49,7 @@ DEFAULT_AUTOMATION = {
             "action": "log_incident",
         },
     ],
-}
-
-if not AUTOMATION_FILE.exists():
-    save_json(AUTOMATION_FILE, DEFAULT_AUTOMATION)
+})
 
 
 def load_automation_config():
