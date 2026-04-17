@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.4.0
+- module `ble_radar/operator_baseline.py` ajouté
+- script `scripts/v040_operator_readiness.sh` ajouté
+- baseline opérateur finale formalisée
+- README / PROJECT_STATUS / CHANGELOG consolidés
+- base de tests portée à 102 tests
+
 ## v0.3.7
 - script `scripts/v037_release_guard.sh` ajouté
 - garde-fou final pour les releases ajouté

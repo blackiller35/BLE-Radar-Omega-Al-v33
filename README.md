@@ -248,3 +248,20 @@ Le projet dispose maintenant d'un garde-fou final avant release :
 Commande :
 
     ./scripts/v037_release_guard.sh
+
+## Baseline opérateur v0.4.0
+
+Le projet atteint maintenant une baseline opérateur finale avec :
+
+- runtime config stabilisée
+- contrat device centralisé
+- scoring explicable
+- dashboard pro
+- workflow d'investigation
+- incident packs
+- automation safe mode
+- release guard final
+
+Commande de vérification :
+
+    ./scripts/v040_operator_readiness.sh
