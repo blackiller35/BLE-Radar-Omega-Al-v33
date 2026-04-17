@@ -184,3 +184,17 @@ Exemples :
 - colonne `Explication` dans le dashboard
 - colonne `score_explanation` dans le CSV
 - résumé `explication:` dans le TXT
+
+## Workflow d'investigation
+
+Le projet dispose maintenant d'une base locale de cas d'investigation :
+
+- `ble_radar/investigation.py`
+- création de cas
+- ajout de notes
+- statut `open` / `watch` / `closed`
+- résumé de cas
+
+Exemple d'usage :
+
+    from ble_radar.investigation import create_case, add_case_note, set_case_status, summarize_case
