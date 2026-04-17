@@ -12,12 +12,8 @@ def test_runtime_config_merges_example_and_local(monkeypatch, tmp_path):
             {
                 "scan_timeout": 8,
                 "live_scan_timeout": 4,
-                "aegis": {
-                    "priority_high": 77
-                },
-                "automation": {
-                    "enabled": False
-                }
+                "aegis": {"priority_high": 77},
+                "automation": {"enabled": False},
             }
         ),
         encoding="utf-8",
@@ -27,12 +23,8 @@ def test_runtime_config_merges_example_and_local(monkeypatch, tmp_path):
         json.dumps(
             {
                 "scan_timeout": 11,
-                "aegis": {
-                    "priority_critical": 91
-                },
-                "ui": {
-                    "theme": "neo"
-                }
+                "aegis": {"priority_critical": 91},
+                "ui": {"theme": "neo"},
             }
         ),
         encoding="utf-8",
