@@ -53,3 +53,7 @@ Repository ready as a stable working baseline.
 ## v0.4.3 extension
 - v0.4.3 : session diff entre manifests récents
 - vue delta du dernier scan vs précédent disponible
+
+## v0.4.4 extension
+- v0.4.4 : export local du session diff
+- rapport JSON/Markdown du dernier diff disponible

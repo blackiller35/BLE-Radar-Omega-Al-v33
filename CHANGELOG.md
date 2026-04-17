@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.4.4
+- module `ble_radar/session_diff_report.py` ajouté
+- export local JSON/Markdown du session diff ajouté
+- catalogue local des rapports de diff ajouté
+- README / PROJECT_STATUS / CHANGELOG mis à jour
+- base de tests portée à 126 tests
+
 ## v0.4.3
 - module `ble_radar/session_diff.py` ajouté
 - comparaison structurée entre manifests récents ajoutée

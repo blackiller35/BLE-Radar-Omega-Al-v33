@@ -305,3 +305,16 @@ Le projet peut maintenant comparer les deux derniers scan manifests :
 Exemple d'usage :
 
     from ble_radar.session_diff import latest_session_diff, summary_lines
+
+## Session diff reports
+
+Le projet peut maintenant exporter un rapport local du diff entre les deux derniers manifests :
+
+- `ble_radar/session_diff_report.py`
+- export JSON du diff
+- export Markdown lisible
+- catalogue local des rapports de diff
+
+Exemple d'usage :
+
+    from ble_radar.session_diff_report import save_latest_session_diff_report
