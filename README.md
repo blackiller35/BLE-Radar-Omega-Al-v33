@@ -234,3 +234,17 @@ Le projet dispose maintenant d'un mode dry-run pour l'automation :
 Exemple d'usage :
 
     from ble_radar.automation_safe import build_dry_run_report
+
+## Release guard final
+
+Le projet dispose maintenant d'un garde-fou final avant release :
+
+- `./scripts/v037_release_guard.sh`
+- vérification des briques clés
+- validation du workflow Makefile
+- relance de la validation complète
+- aperçu du nettoyage runtime
+
+Commande :
+
+    ./scripts/v037_release_guard.sh

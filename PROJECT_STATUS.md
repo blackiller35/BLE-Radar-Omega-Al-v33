@@ -31,3 +31,8 @@ v0.3.0
 
 ## Status
 Repository ready as a stable working baseline.
+
+## Final operator baseline
+- v0.3.7 : release guard final
+- workflow opérateur couvert de la normalisation device au safe automation
+- commande finale de vérification : `./scripts/v037_release_guard.sh`

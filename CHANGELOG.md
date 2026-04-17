@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.3.7
+- script `scripts/v037_release_guard.sh` ajouté
+- garde-fou final pour les releases ajouté
+- README enrichi avec le release guard final
+- PROJECT_STATUS enrichi avec la baseline opérateur finale
+- base de tests portée à 96 tests
+
 ## v0.3.0
 - `PROJECT_STATUS.md` ajouté
 - script `scripts/v030_milestone_check.sh` ajouté
