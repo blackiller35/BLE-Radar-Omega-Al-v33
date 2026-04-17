@@ -67,7 +67,7 @@ def test_dashboard_contains_session_diff_panel(monkeypatch):
     assert "Previous: 2026-04-17_19-00-00" in html
     assert "Current: 2026-04-17_19-05-00" in html
     assert "Devices delta: 2" in html
-    assert "Top vendor: VendorA -&gt; VendorB" in html
+    assert "Top vendor: VendorA -> VendorB" in html
 
 
 def test_dashboard_handles_missing_session_diff(monkeypatch):
