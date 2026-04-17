@@ -2,48 +2,37 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
 
 jobs:
-  test-and-menus:
+  test:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.13
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: '3.12'
 
-      - name: Create venv and install dependencies
-        shell: bash
+      - name: Install dependencies
         run: |
-          set -e
-          python -m venv .venv
-          source .venv/bin/activate
-          python -m pip install --upgrade pip setuptools wheel
-          if [[ -f "requirements.txt" ]]; then
-            pip install -r requirements.txt
-          fi
-          pip install pytest bleak
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Run pytest
-        shell: bash
-        run: |
-          set -e
-          source .venv/bin/activate
-          python -m pytest -q
+        run: python -m pytest -q
 
-      - name: Run auto menu tests
-        shell: bash
+      - name: Run menu integration script
         run: |
-          set -e
-          source .venv/bin/activate
-          chmod +x ./auto_menu_test.sh
-          ./auto_menu_test.sh
+          if [ -f auto_menu_test.sh ]; then
+            chmod +x auto_menu_test.sh
+            ./auto_menu_test.sh
+          else
+            echo "auto_menu_test.sh introuvable"
+            exit 1
+          fi
