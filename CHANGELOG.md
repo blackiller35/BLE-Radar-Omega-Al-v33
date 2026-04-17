@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.4.2
+- module `ble_radar/session_catalog.py` ajouté
+- lecture structurée des scan manifests ajoutée
+- vue latest session ajoutée
+- README / PROJECT_STATUS / CHANGELOG mis à jour
+- base de tests portée à 114 tests
+
 ## v0.4.1
 - module `ble_radar/scan_manifest.py` ajouté
 - génération de scan manifests structurés ajoutée

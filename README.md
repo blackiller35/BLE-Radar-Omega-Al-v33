@@ -280,3 +280,16 @@ Le projet peut maintenant générer un manifest structuré par scan :
 Exemple d'usage :
 
     from ble_radar.scan_manifest import build_scan_manifest, save_scan_manifest
+
+## Session catalog
+
+Le projet peut maintenant lire les scan manifests et produire un catalogue de sessions :
+
+- `ble_radar/session_catalog.py`
+- résumé des sessions récentes
+- vue latest session
+- format lisible pour exploitation locale
+
+Exemple d'usage :
+
+    from ble_radar.session_catalog import build_session_catalog, latest_session_overview

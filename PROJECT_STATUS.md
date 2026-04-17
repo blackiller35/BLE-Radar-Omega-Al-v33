@@ -45,3 +45,7 @@ Repository ready as a stable working baseline.
 ## v0.4.1 extension
 - v0.4.1 : scan manifests et catalogue de sessions
 - résumé structuré des scans disponible
+
+## v0.4.2 extension
+- v0.4.2 : session catalog à partir des scan manifests
+- vue consolidée des sessions récentes disponible
