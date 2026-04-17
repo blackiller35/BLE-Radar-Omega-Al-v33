@@ -163,3 +163,15 @@ Commandes clés :
     make help
     make validate
     ./scripts/v030_milestone_check.sh
+
+## Contrat device
+
+Le projet dispose maintenant d'une base de contrat locale pour les appareils :
+
+- `ble_radar/device_contract.py`
+- normalisation des champs attendus
+- helper d'explication de score
+
+Exemple d'usage :
+
+    from ble_radar.device_contract import normalize_device, explain_device
