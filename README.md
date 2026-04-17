@@ -87,3 +87,14 @@ Ce script exécute :
 - python -m pytest -q
 - ./auto_menu_test.sh
 - git status
+
+## Bootstrap config locale
+
+Pour créer rapidement une config locale à partir de l'exemple :
+
+    ./scripts/bootstrap_local_config.sh
+
+Ce script :
+- copie `ble_radar/config.example.json`
+- crée `ble_radar/config.json` si absent
+- n'écrase pas un fichier local existant
