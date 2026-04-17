@@ -145,3 +145,21 @@ Commandes utiles :
     make menu-test
     make validate
     make clean-runtime-dry
+
+## Milestone v0.3.0
+
+Le projet atteint une base consolidée avec :
+
+- configuration runtime stabilisée
+- profils opérateur validés
+- exports JSON/CSV validés
+- dashboard HTML amélioré
+- logique AEGIS / automation testée
+- outils de maintenance disponibles
+- quickstart développeur et Makefile disponibles
+
+Commandes clés :
+
+    make help
+    make validate
+    ./scripts/v030_milestone_check.sh

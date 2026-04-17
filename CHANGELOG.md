@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.3.0
+- `PROJECT_STATUS.md` ajouté
+- script `scripts/v030_milestone_check.sh` ajouté
+- README enrichi avec la milestone v0.3.0
+- consolidation finale de la série v0.2.x
+- base de tests portée à 60 tests
+
 ## v0.2.0
 - changelog ajouté
 - helper `scripts/release_summary.sh` ajouté
