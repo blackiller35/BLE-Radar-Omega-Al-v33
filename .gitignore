@@ -1,12 +1,7 @@
 .venv/
 __pycache__/
 *.pyc
-
+.pytest_cache/
 logs/
 backups_old/
-reports/
-snapshots/
-history/daily_reports/
-history/watch_sessions/
-
-.vscode/settings.json
+.vscode/
