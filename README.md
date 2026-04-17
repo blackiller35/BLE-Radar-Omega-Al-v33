@@ -116,3 +116,17 @@ Pour générer un résumé rapide du dépôt :
 Pour lire l'historique des versions :
 
     cat CHANGELOG.md
+
+## Maintenance locale
+
+Validation complète :
+
+    ./scripts/run_full_validation.sh
+
+Nettoyage des artefacts runtime en aperçu :
+
+    ./scripts/clean_runtime_artifacts.sh --dry-run
+
+Nettoyage réel :
+
+    ./scripts/clean_runtime_artifacts.sh --yes
