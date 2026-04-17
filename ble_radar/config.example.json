@@ -56,5 +56,6 @@
         "action": "log_incident"
       }
     ]
-  }
+  },
+  "live_scan_timeout": 3
 }

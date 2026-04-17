@@ -1,7 +1,7 @@
 from pathlib import Path
 import time
 
-from ble_radar.config import FULL_SCAN_SECONDS, LIVE_SCAN_SECONDS
+from ble_radar.config import FULL_SCAN_SECONDS, LIVE_SCAN_SECONDS, load_runtime_config
 from ble_radar.engine import run_engine_scan, run_engine_cycle, summarize_engine_result
 from ble_radar.selectors import only_alerts, only_trackers, sort_by_score
 from ble_radar.views import (
@@ -107,11 +107,13 @@ def active_mission():
 
 
 def prof_scan_seconds():
-    return int(active_profile().get("scan_seconds", FULL_SCAN_SECONDS))
+    cfg = load_runtime_config()
+    return int(active_profile().get("scan_seconds", cfg.get("scan_timeout", FULL_SCAN_SECONDS)))
 
 
 def prof_live_seconds():
-    return int(active_profile().get("live_seconds", LIVE_SCAN_SECONDS))
+    cfg = load_runtime_config()
+    return int(active_profile().get("live_seconds", cfg.get("live_scan_timeout", LIVE_SCAN_SECONDS)))
 
 
 def prof_alert_floor():
