@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.4.1
+- module `ble_radar/scan_manifest.py` ajouté
+- génération de scan manifests structurés ajoutée
+- catalogue local des manifests ajouté
+- README / PROJECT_STATUS / CHANGELOG mis à jour
+- base de tests portée à 108 tests
+
 ## v0.4.0
 - module `ble_radar/operator_baseline.py` ajouté
 - script `scripts/v040_operator_readiness.sh` ajouté

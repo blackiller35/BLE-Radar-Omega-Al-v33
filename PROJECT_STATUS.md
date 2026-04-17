@@ -41,3 +41,7 @@ Repository ready as a stable working baseline.
 - v0.4.0 : baseline opérateur finale
 - couverture de la chaîne principale du scan à l'investigation
 - commande finale de vérification : `./scripts/v040_operator_readiness.sh`
+
+## v0.4.1 extension
+- v0.4.1 : scan manifests et catalogue de sessions
+- résumé structuré des scans disponible

@@ -265,3 +265,18 @@ Le projet atteint maintenant une baseline opérateur finale avec :
 Commande de vérification :
 
     ./scripts/v040_operator_readiness.sh
+
+## Scan manifests
+
+Le projet peut maintenant générer un manifest structuré par scan :
+
+- `ble_radar/scan_manifest.py`
+- résumé des alertes
+- compte des watch hits / trackers
+- top vendors
+- top devices
+- catalogue local des manifests
+
+Exemple d'usage :
+
+    from ble_radar.scan_manifest import build_scan_manifest, save_scan_manifest
