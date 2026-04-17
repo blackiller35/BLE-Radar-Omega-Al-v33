@@ -62,6 +62,10 @@ Puis modifier par exemple :
 - `v0.1.1` : validation runtime config + tests supplémentaires
 - `v0.1.2` : README amélioré + documentation config locale
 - `v0.1.3` : dépôt durci + config locale explicitement ignorée
+- `v0.1.4` : tests automation runtime ajoutés
+- `v0.1.5` : helper de vérification avant release
+- `v0.1.6` : helper de bootstrap pour la config locale
+- `v0.2.0` : changelog + résumé de release + milestone consolidée
 
 
 ## Statut
@@ -98,3 +102,17 @@ Ce script :
 - copie `ble_radar/config.example.json`
 - crée `ble_radar/config.json` si absent
 - n'écrase pas un fichier local existant
+
+## Workflow release
+
+Avant une release :
+
+    ./scripts/release_check.sh
+
+Pour générer un résumé rapide du dépôt :
+
+    ./scripts/release_summary.sh
+
+Pour lire l'historique des versions :
+
+    cat CHANGELOG.md

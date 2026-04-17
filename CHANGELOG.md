@@ -1,0 +1,32 @@
+# CHANGELOG
+
+## v0.2.0
+- changelog ajouté
+- helper `scripts/release_summary.sh` ajouté
+- README enrichi avec le workflow de release
+- base de tests maintenue
+- milestone mineure stable consolidée
+
+## v0.1.6
+- helper `scripts/bootstrap_local_config.sh` ajouté
+
+## v0.1.5
+- helper `scripts/release_check.sh` ajouté
+
+## v0.1.4
+- tests automation runtime ajoutés
+
+## v0.1.3
+- `ble_radar/config.json` ignoré par Git
+- README clarifié sur la config locale
+
+## v0.1.2
+- README amélioré
+- documentation config locale ajoutée
+
+## v0.1.1
+- tests runtime config ajoutés
+- tests app runtime scan settings ajoutés
+
+## v0.1.0
+- baseline stable initiale
