@@ -78,7 +78,7 @@ def render_dashboard_html(devices, stamp: str) -> str:
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BLE Radar Batch 13 - {escape(stamp)}</title>
+<title>BLE Radar Omega AI - Dashboard - {escape(stamp)}</title>
 <style>
 :root {{
   --bg:#08111e; --panel:#111b2c; --border:#2a3b58; --text:#d7e4f4;
@@ -113,7 +113,8 @@ ul {{ margin:0; padding-left:18px; }}
 </style>
 </head>
 <body>
-  <h1>BLE Radar Batch 13 - Dashboard IA</h1>
+  <h1>BLE Radar Omega AI - Dashboard</h1>
+  <h2>Résumé global</h2>
 
   <div class="cards">
     <div class="card"><div>Total</div><div class="big">{len(devices)}</div></div>
@@ -162,6 +163,11 @@ ul {{ margin:0; padding-left:18px; }}
         {''.join(trend_rows) if trend_rows else '<tr><td colspan="5" class="muted">Aucun historique</td></tr>'}
       </tbody>
     </table>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Tableau détaillé des appareils</h2>
+    <div class="muted">Vue complète des appareils détectés et scorés.</div>
   </div>
 
   <div class="table-wrap">
