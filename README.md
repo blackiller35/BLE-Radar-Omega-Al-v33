@@ -208,3 +208,16 @@ Le dashboard HTML inclut maintenant :
 - bloc cas d'investigation récents
 - filtres `watch hits` / `trackers`
 - filtre vendor plus pratique
+
+## Incident packs
+
+Le projet peut maintenant générer un incident pack local à partir d'un cas :
+
+- `ble_radar/incident_pack.py`
+- manifest `incident_pack.json`
+- résumé `incident_summary.md`
+- rapprochement avec les devices du dernier scan
+
+Exemple d'usage :
+
+    from ble_radar.incident_pack import build_incident_pack
