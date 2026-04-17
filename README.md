@@ -198,3 +198,13 @@ Le projet dispose maintenant d'une base locale de cas d'investigation :
 Exemple d'usage :
 
     from ble_radar.investigation import create_case, add_case_note, set_case_status, summarize_case
+
+## Dashboard pro
+
+Le dashboard HTML inclut maintenant :
+
+- résumé comparatif vs scan précédent
+- bloc incidents visibles
+- bloc cas d'investigation récents
+- filtres `watch hits` / `trackers`
+- filtre vendor plus pratique
