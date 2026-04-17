@@ -293,3 +293,15 @@ Le projet peut maintenant lire les scan manifests et produire un catalogue de se
 Exemple d'usage :
 
     from ble_radar.session_catalog import build_session_catalog, latest_session_overview
+
+## Session diff
+
+Le projet peut maintenant comparer les deux derniers scan manifests :
+
+- `ble_radar/session_diff.py`
+- deltas sur devices / alertes / watch hits / trackers
+- vue lisible du scan courant vs précédent
+
+Exemple d'usage :
+
+    from ble_radar.session_diff import latest_session_diff, summary_lines

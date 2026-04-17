@@ -49,3 +49,7 @@ Repository ready as a stable working baseline.
 ## v0.4.2 extension
 - v0.4.2 : session catalog à partir des scan manifests
 - vue consolidée des sessions récentes disponible
+
+## v0.4.3 extension
+- v0.4.3 : session diff entre manifests récents
+- vue delta du dernier scan vs précédent disponible

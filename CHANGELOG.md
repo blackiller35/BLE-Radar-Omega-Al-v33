@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.4.3
+- module `ble_radar/session_diff.py` ajouté
+- comparaison structurée entre manifests récents ajoutée
+- vue delta latest vs previous ajoutée
+- README / PROJECT_STATUS / CHANGELOG mis à jour
+- base de tests portée à 120 tests
+
 ## v0.4.2
 - module `ble_radar/session_catalog.py` ajouté
 - lecture structurée des scan manifests ajoutée
