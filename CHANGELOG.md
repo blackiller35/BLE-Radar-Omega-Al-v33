@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.4.6
+- incident packs enrichis avec le dernier session diff
+- manifest JSON enrichi avec `session_diff`
+- résumé Markdown enrichi avec le diff courant vs précédent
+- README / PROJECT_STATUS / CHANGELOG mis à jour
+- base de tests portée à 135 tests
+\n
+
 ## v0.4.5
 - panneau `Session diff récent` ajouté au dashboard HTML
 - intégration de `latest_session_diff()` dans `dashboard.py`

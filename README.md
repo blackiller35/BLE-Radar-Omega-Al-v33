@@ -332,3 +332,16 @@ Exemple :
 - `Previous`
 - `Current`
 - `Devices delta`
+
+## Incident packs enrichis
+
+Les incident packs intègrent maintenant le dernier session diff :
+
+- `session_diff` dans le manifest JSON
+- résumé du diff dans `incident_summary.md`
+- comparaison scan courant vs précédent directement dans le pack
+
+Exemple :
+- `Device delta`
+- `Top vendor`
+- `Top device`

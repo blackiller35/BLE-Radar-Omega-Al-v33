@@ -61,3 +61,7 @@ Repository ready as a stable working baseline.
 ## v0.4.5 extension
 - v0.4.5 : panneau session diff dans le dashboard
 - vue rapide du dernier diff directement dans l'interface HTML
+
+## v0.4.6 extension
+- v0.4.6 : incident packs enrichis avec session diff
+- contexte de variation entre scans disponible dans les packs

@@ -6,6 +6,7 @@ from pathlib import Path
 
 from ble_radar.device_contract import explain_device, normalize_device
 from ble_radar.investigation import load_case, summarize_case
+from ble_radar.session_diff import latest_session_diff, summary_lines as diff_summary_lines
 
 
 INCIDENT_PACKS_DIR = Path("reports/incident_packs")
@@ -45,6 +46,8 @@ def build_incident_pack(case_id: str, latest_devices: list[dict] | None = None, 
     case_device = case.get("device")
     normalized_case_device = normalize_device(case_device) if case_device else None
 
+    session_diff = latest_session_diff()
+
     matches = []
     for item in latest_devices or []:
         if _device_matches(case_device, item):
@@ -69,6 +72,7 @@ def build_incident_pack(case_id: str, latest_devices: list[dict] | None = None, 
         "latest_devices_count": len(latest_devices or []),
         "matched_devices_count": len(matches),
         "matched_devices": matches,
+        "session_diff": session_diff,
         "extra_meta": extra_meta or {},
     }
 
@@ -85,6 +89,14 @@ def build_incident_pack(case_id: str, latest_devices: list[dict] | None = None, 
         lines.append("")
         lines.append("Case device explanation:")
         lines.append(manifest["case_device_explanation"]["summary"])
+
+    if session_diff.get("has_diff", False):
+        lines.append("")
+        lines.append("Session diff:")
+        lines.extend(diff_summary_lines(session_diff)[1:])
+    else:
+        lines.append("")
+        lines.append("Session diff: none")
 
     if matches:
         lines.append("")
