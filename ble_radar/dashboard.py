@@ -2,6 +2,7 @@ from html import escape
 
 from ble_radar.state import load_scan_history
 from ble_radar.intel import get_vendor_summary, get_tracker_candidates
+from ble_radar.device_contract import explain_device
 
 
 def render_dashboard_html(devices, stamp: str) -> str:
@@ -55,6 +56,7 @@ def render_dashboard_html(devices, stamp: str) -> str:
             css = "medium"
 
         flags = d.get("flags", [])
+        explanation = explain_device(d)["summary"]
         rows.append(f"""
         <tr class="{css}" data-alert="{escape(str(d.get('alert_level','faible')))}" data-vendor="{escape(str(d.get('vendor','Unknown')))}">
             <td>{escape(str(d.get("name", "Inconnu")))}</td>
@@ -69,6 +71,7 @@ def render_dashboard_html(devices, stamp: str) -> str:
             <td>{escape(str(d.get("alert_level", "faible")))}</td>
             <td>{escape(str(d.get("seen_count", 0)))}</td>
             <td>{escape(",".join(flags) if flags else "-")}</td>
+            <td>{escape(explanation)}</td>
             <td>{escape(str(d.get("reason_short", "normal")))}</td>
         </tr>
         """)
@@ -186,6 +189,7 @@ ul {{ margin:0; padding-left:18px; }}
           <th>Alerte</th>
           <th>Seen</th>
           <th>Flags</th>
+          <th>Explication</th>
           <th>Raison</th>
         </tr>
       </thead>

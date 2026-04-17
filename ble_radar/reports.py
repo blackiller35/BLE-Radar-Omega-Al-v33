@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ble_radar.config import REPORTS_DIR, HISTORY_DIR
 from ble_radar.dashboard import render_dashboard_html
+from ble_radar.device_contract import explain_device
 from ble_radar.state import append_scan_history, build_trends
 
 
@@ -25,7 +26,7 @@ def save_csv(devices: list[dict], stamp: str) -> Path:
         writer.writerow([
             "name", "address", "vendor", "profile", "rssi",
             "risk_score", "follow_score", "confidence_score", "final_score",
-            "classification", "alert_level", "reason_short",
+            "score_explanation", "classification", "alert_level", "reason_short",
             "seen_count", "near_count", "possible_suivi",
             "persistent_nearby", "whitelisted", "watched",
             "watch_hit", "random_mac", "apple_prefix", "is_new_device",
@@ -41,6 +42,7 @@ def save_csv(devices: list[dict], stamp: str) -> Path:
                 d.get("follow_score", 0),
                 d.get("confidence_score", 0),
                 d.get("final_score", 0),
+                explain_device(d)["summary"],
                 d.get("classification", ""),
                 d.get("alert_level", ""),
                 d.get("reason_short", ""),
@@ -98,7 +100,7 @@ def save_txt(devices: list[dict], stamp: str) -> Path:
             f"risk:{d.get('risk_score',0)} | follow:{d.get('follow_score',0)} | "
             f"confidence:{d.get('confidence_score',0)} | final:{d.get('final_score',0)} | "
             f"alert:{d.get('alert_level','faible')} | seen:{d.get('seen_count',0)} | "
-            f"{d.get('reason_short','normal')}"
+            f"{d.get('reason_short','normal')} | explication:{explain_device(d)['summary']}"
         )
 
     path.write_text("\n".join(lines), encoding="utf-8")

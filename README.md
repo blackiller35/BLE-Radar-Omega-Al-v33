@@ -175,3 +175,12 @@ Le projet dispose maintenant d'une base de contrat locale pour les appareils :
 Exemple d'usage :
 
     from ble_radar.device_contract import normalize_device, explain_device
+
+## Scoring explicable
+
+Le dashboard HTML et les exports propagent maintenant un résumé d'explication de score.
+
+Exemples :
+- colonne `Explication` dans le dashboard
+- colonne `score_explanation` dans le CSV
+- résumé `explication:` dans le TXT
