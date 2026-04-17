@@ -130,3 +130,18 @@ Nettoyage des artefacts runtime en aperçu :
 Nettoyage réel :
 
     ./scripts/clean_runtime_artifacts.sh --yes
+
+## Quickstart développeur
+
+Setup rapide :
+
+    ./scripts/quickstart.sh
+
+Commandes utiles :
+
+    make help
+    make run
+    make test
+    make menu-test
+    make validate
+    make clean-runtime-dry
