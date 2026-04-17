@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from ble_radar.config import STATE_DIR
+from ble_radar.config import STATE_DIR, get_runtime_section
 from ble_radar.state import load_json, save_json, load_scan_history
 from ble_radar.argus import rank_priority
 from ble_radar.sentinel import build_sentinel_report
@@ -10,7 +10,7 @@ AEGIS_FILE = STATE_DIR / "aegis_rules.json"
 
 DEFAULT_AEGIS = {
     "enabled": True,
-    "thresholds": {
+    "thresholds": get_runtime_section("aegis", {
         "priority_high": 70,
         "priority_critical": 85,
         "watch_hits": 1,
@@ -19,7 +19,7 @@ DEFAULT_AEGIS = {
         "campaign_count": 1,
         "tracker_cluster": 2,
         "escalations": 2,
-    },
+    }),
 }
 
 PLAYBOOKS = {
