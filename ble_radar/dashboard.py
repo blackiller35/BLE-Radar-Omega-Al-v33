@@ -12,6 +12,7 @@ from ble_radar.history.device_scoring import compute_device_score
 from ble_radar.history.cases import load_cases as load_watch_cases
 from ble_radar.history.case_workflow import case_workflow_summary, next_action
 from ble_radar.history.investigation_workspace import build_investigation_profile
+from ble_radar.history.operator_alerting import build_operator_alerts, load_alert_log, summarize_alerts
 from ble_radar.history.operator_briefing import build_operator_briefing
 from ble_radar.history.operator_playbook import recommend_operator_playbook
 from ble_radar.history.operator_rule_engine import (
@@ -297,6 +298,51 @@ def render_operator_briefing_panel(briefing: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_alerting_panel(summary: dict) -> str:
+    """Render compact operator alerting and escalation panel."""
+    if not summary:
+      return '<ul><li class="muted">Aucune alerte opérateur disponible.</li></ul>'
+
+    active = summary.get("active_alerts", [])
+    escalations = summary.get("recent_escalations", [])
+    immediate = summary.get("needs_immediate_review", [])
+
+    lines = [
+      f"<li>Active alerts: <strong>{len(active)}</strong> | "
+      f"Recent escalations: <strong>{len(escalations)}</strong> | "
+      f"Needs immediate review: <strong>{len(immediate)}</strong></li>"
+    ]
+
+    if active:
+      items = "".join(
+        f"<li><span class=\"muted\">{escape(str(a.get('created_at', '-')))}</span> "
+        f"| <strong>{escape(str(a.get('severity', 'low')).upper())}</strong> "
+        f"| <code>{escape(str(a.get('device_address', '?')))}</code> "
+        f"| {escape(str(a.get('title', '-')))}</li>"
+        for a in active[:5]
+      )
+      lines.append(f"<li>Active alerts (top 5):<ul>{items}</ul></li>")
+
+    if escalations:
+      items = "".join(
+        f"<li><code>{escape(str(a.get('device_address', '?')))}</code> "
+        f"| {escape(str(a.get('alert_id', '-')))} "
+        f"| {escape(str(a.get('reason', '-')))}</li>"
+        for a in escalations[:5]
+      )
+      lines.append(f"<li>Recent escalations (top 5):<ul>{items}</ul></li>")
+
+    if immediate:
+      items = "".join(
+        f"<li><code>{escape(str(a.get('device_address', '?')))}</code> "
+        f"| follow-up: {escape(str(a.get('recommended_followup', '-')))}</li>"
+        for a in immediate[:5]
+      )
+      lines.append(f"<li>Needs immediate review (top 5):<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -522,6 +568,57 @@ def render_dashboard_html(devices, stamp: str) -> str:
       playbook_recommendations=operator_playbook_recommendations,
       rule_summary=operator_rule_summary,
       rule_log_events=recent_rule_log_events,
+    )
+
+    pending_by_address = {}
+    for row in operator_rule_summary.get("pending_confirmations", []):
+      addr = str(row.get("address", "")).strip().upper()
+      if not addr:
+        continue
+      pending_by_address[addr] = pending_by_address.get(addr, 0) + 1
+
+    operator_alerts = []
+    alert_addresses = []
+    if focus_address:
+      alert_addresses.append(focus_address)
+    for row in triage_results[:5]:
+      addr = str(row.get("address", "")).strip().upper()
+      if addr and addr not in alert_addresses:
+        alert_addresses.append(addr)
+
+    for addr in alert_addresses:
+      triage_row = next(
+        (r for r in triage_results if str(r.get("address", "")).strip().upper() == addr),
+        None,
+      )
+      rule_rows = [r for r in operator_rule_results if str(r.get("address", "")).strip().upper() == addr]
+      timeline_rows = recent_operator_events if addr == focus_address else []
+      inv_profile = investigation_profile if addr == focus_address else None
+
+      try:
+        rows = build_operator_alerts(
+          addr,
+          triage_row=triage_row,
+          investigation_profile=inv_profile,
+          case_record=watch_cases.get(addr, {}),
+          timeline_events=timeline_rows,
+          playbook_recommendation=playbook_by_address.get(addr),
+          rule_results=rule_rows,
+          pending_confirmations_count=pending_by_address.get(addr, 0),
+          persist_log=False,
+        )
+        operator_alerts.extend(rows)
+      except Exception:
+        continue
+
+    try:
+      recent_alert_log_events = load_alert_log(limit=12)
+    except Exception:
+      recent_alert_log_events = []
+
+    operator_alert_summary = summarize_alerts(
+      operator_alerts,
+      recent_log_events=recent_alert_log_events,
     )
 
     history = load_scan_history()[-8:]
@@ -880,6 +977,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Operator Briefing / Shift Handoff</h2>
     {render_operator_briefing_panel(operator_briefing)}
     <div class="muted">Briefing compact de relève opérateur (priorités, actions et prochaines étapes).</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Operator Alerting & Escalation</h2>
+    {render_operator_alerting_panel(operator_alert_summary)}
+    <div class="muted">Alertes actives, escalades récentes et éléments en revue immédiate.</div>
   </div>
 
   <div class="grid2">
