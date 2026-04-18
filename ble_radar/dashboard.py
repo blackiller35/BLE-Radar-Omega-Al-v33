@@ -9,7 +9,8 @@ from ble_radar.session_catalog import build_session_catalog, latest_session_over
 from ble_radar.artifact_index import build_artifact_index
 from ble_radar.history.device_registry import load_registry
 from ble_radar.history.device_scoring import compute_device_score
-from ble_radar.state import load_scan_history
+from ble_radar.session.session_movement import build_session_movement
+from ble_radar.state import load_last_scan, load_scan_history
 
 
 def _safe_int(value, default=0):
@@ -28,6 +29,49 @@ def _delta_label(current: int, previous) -> str:
     return str(diff)
 
 
+def render_session_movement_panel(movement: dict) -> str:
+    """Render an HTML fragment summarising new / disappeared / recurring / score changes."""
+    counts = movement.get("counts", {})
+    lines = [
+        f"<li>Nouveaux appareils : <strong>{counts.get('new', 0)}</strong></li>",
+        f"<li>Appareils disparus : <strong>{counts.get('disappeared', 0)}</strong></li>",
+        f"<li>Appareils récurrents : <strong>{counts.get('recurring', 0)}</strong></li>",
+    ]
+
+    new_devs = movement.get("new", [])[:5]
+    if new_devs:
+        items = "".join(
+            f"<li class=\"new-device\">{escape(str(d.get('name', 'Inconnu')))} "
+            f"| <code>{escape(str(d.get('address', '?')).upper())}</code></li>"
+            for d in new_devs
+        )
+        lines.append(f"<li>Détail nouveaux (top 5) : <ul>{items}</ul></li>")
+
+    gone_devs = movement.get("disappeared", [])[:5]
+    if gone_devs:
+        items = "".join(
+            f"<li class=\"muted\">{escape(str(d.get('name', 'Inconnu')))} "
+            f"| <code>{escape(str(d.get('address', '?')).upper())}</code></li>"
+            for d in gone_devs
+        )
+        lines.append(f"<li>Détail disparus (top 5) : <ul>{items}</ul></li>")
+
+    score_changes = movement.get("score_changes", [])[:5]
+    if score_changes:
+        items = "".join(
+            f"<li>{escape(str(sc['name']))} | <code>{escape(sc['address'])}</code> "
+            f"| score {sc['prev_score']} → {sc['curr_score']} "
+            f"({'<span style=\"color:var(--green)\">+' + str(sc['delta']) + '</span>' if sc['delta'] > 0 else '<span style=\"color:var(--red)\">' + str(sc['delta']) + '</span>'})</li>"
+            for sc in score_changes
+        )
+        lines.append(f"<li>Score changes (top 5) : <ul>{items}</ul></li>")
+
+    if not any([new_devs, gone_devs, score_changes]) and counts.get("new", 0) == 0 and counts.get("disappeared", 0) == 0:
+        lines.append('<li class="muted">Aucun mouvement détecté vs scan précédent.</li>')
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_dashboard_html(devices, stamp: str) -> str:
     bluehood_summary = render_bluehood_summary(devices)
     devices = [normalize_device(d) for d in devices]
@@ -35,6 +79,11 @@ def render_dashboard_html(devices, stamp: str) -> str:
         registry = load_registry()
     except Exception:
         registry = {}
+    try:
+        previous_devices = load_last_scan()
+    except Exception:
+        previous_devices = []
+    movement = build_session_movement(devices, previous_devices, registry)
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -337,6 +386,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Device registry snapshot</h2>
     <ul>{''.join(registry_lines) if registry_lines else '<li class="muted">Aucune donnée registry disponible</li>'}</ul>
     <div class="muted">Aperçu local des appareils du scan courant (top 10).</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Session movement summary</h2>
+    {render_session_movement_panel(movement)}
+    <div class="muted">Comparaison appareil par appareil avec le scan précédent.</div>
   </div>
 
   <div class="grid2">
