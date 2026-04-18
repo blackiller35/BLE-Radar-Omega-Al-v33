@@ -18,6 +18,7 @@ from ble_radar.history.operator_campaign_tracking import build_campaign_lifecycl
 from ble_radar.history.operator_correlation import build_correlation_clusters, summarize_clusters
 from ble_radar.history.operator_evidence_pack import build_evidence_packs, load_evidence_packs, summarize_evidence_packs
 from ble_radar.history.operator_playbook import recommend_operator_playbook
+from ble_radar.history.operator_queue import build_operator_queue, summarize_operator_queue
 from ble_radar.history.operator_rule_engine import (
   evaluate_operator_rules,
   load_automation_events,
@@ -483,6 +484,54 @@ def render_operator_evidence_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_queue_panel(summary: dict) -> str:
+    """Render compact operator queue / case board panel."""
+    if not summary:
+      return '<ul><li class="muted">Aucune file opérateur disponible.</li></ul>'
+
+    queue = summary.get("operator_queue", [])
+    needs_review = summary.get("needs_review", [])
+    blocked = summary.get("blocked_items", [])
+    ready_now = summary.get("ready_now", [])
+    resolved = summary.get("recently_resolved", [])
+
+    lines = [
+      f"<li>Operator queue: <strong>{len(queue)}</strong> | "
+      f"Needs review: <strong>{len(needs_review)}</strong> | "
+      f"Blocked items: <strong>{len(blocked)}</strong> | "
+      f"Ready now: <strong>{len(ready_now)}</strong> | "
+      f"Recently resolved: <strong>{len(resolved)}</strong></li>"
+    ]
+
+    if queue:
+      items = "".join(
+        f"<li><code>{escape(str(i.get('item_id', '?')))}</code> "
+        f"| {escape(str(i.get('scope_type', '-')))}:{escape(str(i.get('scope_id', '-')))} "
+        f"| state=<strong>{escape(str(i.get('queue_state', 'new')).upper())}</strong> "
+        f"| priority={escape(str(i.get('priority', 'low')).upper())}</li>"
+        for i in queue[:6]
+      )
+      lines.append(f"<li>Operator queue (top 6):<ul>{items}</ul></li>")
+
+    if ready_now:
+      items = "".join(
+        f"<li><code>{escape(str(i.get('item_id', '?')))}</code> "
+        f"| action: {escape(str(i.get('recommended_action', '-')))}</li>"
+        for i in ready_now[:5]
+      )
+      lines.append(f"<li>Ready now (top 5):<ul>{items}</ul></li>")
+
+    if blocked:
+      items = "".join(
+        f"<li><code>{escape(str(i.get('item_id', '?')))}</code> "
+        f"| blockers: {escape(', '.join([str(b) for b in i.get('blocking_factors', [])]) or '-')}</li>"
+        for i in blocked[:5]
+      )
+      lines.append(f"<li>Blocked items (top 5):<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -821,6 +870,20 @@ def render_dashboard_html(devices, stamp: str) -> str:
       evidence_packs,
       persisted_packs=persisted_evidence_packs,
     )
+
+    operator_queue_items = build_operator_queue(
+      triage_results=triage_results,
+      workflow_summary=workflow_summary,
+      pending_confirmations=operator_rule_summary.get("pending_confirmations", []),
+      alerts=operator_alerts,
+      briefing=operator_briefing,
+      clusters=correlation_clusters,
+      campaigns=campaign_rows,
+      evidence_packs=evidence_packs,
+      watch_cases=watch_cases,
+      stamp=stamp,
+    )
+    operator_queue_summary = summarize_operator_queue(operator_queue_items)
 
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
@@ -1201,6 +1264,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Evidence Pack / Consolidated Operator Dossier</h2>
     {render_operator_evidence_panel(evidence_summary)}
     <div class="muted">Evidence packs récents, dossiers prêts à revue et synthèse campagne.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Operator Queue / Case Board</h2>
+    {render_operator_queue_panel(operator_queue_summary)}
+    <div class="muted">File opérateur, revue, blocages, actions prêtes et résolutions récentes.</div>
   </div>
 
   <div class="grid2">
