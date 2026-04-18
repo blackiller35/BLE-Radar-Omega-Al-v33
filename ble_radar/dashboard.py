@@ -27,7 +27,7 @@ def _delta_label(current: int, previous) -> str:
 
 
 def render_dashboard_html(devices, stamp: str) -> str:
-    bluehood_summary = ""
+    bluehood_summary = render_bluehood_summary(devices)
     devices = [normalize_device(d) for d in devices]
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
