@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v1.0.1
+- module `ble_radar/artifact_index.py` ajouté
+- script `scripts/v101_artifact_check.sh` ajouté
+- index local des artefacts générés ajouté
+- README / PROJECT_STATUS / CHANGELOG mis à jour
+- base de tests portée à 161 tests
+
 ## v1.0.0
 - module `ble_radar/release_manifest.py` ajouté
 - script `scripts/v100_release_check.sh` ajouté

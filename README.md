@@ -400,3 +400,17 @@ Le projet atteint maintenant une stable release finale :
 Commande :
 
     ./scripts/v100_release_check.sh
+
+## Artifact index
+
+Le projet peut maintenant produire un index local des artefacts :
+
+- `ble_radar/artifact_index.py`
+- scan manifests
+- session diff reports
+- export contexts
+- incident packs
+
+Commande :
+
+    ./scripts/v101_artifact_check.sh

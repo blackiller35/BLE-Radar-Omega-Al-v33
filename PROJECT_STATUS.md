@@ -82,3 +82,7 @@ Repository ready as a stable working baseline.
 - v1.0.0 : stable release finale
 - consolidation complète de la série v0.4.x
 - commande finale de vérification : `./scripts/v100_release_check.sh`
+
+## v1.0.1 patch
+- v1.0.1 : artifact index patch
+- index local des artefacts générés disponible
