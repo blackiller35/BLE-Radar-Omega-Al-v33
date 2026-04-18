@@ -7,6 +7,7 @@ from ble_radar.investigation import list_cases
 from ble_radar.session_diff import latest_session_diff
 from ble_radar.session_catalog import build_session_catalog, latest_session_overview
 from ble_radar.artifact_index import build_artifact_index
+from ble_radar.history.device_registry import load_registry
 from ble_radar.state import load_scan_history
 
 
@@ -29,6 +30,10 @@ def _delta_label(current: int, previous) -> str:
 def render_dashboard_html(devices, stamp: str) -> str:
     bluehood_summary = render_bluehood_summary(devices)
     devices = [normalize_device(d) for d in devices]
+    try:
+        registry = load_registry()
+    except Exception:
+        registry = {}
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -123,6 +128,21 @@ def render_dashboard_html(devices, stamp: str) -> str:
         f"<li>Export contexts: {escape(str(artifact_index.get('export_contexts', {}).get('count', 0)))} | latest={escape(str(artifact_index.get('export_contexts', {}).get('latest', 'none') or 'none'))}</li>",
         f"<li>Incident packs: {escape(str(artifact_index.get('incident_packs', {}).get('count', 0)))} | latest={escape(str(artifact_index.get('incident_packs', {}).get('latest', 'none') or 'none'))}</li>",
     ]
+
+      registry_lines = []
+      for d in devices[:10]:
+        addr = str(d.get("address", "")).upper().strip()
+        if not addr or addr == "-":
+          continue
+        rec = registry.get(addr, {}) if isinstance(registry, dict) else {}
+        registry_lines.append(
+          f"<li>{escape(str(d.get('name', 'Inconnu')))} | "
+          f"<code>{escape(addr)}</code> | "
+          f"first_seen={escape(str(rec.get('first_seen', '-')))} | "
+          f"last_seen={escape(str(rec.get('last_seen', '-')))} | "
+          f"seen_count={escape(str(rec.get('seen_count', 0)))} | "
+          f"session_count={escape(str(rec.get('session_count', 0)))}</li>"
+        )
 
     if latest_diff.get("has_diff"):
         diff_lines = [
@@ -308,6 +328,12 @@ ul {{ margin:0; padding-left:18px; }}
       <h2>Sessions récentes</h2>
       <ul>{''.join(recent_session_lines) if recent_session_lines else '<li class="muted">Aucune session récente</li>'}</ul>
     </div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Device registry snapshot</h2>
+    <ul>{''.join(registry_lines) if registry_lines else '<li class="muted">Aucune donnée registry disponible</li>'}</ul>
+    <div class="muted">Aperçu local des appareils du scan courant (top 10).</div>
   </div>
 
   <div class="grid2">
