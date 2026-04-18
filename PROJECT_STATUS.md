@@ -90,3 +90,7 @@ Repository ready as a stable working baseline.
 ## v1.0.2 patch
 - v1.0.2 : artifact index dans le dashboard
 - vue rapide des artefacts locaux directement dans l'interface HTML
+
+## v1.0.3 patch
+- v1.0.3 : artifact cross-links patch
+- navigation locale entre artefacts récents disponible

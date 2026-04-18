@@ -429,3 +429,12 @@ Exemple :
 - `Scan manifests`
 - `Export contexts`
 - `Incident packs`
+
+## Artifact cross-links
+
+Le projet expose maintenant des chaînes de navigation entre artefacts :
+
+- `overview_chain`
+- `incident_chain`
+- `workspace_chain`
+- aperçu via `./scripts/v103_links_check.sh`

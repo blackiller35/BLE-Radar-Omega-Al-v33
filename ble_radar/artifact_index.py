@@ -28,13 +28,33 @@ def _latest_name(paths: list[Path]) -> str | None:
     return paths[0].name
 
 
+def build_artifact_cross_links(index: dict) -> dict:
+    latest_scan = index.get("scan_manifests", {}).get("latest")
+    latest_diff = index.get("session_diff_reports", {}).get("latest")
+    latest_context = index.get("export_contexts", {}).get("latest")
+    latest_pack = index.get("incident_packs", {}).get("latest")
+
+    overview_chain = [x for x in [latest_scan, latest_diff, latest_context] if x]
+    incident_chain = [x for x in [latest_pack, latest_context] if x]
+    workspace_chain = [x for x in [latest_scan, latest_diff, latest_context, latest_pack] if x]
+
+    return {
+        "overview_chain": overview_chain,
+        "incident_chain": incident_chain,
+        "workspace_chain": workspace_chain,
+        "has_overview_chain": len(overview_chain) >= 2,
+        "has_incident_chain": len(incident_chain) >= 2,
+        "is_complete": all([latest_scan, latest_diff, latest_context, latest_pack]),
+    }
+
+
 def build_artifact_index(stamp: str | None = None) -> dict:
     scan_manifests = list_scan_manifests()
     session_diff_reports = list_session_diff_reports()
     export_contexts = list_export_contexts()
     incident_packs = list_incident_packs()
 
-    return {
+    index = {
         "stamp": stamp or _now_stamp(),
         "scan_manifests": {
             "count": len(scan_manifests),
@@ -53,9 +73,13 @@ def build_artifact_index(stamp: str | None = None) -> dict:
             "latest": _latest_name(incident_packs),
         },
     }
+    index["cross_links"] = build_artifact_cross_links(index)
+    return index
 
 
 def artifact_index_lines(index: dict) -> list[str]:
+    links = index.get("cross_links") or build_artifact_cross_links(index)
+
     lines = [
         "BLE Radar Omega AI - Artifact Index",
         f"Stamp: {index.get('stamp', 'unknown')}",
@@ -65,6 +89,12 @@ def artifact_index_lines(index: dict) -> list[str]:
         f"- Session diff reports: {index['session_diff_reports']['count']} | latest={index['session_diff_reports']['latest'] or 'none'}",
         f"- Export contexts: {index['export_contexts']['count']} | latest={index['export_contexts']['latest'] or 'none'}",
         f"- Incident packs: {index['incident_packs']['count']} | latest={index['incident_packs']['latest'] or 'none'}",
+        "",
+        "Cross-links:",
+        f"- Overview chain: {' -> '.join(links['overview_chain']) if links['overview_chain'] else 'none'}",
+        f"- Incident chain: {' -> '.join(links['incident_chain']) if links['incident_chain'] else 'none'}",
+        f"- Workspace chain: {' -> '.join(links['workspace_chain']) if links['workspace_chain'] else 'none'}",
+        f"- Complete: {'yes' if links['is_complete'] else 'no'}",
     ]
     return lines
 

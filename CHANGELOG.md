@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v1.0.3
+- artifact cross-links ajoutés à `ble_radar/artifact_index.py`
+- script `scripts/v103_links_check.sh` ajouté
+- chaînes overview / incident / workspace ajoutées
+- README / PROJECT_STATUS / CHANGELOG mis à jour
+- base de tests portée à 173 tests
+
 ## v1.0.2
 - panneau `Artifact index` ajouté au dashboard HTML
 - intégration de `build_artifact_index()` dans `dashboard.py`
