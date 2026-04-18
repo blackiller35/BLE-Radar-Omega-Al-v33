@@ -14,6 +14,7 @@ from ble_radar.history.case_workflow import case_workflow_summary, next_action
 from ble_radar.history.investigation_workspace import build_investigation_profile
 from ble_radar.history.operator_alerting import build_operator_alerts, load_alert_log, summarize_alerts
 from ble_radar.history.operator_briefing import build_operator_briefing
+from ble_radar.history.operator_correlation import build_correlation_clusters, summarize_clusters
 from ble_radar.history.operator_playbook import recommend_operator_playbook
 from ble_radar.history.operator_rule_engine import (
   evaluate_operator_rules,
@@ -343,6 +344,50 @@ def render_operator_alerting_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_correlation_panel(summary: dict) -> str:
+    """Render compact cluster/campaign view for operator correlation."""
+    if not summary:
+      return '<ul><li class="muted">Aucun cluster de corrélation disponible.</li></ul>'
+
+    top_clusters = summary.get("top_correlation_clusters", [])
+    coordinated = summary.get("possible_coordinated_devices", [])
+    needs_review = summary.get("needs_cluster_review", [])
+
+    lines = [
+      f"<li>Top correlation clusters: <strong>{len(top_clusters)}</strong> | "
+      f"Possible coordinated devices: <strong>{len(coordinated)}</strong> | "
+      f"Needs cluster review: <strong>{len(needs_review)}</strong></li>"
+    ]
+
+    if top_clusters:
+      items = "".join(
+        f"<li><code>{escape(str(c.get('cluster_id', '?')))}</code> "
+        f"| risk=<strong>{escape(str(c.get('risk_level', 'low')).upper())}</strong> "
+        f"| members={escape(str(c.get('member_count', 0)))} "
+        f"| {escape(str(c.get('reason_summary', '-')))}</li>"
+        for c in top_clusters[:5]
+      )
+      lines.append(f"<li>Top clusters (top 5):<ul>{items}</ul></li>")
+
+    if coordinated:
+      items = "".join(
+        f"<li><code>{escape(', '.join(c.get('member_addresses', [])[:4]))}</code>"
+        f" | signals={escape(', '.join([str(s) for s in c.get('top_signals', [])[:3]]) or '-')}</li>"
+        for c in coordinated[:5]
+      )
+      lines.append(f"<li>Possible coordinated devices (top 5):<ul>{items}</ul></li>")
+
+    if needs_review:
+      items = "".join(
+        f"<li><code>{escape(str(c.get('cluster_id', '?')))}</code> "
+        f"| follow-up: {escape(str(c.get('recommended_followup', '-')))}</li>"
+        for c in needs_review[:5]
+      )
+      lines.append(f"<li>Needs cluster review (top 5):<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -620,6 +665,27 @@ def render_dashboard_html(devices, stamp: str) -> str:
       operator_alerts,
       recent_log_events=recent_alert_log_events,
     )
+
+    correlation_timeline_by_address = {}
+    if focus_address and operator_timeline.get("events"):
+      correlation_timeline_by_address[focus_address] = operator_timeline.get("events", [])
+
+    investigation_profiles = {}
+    if focus_address and investigation_profile:
+      investigation_profiles[focus_address] = investigation_profile
+
+    correlation_clusters = build_correlation_clusters(
+      devices,
+      movement=movement,
+      triage_results=triage_results,
+      investigation_profiles=investigation_profiles,
+      watch_cases=watch_cases,
+      workflow_summary=workflow_summary,
+      timeline_by_address=correlation_timeline_by_address,
+      playbook_recommendations=operator_playbook_recommendations,
+      alerts=operator_alerts,
+    )
+    correlation_summary = summarize_clusters(correlation_clusters)
 
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
@@ -983,6 +1049,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Operator Alerting & Escalation</h2>
     {render_operator_alerting_panel(operator_alert_summary)}
     <div class="muted">Alertes actives, escalades récentes et éléments en revue immédiate.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Correlation Clusters / Campaign View</h2>
+    {render_operator_correlation_panel(correlation_summary)}
+    <div class="muted">Clusters corrélés, appareils possiblement coordonnés et revue de cluster.</div>
   </div>
 
   <div class="grid2">
