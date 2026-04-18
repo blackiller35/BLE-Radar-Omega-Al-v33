@@ -10,6 +10,7 @@ from ble_radar.artifact_index import build_artifact_index
 from ble_radar.history.device_registry import load_registry
 from ble_radar.history.device_scoring import compute_device_score
 from ble_radar.history.cases import load_cases as load_watch_cases
+from ble_radar.history.case_workflow import case_workflow_summary, next_action
 from ble_radar.history.investigation_workspace import build_investigation_profile
 from ble_radar.history.triage import triage_device_list
 from ble_radar.session.session_movement import build_session_movement
@@ -99,6 +100,52 @@ def render_investigation_profile_panel(profile: dict | None) -> str:
     lines.append(
         f"<li>Incident pack refs: {escape(', '.join(incident_pack_refs) if incident_pack_refs else 'none')}</li>"
     )
+    return f"<ul>{''.join(lines)}</ul>"
+
+
+def render_case_workflow_panel(summary: dict) -> str:
+    """Render a compact HTML panel for the operator case workflow."""
+    if not summary or summary.get("total", 0) == 0:
+        return '<ul><li class="muted">Aucun cas dans le workflow opérateur.</li></ul>'
+
+    open_cases = summary.get("open", [])
+    investigating = summary.get("investigating", [])
+    needs_action = summary.get("needs_action", [])
+    resolved = summary.get("resolved", [])
+
+    lines = [
+        f"<li>Cas ouverts : <strong>{len(open_cases)}</strong> | "
+        f"En cours d\'investigation : <strong>{len(investigating)}</strong> | "
+        f"Action requise : <strong>{len(needs_action)}</strong> | "
+        f"Résolus récents : <strong>{len(resolved)}</strong></li>",
+    ]
+
+    if needs_action:
+        rows = "".join(
+            f"<li><code>{escape(str(r.get('address', '?')))}</code> "
+            f"[<strong>{escape(str(r.get('status', 'new')))}</strong>] "
+            f"— {escape(next_action(r))}"
+            f"{(' | reason: ' + escape(str(r.get('reason', '')))) if r.get('reason') else ''}</li>"
+            for r in needs_action[:5]
+        )
+        lines.append(f"<li>Action requise (top 5):<ul>{rows}</ul></li>")
+
+    if investigating:
+        rows = "".join(
+            f"<li><code>{escape(str(r.get('address', '?')))}</code> "
+            f"— {escape(next_action(r))}</li>"
+            for r in investigating[:5]
+        )
+        lines.append(f"<li>En investigation (top 5):<ul>{rows}</ul></li>")
+
+    if resolved:
+        rows = "".join(
+            f"<li><code>{escape(str(r.get('address', '?')))}</code> "
+            f"updated={escape(str(r.get('updated_at', '-')))}</li>"
+            for r in resolved[:3]
+        )
+        lines.append(f"<li>Récemment résolus:<ul>{rows}</ul></li>")
+
     return f"<ul>{''.join(lines)}</ul>"
 
 
@@ -201,15 +248,19 @@ def render_dashboard_html(devices, stamp: str) -> str:
 
     investigation_profile = None
     if focus_address:
-      investigation_profile = build_investigation_profile(
-        focus_address,
-        devices=devices,
-        registry=registry,
-        watch_cases=watch_cases,
-        movement=movement,
-        triage_results=triage_results,
-        registry_scores=registry_scores,
-      )
+        investigation_profile = build_investigation_profile(
+            focus_address,
+            devices=devices,
+            registry=registry,
+            watch_cases=watch_cases,
+            movement=movement,
+            triage_results=triage_results,
+            registry_scores=registry_scores,
+        )
+    try:
+        workflow_summary = case_workflow_summary(watch_cases)
+    except Exception:
+        workflow_summary = {}
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -536,6 +587,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Investigation Workspace (Focused Device)</h2>
     {render_investigation_profile_panel(investigation_profile)}
     <div class="muted">Profil compact unifié pour un appareil prioritaire.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Operator Case Workflow</h2>
+    {render_case_workflow_panel(workflow_summary)}
+    <div class="muted">Suivi des cas opérateur : ouverts, en investigation, action requise, résolus récents.</div>
   </div>
 
   <div class="grid2">
