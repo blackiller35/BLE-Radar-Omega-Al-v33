@@ -12,6 +12,7 @@ from ble_radar.history.device_scoring import compute_device_score
 from ble_radar.history.cases import load_cases as load_watch_cases
 from ble_radar.history.case_workflow import case_workflow_summary, next_action
 from ble_radar.history.investigation_workspace import build_investigation_profile
+from ble_radar.history.operator_timeline import build_operator_timeline, recent_timeline_events
 from ble_radar.history.triage import triage_device_list
 from ble_radar.session.session_movement import build_session_movement
 from ble_radar.state import load_last_scan, load_scan_history
@@ -149,6 +150,20 @@ def render_case_workflow_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_timeline_panel(events: list) -> str:
+    """Render compact recent operator timeline events."""
+    if not events:
+        return '<ul><li class="muted">Aucun événement timeline disponible.</li></ul>'
+
+    items = "".join(
+        f"<li><span class=\"muted\">{escape(str(e.get('timestamp') or 'n/a'))}</span> | "
+        f"<strong>{escape(str(e.get('source', '?')))}</strong> | "
+        f"{escape(str(e.get('summary', '-')))}</li>"
+        for e in events
+    )
+    return f"<ul>{items}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -261,6 +276,20 @@ def render_dashboard_html(devices, stamp: str) -> str:
         workflow_summary = case_workflow_summary(watch_cases)
     except Exception:
         workflow_summary = {}
+    operator_timeline = {"events": []}
+    recent_operator_events = []
+    if focus_address:
+      try:
+        operator_timeline = build_operator_timeline(
+          focus_address,
+          registry=registry,
+          movement=movement,
+          triage_results=triage_results,
+        )
+        recent_operator_events = recent_timeline_events(operator_timeline, limit=8)
+      except Exception:
+        operator_timeline = {"events": []}
+        recent_operator_events = []
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -593,6 +622,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Operator Case Workflow</h2>
     {render_case_workflow_panel(workflow_summary)}
     <div class="muted">Suivi des cas opérateur : ouverts, en investigation, action requise, résolus récents.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Operator Timeline (Focused Device)</h2>
+    {render_operator_timeline_panel(recent_operator_events)}
+    <div class="muted">Événements opérateur récents unifiés (registry, workflow, mouvement, triage, packs).</div>
   </div>
 
   <div class="grid2">
