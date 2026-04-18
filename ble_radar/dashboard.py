@@ -10,6 +10,7 @@ from ble_radar.artifact_index import build_artifact_index
 from ble_radar.history.device_registry import load_registry
 from ble_radar.history.device_scoring import compute_device_score
 from ble_radar.history.cases import load_cases as load_watch_cases
+from ble_radar.history.triage import triage_device_list
 from ble_radar.session.session_movement import build_session_movement
 from ble_radar.state import load_last_scan, load_scan_history
 
@@ -28,6 +29,38 @@ def _delta_label(current: int, previous) -> str:
     if diff > 0:
         return f"+{diff}"
     return str(diff)
+
+
+_BUCKET_STYLE = {
+    "critical": "color:var(--pink);font-weight:700",
+    "review":   "color:var(--red)",
+    "watch":    "color:var(--yellow)",
+    "normal":   "color:var(--green)",
+}
+
+
+def render_triage_panel(triage_results: list) -> str:
+    """Render a compact HTML priority list from ``triage_device_list()`` output."""
+    if not triage_results:
+        return '<ul><li class="muted">Aucun appareil à trier.</li></ul>'
+
+    top = triage_results[:15]
+    items = []
+    for r in top:
+        bucket = r.get("triage_bucket", "normal")
+        style = _BUCKET_STYLE.get(bucket, "")
+        items.append(
+            f"<li style=\"{style}\">"
+            f"[{escape(bucket.upper())}] "
+            f"<code>{escape(str(r.get('address', '?')))}</code> "
+            f"| {escape(str(r.get('name', 'Inconnu')))} "
+            f"| score={escape(str(r.get('triage_score', 0)))} "
+            f"| {escape(str(r.get('short_reason', '-')))}"
+            f"</li>"
+        )
+    overflow = len(triage_results) - 15
+    suffix = f'<li class="muted">… {overflow} de plus</li>' if overflow > 0 else ""
+    return f"<ul>{''.join(items)}{suffix}</ul>"
 
 
 def render_watch_cases_panel(watch_cases: dict) -> str:
@@ -107,6 +140,20 @@ def render_dashboard_html(devices, stamp: str) -> str:
         watch_cases = load_watch_cases()
     except Exception:
         watch_cases = {}
+    # pre-compute per-device registry scores for reuse in triage
+    registry_scores = {}
+    for d in devices:
+        addr = str(d.get("address", "")).strip().upper()
+        if addr:
+            rec = registry.get(addr, {}) if isinstance(registry, dict) else {}
+            registry_scores[addr] = compute_device_score(d, rec)
+    triage_results = triage_device_list(
+        devices,
+        registry=registry,
+        watch_cases=watch_cases,
+        movement=movement,
+        registry_scores=registry_scores,
+    )
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -421,6 +468,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Watch / Cases</h2>
     {render_watch_cases_panel(watch_cases)}
     <div class="muted">Appareils sous surveillance locale (history/cases.json).</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Operator Triage Priority</h2>
+    {render_triage_panel(triage_results)}
+    <div class="muted">Score de triage opérateur par appareil (top 15, signaux combinés).</div>
   </div>
 
   <div class="grid2">
