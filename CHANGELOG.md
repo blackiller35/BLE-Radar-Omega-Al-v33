@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v1.0.2
+- panneau `Artifact index` ajouté au dashboard HTML
+- intégration de `build_artifact_index()` dans `dashboard.py`
+- vue rapide des artefacts locaux ajoutée
+- README / PROJECT_STATUS / CHANGELOG mis à jour
+- base de tests portée à 167 tests
+\n
+
 ## v1.0.1
 - module `ble_radar/artifact_index.py` ajouté
 - script `scripts/v101_artifact_check.sh` ajouté

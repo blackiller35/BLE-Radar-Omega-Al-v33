@@ -5,6 +5,7 @@ from ble_radar.intel import get_tracker_candidates, get_vendor_summary
 from ble_radar.investigation import list_cases
 from ble_radar.session_diff import latest_session_diff
 from ble_radar.session_catalog import build_session_catalog, latest_session_overview
+from ble_radar.artifact_index import build_artifact_index
 from ble_radar.state import load_scan_history
 
 
@@ -40,6 +41,7 @@ def render_dashboard_html(devices, stamp: str) -> str:
     latest_diff = latest_session_diff()
     recent_sessions = build_session_catalog(limit=5)
     latest_session = latest_session_overview()
+    artifact_index = build_artifact_index()
 
     trend_rows = []
     for row in history:
@@ -112,6 +114,13 @@ def render_dashboard_html(devices, stamp: str) -> str:
             f"trackers={escape(str(row.get('tracker_candidates', 0)))} | "
             f"top_vendor={escape(str(row.get('top_vendor', 'Unknown')))}</li>"
         )
+
+    artifact_lines = [
+        f"<li>Scan manifests: {escape(str(artifact_index.get('scan_manifests', {}).get('count', 0)))} | latest={escape(str(artifact_index.get('scan_manifests', {}).get('latest', 'none') or 'none'))}</li>",
+        f"<li>Session diff reports: {escape(str(artifact_index.get('session_diff_reports', {}).get('count', 0)))} | latest={escape(str(artifact_index.get('session_diff_reports', {}).get('latest', 'none') or 'none'))}</li>",
+        f"<li>Export contexts: {escape(str(artifact_index.get('export_contexts', {}).get('count', 0)))} | latest={escape(str(artifact_index.get('export_contexts', {}).get('latest', 'none') or 'none'))}</li>",
+        f"<li>Incident packs: {escape(str(artifact_index.get('incident_packs', {}).get('count', 0)))} | latest={escape(str(artifact_index.get('incident_packs', {}).get('latest', 'none') or 'none'))}</li>",
+    ]
 
     if latest_diff.get("has_diff"):
         diff_lines = [
@@ -270,6 +279,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Session diff récent</h2>
     <ul>{''.join(diff_lines)}</ul>
     <div class="muted">Résumé du dernier manifest comparé au précédent.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Artifact index</h2>
+    <ul>{''.join(artifact_lines)}</ul>
+    <div class="muted">Vue rapide des artefacts locaux générés.</div>
   </div>
 
   <div class="grid2">

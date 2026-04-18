@@ -414,3 +414,18 @@ Le projet peut maintenant produire un index local des artefacts :
 Commande :
 
     ./scripts/v101_artifact_check.sh
+
+## Dashboard artifact index
+
+Le dashboard HTML affiche maintenant un panneau d'index des artefacts :
+
+- `Artifact index`
+- scan manifests
+- session diff reports
+- export contexts
+- incident packs
+
+Exemple :
+- `Scan manifests`
+- `Export contexts`
+- `Incident packs`

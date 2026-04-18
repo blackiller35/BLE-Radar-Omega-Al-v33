@@ -86,3 +86,7 @@ Repository ready as a stable working baseline.
 ## v1.0.1 patch
 - v1.0.1 : artifact index patch
 - index local des artefacts générés disponible
+
+## v1.0.2 patch
+- v1.0.2 : artifact index dans le dashboard
+- vue rapide des artefacts locaux directement dans l'interface HTML
