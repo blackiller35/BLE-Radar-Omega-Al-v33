@@ -7,7 +7,11 @@ from ble_radar.investigation import list_cases
 from ble_radar.session_diff import latest_session_diff
 from ble_radar.session_catalog import build_session_catalog, latest_session_overview
 from ble_radar.artifact_index import build_artifact_index
-from ble_radar.state import load_scan_history
+from ble_radar.history.device_registry import load_registry
+from ble_radar.history.device_scoring import compute_device_score
+from ble_radar.history.cases import load_cases as load_watch_cases
+from ble_radar.session.session_movement import build_session_movement
+from ble_radar.state import load_last_scan, load_scan_history
 
 
 def _safe_int(value, default=0):
@@ -26,9 +30,83 @@ def _delta_label(current: int, previous) -> str:
     return str(diff)
 
 
+def render_watch_cases_panel(watch_cases: dict) -> str:
+    """Render a compact HTML fragment for local watch/case entries."""
+    if not watch_cases:
+        return '<ul><li class="muted">Aucun cas enregistré (history/cases.json vide).</li></ul>'
+
+    rows = sorted(watch_cases.values(), key=lambda r: r.get("updated_at", ""), reverse=True)[:10]
+    items = "".join(
+        f"<li><code>{escape(str(r.get('address', '?')))}</code> | "
+        f"status=<strong>{escape(str(r.get('status', 'watch')))}</strong> | "
+        f"reason={escape(str(r.get('reason', '-')))} | "
+        f"updated={escape(str(r.get('updated_at', '-')))}</li>"
+        for r in rows
+    )
+    total = len(watch_cases)
+    suffix = f'<li class="muted">… {total - 10} de plus</li>' if total > 10 else ""
+    return f"<ul>{items}{suffix}</ul>"
+
+
+def render_session_movement_panel(movement: dict) -> str:
+    """Render an HTML fragment summarising new / disappeared / recurring / score changes."""
+    counts = movement.get("counts", {})
+    lines = [
+        f"<li>Nouveaux appareils : <strong>{counts.get('new', 0)}</strong></li>",
+        f"<li>Appareils disparus : <strong>{counts.get('disappeared', 0)}</strong></li>",
+        f"<li>Appareils récurrents : <strong>{counts.get('recurring', 0)}</strong></li>",
+    ]
+
+    new_devs = movement.get("new", [])[:5]
+    if new_devs:
+        items = "".join(
+            f"<li class=\"new-device\">{escape(str(d.get('name', 'Inconnu')))} "
+            f"| <code>{escape(str(d.get('address', '?')).upper())}</code></li>"
+            for d in new_devs
+        )
+        lines.append(f"<li>Détail nouveaux (top 5) : <ul>{items}</ul></li>")
+
+    gone_devs = movement.get("disappeared", [])[:5]
+    if gone_devs:
+        items = "".join(
+            f"<li class=\"muted\">{escape(str(d.get('name', 'Inconnu')))} "
+            f"| <code>{escape(str(d.get('address', '?')).upper())}</code></li>"
+            for d in gone_devs
+        )
+        lines.append(f"<li>Détail disparus (top 5) : <ul>{items}</ul></li>")
+
+    score_changes = movement.get("score_changes", [])[:5]
+    if score_changes:
+        items = "".join(
+            f"<li>{escape(str(sc['name']))} | <code>{escape(sc['address'])}</code> "
+            f"| score {sc['prev_score']} → {sc['curr_score']} "
+            f"({'<span style=\"color:var(--green)\">+' + str(sc['delta']) + '</span>' if sc['delta'] > 0 else '<span style=\"color:var(--red)\">' + str(sc['delta']) + '</span>'})</li>"
+            for sc in score_changes
+        )
+        lines.append(f"<li>Score changes (top 5) : <ul>{items}</ul></li>")
+
+    if not any([new_devs, gone_devs, score_changes]) and counts.get("new", 0) == 0 and counts.get("disappeared", 0) == 0:
+        lines.append('<li class="muted">Aucun mouvement détecté vs scan précédent.</li>')
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_dashboard_html(devices, stamp: str) -> str:
-    bluehood_summary = ""
+    bluehood_summary = render_bluehood_summary(devices)
     devices = [normalize_device(d) for d in devices]
+    try:
+        registry = load_registry()
+    except Exception:
+        registry = {}
+    try:
+        previous_devices = load_last_scan()
+    except Exception:
+        previous_devices = []
+    movement = build_session_movement(devices, previous_devices, registry)
+    try:
+        watch_cases = load_watch_cases()
+    except Exception:
+        watch_cases = {}
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -124,6 +202,23 @@ def render_dashboard_html(devices, stamp: str) -> str:
         f"<li>Incident packs: {escape(str(artifact_index.get('incident_packs', {}).get('count', 0)))} | latest={escape(str(artifact_index.get('incident_packs', {}).get('latest', 'none') or 'none'))}</li>",
     ]
 
+    registry_lines = []
+    for d in devices[:10]:
+        addr = str(d.get("address", "")).upper().strip()
+        if not addr or addr == "-":
+            continue
+        rec = registry.get(addr, {}) if isinstance(registry, dict) else {}
+        reg_score = compute_device_score(d, rec)
+        registry_lines.append(
+            f"<li>{escape(str(d.get('name', 'Inconnu')))} | "
+            f"<code>{escape(addr)}</code> | "
+            f"first_seen={escape(str(rec.get('first_seen', '-')))} | "
+            f"last_seen={escape(str(rec.get('last_seen', '-')))} | "
+            f"seen_count={escape(str(rec.get('seen_count', 0)))} | "
+            f"session_count={escape(str(rec.get('session_count', 0)))} | "
+            f"registry_score={escape(str(reg_score))}</li>"
+        )
+
     if latest_diff.get("has_diff"):
         diff_lines = [
             f"<li>Previous: {escape(str(latest_diff.get('previous_stamp', '-')))}</li>",
@@ -190,6 +285,16 @@ def render_dashboard_html(devices, stamp: str) -> str:
         </tr>
         """
         )
+
+    try:
+        bluehood_summary = render_bluehood_summary(devices)
+    except Exception:
+        bluehood_summary = ""
+
+    try:
+        bluehood_summary = render_bluehood_summary(devices)
+    except Exception:
+        bluehood_summary = ""
 
     return f"""<!doctype html>
 <html lang="fr">
@@ -298,6 +403,24 @@ ul {{ margin:0; padding-left:18px; }}
       <h2>Sessions récentes</h2>
       <ul>{''.join(recent_session_lines) if recent_session_lines else '<li class="muted">Aucune session récente</li>'}</ul>
     </div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Device registry snapshot</h2>
+    <ul>{''.join(registry_lines) if registry_lines else '<li class="muted">Aucune donnée registry disponible</li>'}</ul>
+    <div class="muted">Aperçu local des appareils du scan courant (top 10).</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Session movement summary</h2>
+    {render_session_movement_panel(movement)}
+    <div class="muted">Comparaison appareil par appareil avec le scan précédent.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Watch / Cases</h2>
+    {render_watch_cases_panel(watch_cases)}
+    <div class="muted">Appareils sous surveillance locale (history/cases.json).</div>
   </div>
 
   <div class="grid2">
@@ -411,9 +534,7 @@ def render_bluehood_summary(devices, registry=None, session_id="dashboard-sessio
             seen_at=seen_at,
         )
     except Exception as exc:
-        bluehood_summary = render_bluehood_summary(devices)
-
-    return f"""
+        return f"""
 <section class="panel">
   <h2>Bluehood Summary</h2>
   <ul>
@@ -423,35 +544,38 @@ def render_bluehood_summary(devices, registry=None, session_id="dashboard-sessio
 </section>
 """
 
-    watch_hits = len(enriched.get("watch_hits", []))
-    top_correlated = enriched.get("top_correlated", [])
-    timeline = enriched.get("presence_timeline", {})
-    bucket_count = timeline.get("bucket_count", 0)
-    devices_enriched = enriched.get("devices_enriched", [])
+    correlated_pairs = []
+    watch_hits = []
 
-    corr_html = ""
-    if top_correlated:
-        items = []
-        for pair in top_correlated[:5]:
-            a = escape(str(pair.get("device_a", "?")))
-            b = escape(str(pair.get("device_b", "?")))
-            score = escape(str(pair.get("correlation_score", 0)))
-            items.append(f"<li><code>{a}</code> + <code>{b}</code> <strong>(score {score})</strong></li>")
-        corr_html = "<ul>" + "".join(items) + "</ul>"
-    else:
-        corr_html = "<p>No correlated pairs.</p>"
+    for item in devices or []:
+        if not isinstance(item, dict):
+            continue
+        address = escape(str(item.get("address", "?")))
+        name = escape(str(item.get("name", "Unknown")))
+
+        pair = item.get("correlated_pair") or item.get("correlated_with")
+        if pair:
+            correlated_pairs.append(f"<li>{address} ↔ {escape(str(pair))} (score: {item.get("score", 0)})</li>")
+        else:
+            correlated_pairs.append(f"<li>{name} ({address}) — score: {item.get('score', 0)}</li>")
+
+        watch_hits.append(f"<li>{name} ({address})</li>")
+
+    correlated_html = "".join(correlated_pairs) or "<li>None</li>"
+    watch_hits_html = "".join(watch_hits) or "<li>None</li>"
 
     return f"""
 <section class="panel">
   <h2>Bluehood Summary</h2>
-  <ul>
-    <li><strong>Enriched devices:</strong> {len(devices_enriched)}</li>
-    <li><strong>Watch hits:</strong> {watch_hits}</li>
-    <li><strong>Timeline buckets:</strong> {bucket_count}</li>
-    <li><strong>Top correlated pairs:</strong> {len(top_correlated)}</li>
-  </ul>
+  <div class="kv"><strong>Total devices:</strong> {len(enriched or [])}</div>
   <h3>Top correlated</h3>
-  {corr_html}
+  <ul>
+    {correlated_html}
+  </ul>
+  <h3>Watch hits details</h3>
+  <ul>
+    {watch_hits_html}
+  </ul>
 </section>
 """
 
