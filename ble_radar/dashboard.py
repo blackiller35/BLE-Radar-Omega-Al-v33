@@ -411,15 +411,45 @@ def render_bluehood_summary(devices, registry=None, session_id="dashboard-sessio
             seen_at=seen_at,
         )
     except Exception as exc:
-        bluehood_summary = render_bluehood_summary(devices)
-
-    return f"""
+        return f"""
 <section class="panel">
   <h2>Bluehood Summary</h2>
   <ul>
     <li><strong>Status:</strong> error</li>
     <li><strong>Reason:</strong> {escape(str(exc))}</li>
   </ul>
+</section>
+"""
+
+    watch_hits = len(enriched.get("watch_hits", []))
+    top_correlated = enriched.get("top_correlated", [])
+    timeline = enriched.get("presence_timeline", {})
+    bucket_count = timeline.get("bucket_count", 0)
+    devices_enriched = enriched.get("devices_enriched", [])
+
+    corr_html = ""
+    if top_correlated:
+        items = []
+        for pair in top_correlated[:5]:
+            a = escape(str(pair.get("device_a", "?")))
+            b = escape(str(pair.get("device_b", "?")))
+            score = escape(str(pair.get("correlation_score", 0)))
+            items.append(f"<li><code>{a}</code> + <code>{b}</code> <strong>(score {score})</strong></li>")
+        corr_html = "<ul>" + "".join(items) + "</ul>"
+    else:
+        corr_html = "<p>No correlated pairs.</p>"
+
+    return f"""
+<section class="panel">
+  <h2>Bluehood Summary</h2>
+  <ul>
+    <li><strong>Enriched devices:</strong> {len(devices_enriched)}</li>
+    <li><strong>Watch hits:</strong> {watch_hits}</li>
+    <li><strong>Timeline buckets:</strong> {bucket_count}</li>
+    <li><strong>Top correlated pairs:</strong> {len(top_correlated)}</li>
+  </ul>
+  <h3>Top correlated</h3>
+  {corr_html}
 </section>
 """
 
