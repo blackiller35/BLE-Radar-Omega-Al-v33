@@ -16,6 +16,7 @@ from ble_radar.history.operator_alerting import build_operator_alerts, load_aler
 from ble_radar.history.operator_briefing import build_operator_briefing
 from ble_radar.history.operator_campaign_tracking import build_campaign_lifecycle, load_campaign_records, summarize_campaigns
 from ble_radar.history.operator_correlation import build_correlation_clusters, summarize_clusters
+from ble_radar.history.operator_evidence_pack import build_evidence_packs, load_evidence_packs, summarize_evidence_packs
 from ble_radar.history.operator_playbook import recommend_operator_playbook
 from ble_radar.history.operator_rule_engine import (
   evaluate_operator_rules,
@@ -437,6 +438,51 @@ def render_operator_campaign_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_evidence_panel(summary: dict) -> str:
+    """Render compact evidence pack / consolidated dossier panel."""
+    if not summary:
+      return '<ul><li class="muted">Aucun evidence pack disponible.</li></ul>'
+
+    recent = summary.get("recent_evidence_packs", [])
+    review = summary.get("ready_for_review_dossiers", [])
+    campaign = summary.get("campaign_evidence_summary", [])
+
+    lines = [
+      f"<li>Recent evidence packs: <strong>{len(recent)}</strong> | "
+      f"Ready for review dossiers: <strong>{len(review)}</strong> | "
+      f"Campaign evidence summary: <strong>{len(campaign)}</strong></li>"
+    ]
+
+    if recent:
+      items = "".join(
+        f"<li><code>{escape(str(p.get('pack_id', '?')))}</code> "
+        f"| scope={escape(str(p.get('scope_type', '-')))}:{escape(str(p.get('scope_id', '-')))} "
+        f"| risk={escape(str(p.get('risk_level', 'low')).upper())}</li>"
+        for p in recent[-5:]
+      )
+      lines.append(f"<li>Recent evidence packs (top 5):<ul>{items}</ul></li>")
+
+    if review:
+      items = "".join(
+        f"<li><code>{escape(str(p.get('scope_type', '-')))}:{escape(str(p.get('scope_id', '-')))}</code> "
+        f"| findings={escape(str(len(p.get('key_findings', []))))} "
+        f"| follow-up: {escape(str(p.get('recommended_followup', '-')))}</li>"
+        for p in review[:5]
+      )
+      lines.append(f"<li>Ready for review dossiers (top 5):<ul>{items}</ul></li>")
+
+    if campaign:
+      items = "".join(
+        f"<li><code>{escape(str(p.get('scope_id', '-')))}</code> "
+        f"| alerts={escape(str(p.get('alerts_summary', '-')))} "
+        f"| summary={escape(str(p.get('summary', '-')))}</li>"
+        for p in campaign[:5]
+      )
+      lines.append(f"<li>Campaign evidence summary (top 5):<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -749,6 +795,33 @@ def render_dashboard_html(devices, stamp: str) -> str:
     )
     campaign_summary = summarize_campaigns(campaign_rows)
 
+    artifact_index = build_artifact_index()
+
+    evidence_packs = build_evidence_packs(
+      focus_address=focus_address,
+      watch_cases=watch_cases,
+      investigation_profile=investigation_profile,
+      workflow_summary=workflow_summary,
+      timeline_events=recent_operator_events,
+      playbook_recommendations=operator_playbook_recommendations,
+      rule_summary=operator_rule_summary,
+      briefing=operator_briefing,
+      alerts=operator_alerts,
+      clusters=correlation_clusters,
+      campaigns=campaign_rows,
+      artifact_index=artifact_index,
+      generated_at=stamp,
+      persist=False,
+    )
+    try:
+      persisted_evidence_packs = load_evidence_packs(limit=12)
+    except Exception:
+      persisted_evidence_packs = []
+    evidence_summary = summarize_evidence_packs(
+      evidence_packs,
+      persisted_packs=persisted_evidence_packs,
+    )
+
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -763,7 +836,6 @@ def render_dashboard_html(devices, stamp: str) -> str:
     latest_diff = latest_session_diff()
     recent_sessions = build_session_catalog(limit=5)
     latest_session = latest_session_overview()
-    artifact_index = build_artifact_index()
 
     trend_rows = []
     for row in history:
@@ -1123,6 +1195,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Campaign Tracking / Cluster Lifecycle</h2>
     {render_operator_campaign_panel(campaign_summary)}
     <div class="muted">Campagnes actives, clusters récurrents, groupes en expansion et revue opérateur.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Evidence Pack / Consolidated Operator Dossier</h2>
+    {render_operator_evidence_panel(evidence_summary)}
+    <div class="muted">Evidence packs récents, dossiers prêts à revue et synthèse campagne.</div>
   </div>
 
   <div class="grid2">
