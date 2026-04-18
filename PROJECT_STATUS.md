@@ -65,3 +65,7 @@ Repository ready as a stable working baseline.
 ## v0.4.6 extension
 - v0.4.6 : incident packs enrichis avec session diff
 - contexte de variation entre scans disponible dans les packs
+
+## v0.4.7 extension
+- v0.4.7 : session catalog dans le dashboard
+- vue rapide des sessions récentes directement dans l'interface HTML

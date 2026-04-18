@@ -4,6 +4,7 @@ from ble_radar.device_contract import explain_device, normalize_device
 from ble_radar.intel import get_tracker_candidates, get_vendor_summary
 from ble_radar.investigation import list_cases
 from ble_radar.session_diff import latest_session_diff
+from ble_radar.session_catalog import build_session_catalog, latest_session_overview
 from ble_radar.state import load_scan_history
 
 
@@ -37,6 +38,8 @@ def render_dashboard_html(devices, stamp: str) -> str:
     vendor_counts = get_vendor_summary(devices)[:8]
     cases = list_cases()[:5]
     latest_diff = latest_session_diff()
+    recent_sessions = build_session_catalog(limit=5)
+    latest_session = latest_session_overview()
 
     trend_rows = []
     for row in history:
@@ -87,6 +90,27 @@ def render_dashboard_html(devices, stamp: str) -> str:
             f"<li>{escape(str(case.get('title', 'Untitled Case')))} | "
             f"status={escape(str(case.get('status', '-')))} | "
             f"updated={escape(str(case.get('updated_at', '-')))}</li>"
+        )
+
+    latest_session_lines = [
+        f"<li>Stamp: {escape(str(latest_session.get('stamp', 'unknown')))}</li>",
+        f"<li>Devices: {escape(str(latest_session.get('device_count', 0)))}</li>",
+        f"<li>Critical: {escape(str(latest_session.get('critical', 0)))}</li>",
+        f"<li>Watch hits: {escape(str(latest_session.get('watch_hits', 0)))}</li>",
+        f"<li>Trackers: {escape(str(latest_session.get('tracker_candidates', 0)))}</li>",
+        f"<li>Top vendor: {escape(str(latest_session.get('top_vendor', 'Unknown')))}</li>",
+        f"<li>Top device: {escape(str(latest_session.get('top_device_name', 'Inconnu')))} ({escape(str(latest_session.get('top_device_score', 0)))})</li>",
+    ]
+
+    recent_session_lines = []
+    for row in recent_sessions:
+        recent_session_lines.append(
+            f"<li>{escape(str(row.get('stamp', 'unknown')))} | "
+            f"devices={escape(str(row.get('device_count', 0)))} | "
+            f"critical={escape(str(row.get('critical', 0)))} | "
+            f"watch_hits={escape(str(row.get('watch_hits', 0)))} | "
+            f"trackers={escape(str(row.get('tracker_candidates', 0)))} | "
+            f"top_vendor={escape(str(row.get('top_vendor', 'Unknown')))}</li>"
         )
 
     if latest_diff.get("has_diff"):
@@ -246,6 +270,17 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Session diff récent</h2>
     <ul>{''.join(diff_lines)}</ul>
     <div class="muted">Résumé du dernier manifest comparé au précédent.</div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <h2>Latest session overview</h2>
+      <ul>{''.join(latest_session_lines)}</ul>
+    </div>
+    <div class="panel">
+      <h2>Sessions récentes</h2>
+      <ul>{''.join(recent_session_lines) if recent_session_lines else '<li class="muted">Aucune session récente</li>'}</ul>
+    </div>
   </div>
 
   <div class="grid2">

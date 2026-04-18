@@ -345,3 +345,17 @@ Exemple :
 - `Device delta`
 - `Top vendor`
 - `Top device`
+
+## Dashboard session catalog
+
+Le dashboard HTML affiche maintenant un aperçu du catalogue de sessions :
+
+- `Latest session overview`
+- `Sessions récentes`
+- lecture rapide des manifests récents
+- top vendor / top device visibles directement
+
+Exemple :
+- `Stamp`
+- `Devices`
+- `Top vendor`
