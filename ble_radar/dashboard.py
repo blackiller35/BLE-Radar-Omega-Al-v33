@@ -9,6 +9,7 @@ from ble_radar.session_catalog import build_session_catalog, latest_session_over
 from ble_radar.artifact_index import build_artifact_index
 from ble_radar.history.device_registry import load_registry
 from ble_radar.history.device_scoring import compute_device_score
+from ble_radar.history.cases import load_cases as load_watch_cases
 from ble_radar.session.session_movement import build_session_movement
 from ble_radar.state import load_last_scan, load_scan_history
 
@@ -27,6 +28,24 @@ def _delta_label(current: int, previous) -> str:
     if diff > 0:
         return f"+{diff}"
     return str(diff)
+
+
+def render_watch_cases_panel(watch_cases: dict) -> str:
+    """Render a compact HTML fragment for local watch/case entries."""
+    if not watch_cases:
+        return '<ul><li class="muted">Aucun cas enregistré (history/cases.json vide).</li></ul>'
+
+    rows = sorted(watch_cases.values(), key=lambda r: r.get("updated_at", ""), reverse=True)[:10]
+    items = "".join(
+        f"<li><code>{escape(str(r.get('address', '?')))}</code> | "
+        f"status=<strong>{escape(str(r.get('status', 'watch')))}</strong> | "
+        f"reason={escape(str(r.get('reason', '-')))} | "
+        f"updated={escape(str(r.get('updated_at', '-')))}</li>"
+        for r in rows
+    )
+    total = len(watch_cases)
+    suffix = f'<li class="muted">… {total - 10} de plus</li>' if total > 10 else ""
+    return f"<ul>{items}{suffix}</ul>"
 
 
 def render_session_movement_panel(movement: dict) -> str:
@@ -84,6 +103,10 @@ def render_dashboard_html(devices, stamp: str) -> str:
     except Exception:
         previous_devices = []
     movement = build_session_movement(devices, previous_devices, registry)
+    try:
+        watch_cases = load_watch_cases()
+    except Exception:
+        watch_cases = {}
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -392,6 +415,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Session movement summary</h2>
     {render_session_movement_panel(movement)}
     <div class="muted">Comparaison appareil par appareil avec le scan précédent.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Watch / Cases</h2>
+    {render_watch_cases_panel(watch_cases)}
+    <div class="muted">Appareils sous surveillance locale (history/cases.json).</div>
   </div>
 
   <div class="grid2">
