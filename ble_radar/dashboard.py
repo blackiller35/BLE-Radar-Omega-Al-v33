@@ -12,6 +12,7 @@ from ble_radar.history.device_scoring import compute_device_score
 from ble_radar.history.cases import load_cases as load_watch_cases
 from ble_radar.history.case_workflow import case_workflow_summary, next_action
 from ble_radar.history.investigation_workspace import build_investigation_profile
+from ble_radar.history.operator_briefing import build_operator_briefing
 from ble_radar.history.operator_playbook import recommend_operator_playbook
 from ble_radar.history.operator_rule_engine import (
   evaluate_operator_rules,
@@ -250,6 +251,52 @@ def render_operator_rule_engine_panel(summary: dict, recent_log_events: list) ->
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_briefing_panel(briefing: dict) -> str:
+    """Render compact operator shift-handoff briefing."""
+    if not briefing:
+        return '<ul><li class="muted">Aucun briefing opérateur disponible.</li></ul>'
+
+    top_priorities = briefing.get("top_priorities", [])
+    recent_auto = briefing.get("recent_auto_actions", [])
+    timeline_hl = briefing.get("recent_timeline_highlights", [])
+    next_steps = briefing.get("suggested_next_steps", [])
+
+    lines = [
+        f"<li>Open cases: <strong>{escape(str(briefing.get('open_cases_count', 0)))}</strong> | "
+        f"Investigating: <strong>{escape(str(briefing.get('investigating_count', 0)))}</strong> | "
+        f"Pending confirmations: <strong>{escape(str(briefing.get('pending_confirmations_count', 0)))}</strong></li>"
+    ]
+
+    if top_priorities:
+        items = "".join(
+            f"<li><code>{escape(str(p.get('address', '?')))}</code> "
+            f"| {escape(str(p.get('name', 'Inconnu')))} "
+            f"| {escape(str(p.get('triage_bucket', 'normal')))}:{escape(str(p.get('triage_score', 0)))} "
+            f"| {escape(str(p.get('reason', '-')))}</li>"
+            for p in top_priorities[:5]
+        )
+        lines.append(f"<li>Top priorities:<ul>{items}</ul></li>")
+
+    if recent_auto:
+        items = "".join(
+            f"<li><code>{escape(str(a.get('address', '?')))}</code> "
+            f"| {escape(str(a.get('rule_id', '-')))} "
+            f"| {escape(str(a.get('recommended_action', '-')))}</li>"
+            for a in recent_auto[:3]
+        )
+        lines.append(f"<li>Recent auto-actions:<ul>{items}</ul></li>")
+
+    if timeline_hl:
+        items = "".join(f"<li>{escape(str(x))}</li>" for x in timeline_hl[:3])
+        lines.append(f"<li>Recent timeline highlights:<ul>{items}</ul></li>")
+
+    if next_steps:
+        items = "".join(f"<li>{escape(str(step))}</li>" for step in next_steps[:5])
+        lines.append(f"<li>Suggested next steps:<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -466,6 +513,16 @@ def render_dashboard_html(devices, stamp: str) -> str:
       recent_rule_log_events = load_automation_events(limit=8)
     except Exception:
       recent_rule_log_events = []
+
+    operator_briefing = build_operator_briefing(
+      triage_results=triage_results,
+      investigation_profile=investigation_profile,
+      workflow_summary=workflow_summary,
+      timeline_events=recent_operator_events,
+      playbook_recommendations=operator_playbook_recommendations,
+      rule_summary=operator_rule_summary,
+      rule_log_events=recent_rule_log_events,
+    )
 
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
@@ -817,6 +874,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Operator Rule Engine (Safe Auto-Actions)</h2>
     {render_operator_rule_engine_panel(operator_rule_summary, recent_rule_log_events)}
     <div class="muted">Actions auto-appliquées, confirmations en attente et règles récemment matchées.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Operator Briefing / Shift Handoff</h2>
+    {render_operator_briefing_panel(operator_briefing)}
+    <div class="muted">Briefing compact de relève opérateur (priorités, actions et prochaines étapes).</div>
   </div>
 
   <div class="grid2">
