@@ -8,6 +8,7 @@ from ble_radar.session_diff import latest_session_diff
 from ble_radar.session_catalog import build_session_catalog, latest_session_overview
 from ble_radar.artifact_index import build_artifact_index
 from ble_radar.history.device_registry import load_registry
+from ble_radar.history.device_scoring import compute_device_score
 from ble_radar.state import load_scan_history
 
 
@@ -135,13 +136,15 @@ def render_dashboard_html(devices, stamp: str) -> str:
         if not addr or addr == "-":
             continue
         rec = registry.get(addr, {}) if isinstance(registry, dict) else {}
+        reg_score = compute_device_score(d, rec)
         registry_lines.append(
             f"<li>{escape(str(d.get('name', 'Inconnu')))} | "
             f"<code>{escape(addr)}</code> | "
             f"first_seen={escape(str(rec.get('first_seen', '-')))} | "
             f"last_seen={escape(str(rec.get('last_seen', '-')))} | "
             f"seen_count={escape(str(rec.get('seen_count', 0)))} | "
-            f"session_count={escape(str(rec.get('session_count', 0)))}</li>"
+            f"session_count={escape(str(rec.get('session_count', 0)))} | "
+            f"registry_score={escape(str(reg_score))}</li>"
         )
 
     if latest_diff.get("has_diff"):
