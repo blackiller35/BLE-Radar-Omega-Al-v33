@@ -21,6 +21,10 @@ from ble_radar.history.operator_outcomes import build_operator_outcomes, summari
 from ble_radar.history.operator_playbook import recommend_operator_playbook
 from ble_radar.history.operator_queue import build_operator_queue, summarize_operator_queue
 from ble_radar.history.operator_queue_health import build_queue_health_snapshot, summarize_queue_health
+from ble_radar.history.recommendation_tuning import (
+  build_recommendation_tuning_profiles,
+  summarize_recommendation_tuning_profiles,
+)
 from ble_radar.history.operator_rule_engine import (
   evaluate_operator_rules,
   load_automation_events,
@@ -656,6 +660,72 @@ def render_operator_outcomes_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_recommendation_tuning_panel(summary: dict) -> str:
+    """Render compact recommendation tuning / operator confidence panel."""
+    if not summary:
+      return '<ul><li class="muted">Aucun profil de confidence disponible.</li></ul>'
+
+    confidence = summary.get("recommendation_confidence", [])
+    effective = summary.get("most_effective_playbooks", [])
+    weak = summary.get("weak_recommendations", [])
+    manual = summary.get("needs_manual_review", [])
+
+    lines = [
+      f"<li>Recommendation confidence: <strong>{escape(str(len(confidence)))}</strong> "
+      f"| weak recommendations: <strong>{escape(str(len(weak)))}</strong> "
+      f"| manual review: <strong>{escape(str(len(manual)))}</strong></li>"
+    ]
+
+    if confidence:
+      items = "".join(
+        f"<li><code>{escape(str(r.get('recommendation_id', '?')))}</code> "
+        f"| playbook={escape(str(r.get('source_playbook', '-')))} "
+        f"| scope={escape(str(r.get('scope_type', '-')))} "
+        f"| confidence=<strong>{escape(str(r.get('confidence_level', 'uncertain')).upper())}</strong> "
+        f"| eff={escape(str(r.get('effectiveness_score', 0)))} "
+        f"| rank_adj={escape(str(r.get('recommended_rank_adjustment', 0)))}</li>"
+        for r in confidence[:6]
+      )
+      lines.append(f"<li>Recommendation confidence (top 6):<ul>{items}</ul></li>")
+
+    if effective:
+      items = "".join(
+        f"<li>{escape(str(r.get('source_playbook', '-')))} "
+        f"| confidence={escape(str(r.get('confidence_level', 'uncertain')))} "
+        f"| eff=<strong>{escape(str(r.get('effectiveness_score', 0)))}</strong> "
+        f"| success={escape(str(r.get('success_count', 0)))}</li>"
+        for r in effective[:5]
+      )
+    else:
+      items = '<li class="muted">No effective playbooks ranked yet.</li>'
+    lines.append(f"<li>Most effective playbooks:<ul>{items}</ul></li>")
+
+    if weak:
+      items = "".join(
+        f"<li>{escape(str(r.get('source_playbook', '-')))} "
+        f"| confidence={escape(str(r.get('confidence_level', 'uncertain')))} "
+        f"| failures={escape(str(r.get('failure_count', 0)))} "
+        f"| reopened={escape(str(r.get('reopened_count', 0)))}</li>"
+        for r in weak[:5]
+      )
+    else:
+      items = '<li class="muted">No weak recommendations flagged.</li>'
+    lines.append(f"<li>Weak recommendations (top 5):<ul>{items}</ul></li>")
+
+    if manual:
+      items = "".join(
+        f"<li>{escape(str(r.get('source_playbook', '-')))} "
+        f"| confidence={escape(str(r.get('confidence_level', 'uncertain')))} "
+        f"| notes={escape(str(r.get('usage_notes', '-')))}</li>"
+        for r in manual[:5]
+      )
+    else:
+      items = '<li class="muted">No manual review signals.</li>'
+    lines.append(f"<li>Needs manual review (top 5):<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -1035,6 +1105,18 @@ def render_dashboard_html(devices, stamp: str) -> str:
       generated_at=stamp,
     )
     operator_outcomes_summary = summarize_operator_outcomes(operator_outcomes)
+
+    recommendation_profiles = build_recommendation_tuning_profiles(
+      operator_outcomes,
+      playbook_recommendations=operator_playbook_recommendations,
+      rule_results=operator_rule_results,
+      alerts=operator_alerts,
+      queue_items=operator_queue_items,
+      campaigns=campaign_rows,
+      evidence_packs=evidence_packs,
+      generated_at=stamp,
+    )
+    recommendation_tuning_summary = summarize_recommendation_tuning_profiles(recommendation_profiles)
 
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
@@ -1433,6 +1515,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Operator Outcomes / Feedback Loop</h2>
     {render_operator_outcomes_panel(operator_outcomes_summary)}
     <div class="muted">Outcomes opérateur, actions efficaces, réouvertures et recommandations faibles.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Recommendation Tuning / Operator Confidence</h2>
+    {render_recommendation_tuning_panel(recommendation_tuning_summary)}
+    <div class="muted">Confidence des recommandations, playbooks efficaces, recommandations faibles et revue manuelle.</div>
   </div>
 
   <div class="grid2">
