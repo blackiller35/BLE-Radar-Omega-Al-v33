@@ -386,3 +386,17 @@ Le projet peut maintenant produire un bundle de contexte global :
 Exemple d'usage :
 
     from ble_radar.export_context import save_export_context
+
+## Stable release v1.0.0
+
+Le projet atteint maintenant une stable release finale :
+
+- manifest stable des fonctionnalités
+- check final `./scripts/v100_release_check.sh`
+- validation unitaire complète
+- validation du menu
+- validation complémentaire du workflow
+
+Commande :
+
+    ./scripts/v100_release_check.sh

@@ -77,3 +77,8 @@ Repository ready as a stable working baseline.
 ## v0.4.9 extension
 - v0.4.9 : export context bundle
 - contexte global latest session / recent sessions / session diff exportable
+
+## v1.0.0 stable release
+- v1.0.0 : stable release finale
+- consolidation complète de la série v0.4.x
+- commande finale de vérification : `./scripts/v100_release_check.sh`

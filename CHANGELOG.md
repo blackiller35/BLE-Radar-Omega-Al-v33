@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v1.0.0
+- module `ble_radar/release_manifest.py` ajouté
+- script `scripts/v100_release_check.sh` ajouté
+- stable release finale formalisée
+- README / PROJECT_STATUS / CHANGELOG consolidés
+- base de tests portée à 155 tests
+
 ## v0.4.9
 - module `ble_radar/export_context.py` ajouté
 - export global latest session / recent sessions / session diff ajouté
