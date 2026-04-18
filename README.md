@@ -359,3 +359,16 @@ Exemple :
 - `Stamp`
 - `Devices`
 - `Top vendor`
+
+## Incident packs + session catalog
+
+Les incident packs intègrent maintenant un aperçu du catalogue de sessions :
+
+- `session_overview` dans le manifest JSON
+- `recent_sessions` dans le manifest JSON
+- résumé Markdown enrichi avec la dernière session et les sessions récentes
+
+Exemple :
+- `Latest session overview`
+- `Recent sessions`
+- `Top vendor`

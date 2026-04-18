@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.4.8
+- incident packs enrichis avec le session catalog
+- manifest JSON enrichi avec `session_overview` et `recent_sessions`
+- résumé Markdown enrichi avec la dernière session et les sessions récentes
+- README / PROJECT_STATUS / CHANGELOG mis à jour
+- base de tests portée à 144 tests
+\n
+
 ## v0.4.7
 - panneaux `Latest session overview` et `Sessions récentes` ajoutés au dashboard HTML
 - intégration de `build_session_catalog()` dans `dashboard.py`

@@ -7,6 +7,7 @@ from pathlib import Path
 from ble_radar.device_contract import explain_device, normalize_device
 from ble_radar.investigation import load_case, summarize_case
 from ble_radar.session_diff import latest_session_diff, summary_lines as diff_summary_lines
+from ble_radar.session_catalog import latest_session_overview, build_session_catalog
 
 
 INCIDENT_PACKS_DIR = Path("reports/incident_packs")
@@ -47,6 +48,8 @@ def build_incident_pack(case_id: str, latest_devices: list[dict] | None = None, 
     normalized_case_device = normalize_device(case_device) if case_device else None
 
     session_diff = latest_session_diff()
+    session_overview = latest_session_overview()
+    recent_sessions = build_session_catalog(limit=3)
 
     matches = []
     for item in latest_devices or []:
@@ -73,6 +76,8 @@ def build_incident_pack(case_id: str, latest_devices: list[dict] | None = None, 
         "matched_devices_count": len(matches),
         "matched_devices": matches,
         "session_diff": session_diff,
+        "session_overview": session_overview,
+        "recent_sessions": recent_sessions,
         "extra_meta": extra_meta or {},
     }
 
@@ -89,6 +94,35 @@ def build_incident_pack(case_id: str, latest_devices: list[dict] | None = None, 
         lines.append("")
         lines.append("Case device explanation:")
         lines.append(manifest["case_device_explanation"]["summary"])
+
+    lines.append("")
+    lines.append("Latest session overview:")
+    lines.append(f"Stamp: {session_overview.get('stamp', 'unknown')}")
+    lines.append(f"Devices: {session_overview.get('device_count', 0)}")
+    lines.append(f"Critical: {session_overview.get('critical', 0)}")
+    lines.append(f"Watch hits: {session_overview.get('watch_hits', 0)}")
+    lines.append(f"Trackers: {session_overview.get('tracker_candidates', 0)}")
+    lines.append(f"Top vendor: {session_overview.get('top_vendor', 'Unknown')}")
+    lines.append(
+        f"Top device: {session_overview.get('top_device_name', 'Inconnu')} "
+        f"({session_overview.get('top_device_score', 0)})"
+    )
+
+    if recent_sessions:
+        lines.append("")
+        lines.append("Recent sessions:")
+        for row in recent_sessions:
+            lines.append(
+                f"- {row.get('stamp', 'unknown')} | "
+                f"devices={row.get('device_count', 0)} | "
+                f"critical={row.get('critical', 0)} | "
+                f"watch_hits={row.get('watch_hits', 0)} | "
+                f"trackers={row.get('tracker_candidates', 0)} | "
+                f"top_vendor={row.get('top_vendor', 'Unknown')}"
+            )
+    else:
+        lines.append("")
+        lines.append("Recent sessions: none")
 
     if session_diff.get("has_diff", False):
         lines.append("")

@@ -69,3 +69,7 @@ Repository ready as a stable working baseline.
 ## v0.4.7 extension
 - v0.4.7 : session catalog dans le dashboard
 - vue rapide des sessions récentes directement dans l'interface HTML
+
+## v0.4.8 extension
+- v0.4.8 : incident packs enrichis avec session catalog
+- contexte des sessions récentes disponible dans les packs
