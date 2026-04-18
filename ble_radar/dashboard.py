@@ -21,6 +21,7 @@ from ble_radar.history.operator_outcomes import build_operator_outcomes, summari
 from ble_radar.history.operator_playbook import recommend_operator_playbook
 from ble_radar.history.operator_queue import build_operator_queue, summarize_operator_queue
 from ble_radar.history.operator_queue_health import build_queue_health_snapshot, summarize_queue_health
+from ble_radar.history.operator_session_journal import build_operator_session_journal, summarize_operator_session_journal
 from ble_radar.history.recommendation_tuning import (
   build_recommendation_tuning_profiles,
   summarize_recommendation_tuning_profiles,
@@ -802,6 +803,62 @@ def render_review_readiness_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_session_journal_panel(summary: dict) -> str:
+    """Render compact operator session journal / shift continuity panel."""
+    if not summary:
+      return '<ul><li class="muted">Aucun journal de session opérateur disponible.</li></ul>'
+
+    journal = summary.get("current_session_journal", {})
+    activity = summary.get("shift_activity", {})
+    carry_over = summary.get("carry_over_items", [])
+    priorities = summary.get("next_shift_priorities", [])
+    handoffs = summary.get("recent_handoffs", [])
+
+    lines = [
+      f"<li>Current session journal: <code>{escape(str(journal.get('session_id', '-')))}</code> "
+      f"| started={escape(str(journal.get('started_at', '-')))} "
+      f"| ended={escape(str(journal.get('ended_at', '-')))}</li>"
+    ]
+
+    lines.append(
+      f"<li>Shift activity: items_touched=<strong>{escape(str(activity.get('items_touched', 0)))}</strong> "
+      f"| campaigns_updated={escape(str(activity.get('campaigns_updated', 0)))} "
+      f"| alerts_reviewed={escape(str(activity.get('alerts_reviewed', 0)))} "
+      f"| outcomes_recorded={escape(str(activity.get('outcomes_recorded', 0)))} "
+      f"| readiness_changes={escape(str(activity.get('readiness_changes', 0)))}"
+      f"</li>"
+    )
+
+    if carry_over:
+      items = "".join(
+        f"<li><code>{escape(str(r.get('item_id', '?')))}</code> "
+        f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| state={escape(str(r.get('queue_state', '-')))}</li>"
+        for r in carry_over[:6]
+      )
+    else:
+      items = '<li class="muted">No carry-over items.</li>'
+    lines.append(f"<li>Carry over items (top 6):<ul>{items}</ul></li>")
+
+    if priorities:
+      items = "".join(f"<li>{escape(str(x))}</li>" for x in priorities[:6])
+    else:
+      items = '<li class="muted">No next-shift priorities.</li>'
+    lines.append(f"<li>Next shift priorities:<ul>{items}</ul></li>")
+
+    if handoffs:
+      items = "".join(
+        f"<li>{escape(str(h.get('scope_type', '-')))}:{escape(str(h.get('scope_id', '-')))} "
+        f"| reason={escape(str(h.get('reason', '-')))}</li>"
+        for h in handoffs[:6]
+      )
+    else:
+      items = '<li class="muted">No recent handoffs.</li>'
+    lines.append(f"<li>Recent handoffs (top 6):<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -1207,6 +1264,23 @@ def render_dashboard_html(devices, stamp: str) -> str:
       generated_at=stamp,
     )
     review_readiness_summary = summarize_review_readiness(review_readiness_profiles)
+
+    operator_session_journal = build_operator_session_journal(
+      queue_items=operator_queue_items,
+      campaigns=campaign_rows,
+      alerts=operator_alerts,
+      outcomes=operator_outcomes,
+      readiness_profiles=review_readiness_profiles,
+      evidence_packs=evidence_packs,
+      queue_health_snapshot=queue_health_snapshot,
+      generated_at=stamp,
+    )
+    operator_session_journal_summary = summarize_operator_session_journal(
+      operator_session_journal,
+      queue_items=operator_queue_items,
+      outcomes=operator_outcomes,
+      readiness_profiles=review_readiness_profiles,
+    )
 
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
@@ -1617,6 +1691,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Review Readiness / Readiness Gate</h2>
     {render_review_readiness_panel(review_readiness_summary)}
     <div class="muted">État de readiness pour review, handoff et archive selon les signaux opérateur.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Operator Session Journal / Shift Continuity</h2>
+    {render_operator_session_journal_panel(operator_session_journal_summary)}
+    <div class="muted">Journal de session courant, activité de shift, carry-over et priorités de relève.</div>
   </div>
 
   <div class="grid2">
