@@ -129,19 +129,19 @@ def render_dashboard_html(devices, stamp: str) -> str:
         f"<li>Incident packs: {escape(str(artifact_index.get('incident_packs', {}).get('count', 0)))} | latest={escape(str(artifact_index.get('incident_packs', {}).get('latest', 'none') or 'none'))}</li>",
     ]
 
-      registry_lines = []
-      for d in devices[:10]:
+    registry_lines = []
+    for d in devices[:10]:
         addr = str(d.get("address", "")).upper().strip()
         if not addr or addr == "-":
-          continue
+            continue
         rec = registry.get(addr, {}) if isinstance(registry, dict) else {}
         registry_lines.append(
-          f"<li>{escape(str(d.get('name', 'Inconnu')))} | "
-          f"<code>{escape(addr)}</code> | "
-          f"first_seen={escape(str(rec.get('first_seen', '-')))} | "
-          f"last_seen={escape(str(rec.get('last_seen', '-')))} | "
-          f"seen_count={escape(str(rec.get('seen_count', 0)))} | "
-          f"session_count={escape(str(rec.get('session_count', 0)))}</li>"
+            f"<li>{escape(str(d.get('name', 'Inconnu')))} | "
+            f"<code>{escape(addr)}</code> | "
+            f"first_seen={escape(str(rec.get('first_seen', '-')))} | "
+            f"last_seen={escape(str(rec.get('last_seen', '-')))} | "
+            f"seen_count={escape(str(rec.get('seen_count', 0)))} | "
+            f"session_count={escape(str(rec.get('session_count', 0)))}</li>"
         )
 
     if latest_diff.get("has_diff"):
