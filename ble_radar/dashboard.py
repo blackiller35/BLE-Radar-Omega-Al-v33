@@ -10,6 +10,7 @@ from ble_radar.artifact_index import build_artifact_index
 from ble_radar.history.device_registry import load_registry
 from ble_radar.history.device_scoring import compute_device_score
 from ble_radar.history.cases import load_cases as load_watch_cases
+from ble_radar.history.investigation_workspace import build_investigation_profile
 from ble_radar.history.triage import triage_device_list
 from ble_radar.session.session_movement import build_session_movement
 from ble_radar.state import load_last_scan, load_scan_history
@@ -61,6 +62,44 @@ def render_triage_panel(triage_results: list) -> str:
     overflow = len(triage_results) - 15
     suffix = f'<li class="muted">… {overflow} de plus</li>' if overflow > 0 else ""
     return f"<ul>{''.join(items)}{suffix}</ul>"
+
+
+def render_investigation_profile_panel(profile: dict | None) -> str:
+    """Render a compact workspace view for one focused device address."""
+    if not profile:
+        return '<ul><li class="muted">Aucun profil d\'investigation disponible.</li></ul>'
+
+    identity = profile.get("identity", {})
+    registry = profile.get("registry", {})
+    triage = profile.get("triage", {})
+    case = profile.get("case", {})
+    movement = profile.get("movement", {})
+    refs = profile.get("incident_refs", {})
+
+    lines = [
+        f"<li><strong>Focus</strong>: {escape(str(identity.get('name', 'Inconnu')))} | <code>{escape(str(profile.get('address', '?')))}</code></li>",
+        f"<li>Vendor={escape(str(identity.get('vendor', 'Unknown')))} | profile={escape(str(identity.get('profile', '-')))} | alert={escape(str(identity.get('alert_level', '-')))} | watch_hit={escape(str(identity.get('watch_hit', False)))}</li>",
+        f"<li>Registry: seen={escape(str(registry.get('seen_count', 0)))} | sessions={escape(str(registry.get('session_count', 0)))} | score={escape(str(registry.get('registry_score', 0)))}</li>",
+        f"<li>Triage: <strong>{escape(str(triage.get('triage_bucket', 'normal')).upper())}</strong> | score={escape(str(triage.get('triage_score', 0)))} | reason={escape(str(triage.get('short_reason', 'no signals')))}</li>",
+        f"<li>Case: status={escape(str(case.get('status', 'none')))} | reason={escape(str(case.get('reason', '-')))} | updated={escape(str(case.get('updated_at', '-')))}</li>",
+        f"<li>Movement: status={escape(str(movement.get('status', 'unknown')))}"
+        + (
+            f" | score_delta={escape(str(movement.get('score_delta')))}"
+            if movement.get("score_delta") is not None
+            else ""
+        )
+        + "</li>",
+    ]
+
+    device_pack_refs = refs.get("device_packs", [])
+    incident_pack_refs = refs.get("incident_packs", [])
+    lines.append(
+        f"<li>Device pack refs: {escape(', '.join(device_pack_refs) if device_pack_refs else 'none')}</li>"
+    )
+    lines.append(
+        f"<li>Incident pack refs: {escape(', '.join(incident_pack_refs) if incident_pack_refs else 'none')}</li>"
+    )
+    return f"<ul>{''.join(lines)}</ul>"
 
 
 def render_watch_cases_panel(watch_cases: dict) -> str:
@@ -154,6 +193,23 @@ def render_dashboard_html(devices, stamp: str) -> str:
         movement=movement,
         registry_scores=registry_scores,
     )
+    focus_address = ""
+    if triage_results:
+      focus_address = str(triage_results[0].get("address", "")).strip().upper()
+    elif devices:
+      focus_address = str(devices[0].get("address", "")).strip().upper()
+
+    investigation_profile = None
+    if focus_address:
+      investigation_profile = build_investigation_profile(
+        focus_address,
+        devices=devices,
+        registry=registry,
+        watch_cases=watch_cases,
+        movement=movement,
+        triage_results=triage_results,
+        registry_scores=registry_scores,
+      )
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -474,6 +530,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Operator Triage Priority</h2>
     {render_triage_panel(triage_results)}
     <div class="muted">Score de triage opérateur par appareil (top 15, signaux combinés).</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Investigation Workspace (Focused Device)</h2>
+    {render_investigation_profile_panel(investigation_profile)}
+    <div class="muted">Profil compact unifié pour un appareil prioritaire.</div>
   </div>
 
   <div class="grid2">
