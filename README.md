@@ -438,3 +438,18 @@ Le projet expose maintenant des chaînes de navigation entre artefacts :
 - `incident_chain`
 - `workspace_chain`
 - aperçu via `./scripts/v103_links_check.sh`
+
+## Activity timeline
+
+Le projet peut maintenant produire une timeline locale des artefacts :
+
+- `ble_radar/activity_timeline.py`
+- scan manifests
+- session diff reports
+- export contexts
+- incident packs
+- artifact indexes
+
+Commande :
+
+    ./scripts/v104_timeline_check.sh

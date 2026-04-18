@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v1.0.4
+- module `ble_radar/activity_timeline.py` ajouté
+- script `scripts/v104_timeline_check.sh` ajouté
+- timeline locale des artefacts générés ajoutée
+- README / PROJECT_STATUS / CHANGELOG mis à jour
+- base de tests portée à 179 tests
+
 ## v1.0.3
 - artifact cross-links ajoutés à `ble_radar/artifact_index.py`
 - script `scripts/v103_links_check.sh` ajouté

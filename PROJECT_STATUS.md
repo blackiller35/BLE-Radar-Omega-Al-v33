@@ -94,3 +94,7 @@ Repository ready as a stable working baseline.
 ## v1.0.3 patch
 - v1.0.3 : artifact cross-links patch
 - navigation locale entre artefacts récents disponible
+
+## v1.0.4 patch
+- v1.0.4 : activity timeline patch
+- timeline locale des artefacts générés disponible
