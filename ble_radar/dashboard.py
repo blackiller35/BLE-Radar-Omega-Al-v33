@@ -14,6 +14,7 @@ from ble_radar.history.case_workflow import case_workflow_summary, next_action
 from ble_radar.history.investigation_workspace import build_investigation_profile
 from ble_radar.history.operator_alerting import build_operator_alerts, load_alert_log, summarize_alerts
 from ble_radar.history.operator_briefing import build_operator_briefing
+from ble_radar.history.operator_campaign_tracking import build_campaign_lifecycle, load_campaign_records, summarize_campaigns
 from ble_radar.history.operator_correlation import build_correlation_clusters, summarize_clusters
 from ble_radar.history.operator_playbook import recommend_operator_playbook
 from ble_radar.history.operator_rule_engine import (
@@ -388,6 +389,54 @@ def render_operator_correlation_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_campaign_panel(summary: dict) -> str:
+    """Render compact campaign lifecycle view from tracked clusters."""
+    if not summary:
+      return '<ul><li class="muted">Aucune campagne suivie disponible.</li></ul>'
+
+    active = summary.get("active_campaigns", [])
+    recurring = summary.get("recurring_clusters", [])
+    expanding = summary.get("expanding_groups", [])
+    needs_review = summary.get("needs_campaign_review", [])
+
+    lines = [
+      f"<li>Active campaigns: <strong>{len(active)}</strong> | "
+      f"Recurring clusters: <strong>{len(recurring)}</strong> | "
+      f"Expanding groups: <strong>{len(expanding)}</strong> | "
+      f"Needs campaign review: <strong>{len(needs_review)}</strong></li>"
+    ]
+
+    if active:
+      items = "".join(
+        f"<li><code>{escape(str(c.get('campaign_id', '?')))}</code> "
+        f"| status=<strong>{escape(str(c.get('status', 'new')).upper())}</strong> "
+        f"| risk={escape(str(c.get('risk_level', 'low')).upper())} "
+        f"| members={escape(str(c.get('member_count', 0)))} "
+        f"| trend={escape(str(c.get('activity_trend', '-')))}</li>"
+        for c in active[:5]
+      )
+      lines.append(f"<li>Active campaigns (top 5):<ul>{items}</ul></li>")
+
+    if recurring:
+      items = "".join(
+        f"<li><code>{escape(str(c.get('campaign_id', '?')))}</code> "
+        f"| last_seen={escape(str(c.get('last_seen', '-')))} "
+        f"| reason={escape(str(c.get('reason_summary', '-')))}</li>"
+        for c in recurring[:5]
+      )
+      lines.append(f"<li>Recurring clusters (top 5):<ul>{items}</ul></li>")
+
+    if expanding:
+      items = "".join(
+        f"<li><code>{escape(str(c.get('campaign_id', '?')))}</code> "
+        f"| follow-up: {escape(str(c.get('recommended_followup', '-')))}</li>"
+        for c in expanding[:5]
+      )
+      lines.append(f"<li>Expanding groups (top 5):<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -686,6 +735,19 @@ def render_dashboard_html(devices, stamp: str) -> str:
       alerts=operator_alerts,
     )
     correlation_summary = summarize_clusters(correlation_clusters)
+
+    try:
+      previous_campaigns = load_campaign_records()
+    except Exception:
+      previous_campaigns = []
+
+    campaign_rows = build_campaign_lifecycle(
+      correlation_clusters,
+      previous_campaigns=previous_campaigns,
+      stamp=stamp,
+      persist=False,
+    )
+    campaign_summary = summarize_campaigns(campaign_rows)
 
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
@@ -1055,6 +1117,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Correlation Clusters / Campaign View</h2>
     {render_operator_correlation_panel(correlation_summary)}
     <div class="muted">Clusters corrélés, appareils possiblement coordonnés et revue de cluster.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Campaign Tracking / Cluster Lifecycle</h2>
+    {render_operator_campaign_panel(campaign_summary)}
+    <div class="muted">Campagnes actives, clusters récurrents, groupes en expansion et revue opérateur.</div>
   </div>
 
   <div class="grid2">
