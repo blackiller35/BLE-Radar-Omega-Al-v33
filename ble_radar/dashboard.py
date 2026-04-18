@@ -421,11 +421,24 @@ def render_bluehood_summary(devices, registry=None, session_id="dashboard-sessio
 </section>
 """
 
-    watch_hits = len(enriched.get("watch_hits", []))
+    watch_hits_list = enriched.get("watch_hits", [])
+    watch_hits = len(watch_hits_list)
     top_correlated = enriched.get("top_correlated", [])
     timeline = enriched.get("presence_timeline", {})
     bucket_count = timeline.get("bucket_count", 0)
     devices_enriched = enriched.get("devices_enriched", [])
+
+    watch_html = ""
+    if watch_hits_list:
+        items = []
+        for d in watch_hits_list[:5]:
+            name = escape(str(d.get("name", "Unknown")))
+            address = escape(str(d.get("address", "?")))
+            reason = escape(str(d.get("watch", {}).get("reason", "-")))
+            items.append(f"<li><strong>{name}</strong> | <code>{address}</code> | reason={reason}</li>")
+        watch_html = "<ul>" + "".join(items) + "</ul>"
+    else:
+        watch_html = "<p>No watch hits.</p>"
 
     corr_html = ""
     if top_correlated:
@@ -448,6 +461,8 @@ def render_bluehood_summary(devices, registry=None, session_id="dashboard-sessio
     <li><strong>Timeline buckets:</strong> {bucket_count}</li>
     <li><strong>Top correlated pairs:</strong> {len(top_correlated)}</li>
   </ul>
+  <h3>Watch hits details</h3>
+  {watch_html}
   <h3>Top correlated</h3>
   {corr_html}
 </section>
