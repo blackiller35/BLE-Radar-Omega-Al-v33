@@ -426,52 +426,43 @@ def render_bluehood_summary(devices, registry=None, session_id="dashboard-sessio
   <h2>Bluehood Summary</h2>
   <ul>
     <li><strong>Status:</strong> error</li>
-    <li><strong>Reason:</strong> {str(exc)}</li>
+    <li><strong>Reason:</strong> {escape(str(exc))}</li>
   </ul>
 </section>
 """
 
-    devices_enriched = enriched.get("devices_enriched", devices or [])
-    watch_hits_list = enriched.get("watch_hits", [])
-    if not watch_hits_list and devices:
-        watch_hits_list = [devices[0]]
+    correlated_pairs = []
+    watch_hits = []
 
-    top_correlated = enriched.get("top_correlated", [])
-    if not top_correlated:
-        top_correlated = [
-            {"device_a": "AA:BB", "device_b": "CC:DD", "correlation_score": 0.85}
-        ]
+    for item in devices or []:
+        if not isinstance(item, dict):
+            continue
+        address = escape(str(item.get("address", "?")))
+        name = escape(str(item.get("name", "Unknown")))
 
-    timeline = enriched.get("presence_timeline", {})
-    bucket_count = timeline.get("bucket_count", 0)
+        pair = item.get("correlated_pair") or item.get("correlated_with")
+        if pair:
+            correlated_pairs.append(f"<li>{address} ↔ {escape(str(pair))} (score: {item.get("score", 0)})</li>")
+        else:
+            correlated_pairs.append(f"<li>{name} ({address}) — score: {item.get('score', 0)}</li>")
 
-    watch_html = "<ul>"
-    for d in watch_hits_list[:5]:
-        name = d.get("name", "Unknown")
-        address = d.get("address", "?")
-        watch_html += f"<li>{name} ({address})</li>"
-    watch_html += "</ul>"
+        watch_hits.append(f"<li>{name} ({address})</li>")
 
-    corr_html = "<ul>"
-    for pair in top_correlated[:5]:
-        a = pair.get("device_a", "?")
-        b = pair.get("device_b", "?")
-        score = pair.get("correlation_score", 0)
-        corr_html += f"<li>{a} + {b} (score {score})</li>"
-    corr_html += "</ul>"
+    correlated_html = "".join(correlated_pairs) or "<li>None</li>"
+    watch_hits_html = "".join(watch_hits) or "<li>None</li>"
 
     return f"""
 <section class="panel">
   <h2>Bluehood Summary</h2>
+  <div class="kv"><strong>Total devices:</strong> {len(enriched or [])}</div>
+  <h3>Top correlated</h3>
   <ul>
-    <li><strong>Enriched devices:</strong> {len(devices_enriched)}</li>
-    <li><strong>Watch hits:</strong> {len(watch_hits_list)}</li>
-    <li><strong>Timeline buckets:</strong> {bucket_count}</li>
-    <li><strong>Top correlated pairs:</strong> {len(top_correlated)}</li>
+    {correlated_html}
   </ul>
   <h3>Watch hits details</h3>
-  {watch_html}
-  <h3>Top correlated</h3>
-  {corr_html}
+  <ul>
+    {watch_hits_html}
+  </ul>
 </section>
 """
+
