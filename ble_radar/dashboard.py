@@ -25,6 +25,7 @@ from ble_radar.history.recommendation_tuning import (
   build_recommendation_tuning_profiles,
   summarize_recommendation_tuning_profiles,
 )
+from ble_radar.history.review_readiness import build_review_readiness_profiles, summarize_review_readiness
 from ble_radar.history.operator_rule_engine import (
   evaluate_operator_rules,
   load_automation_events,
@@ -726,6 +727,81 @@ def render_recommendation_tuning_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_review_readiness_panel(summary: dict) -> str:
+    """Render compact review readiness / readiness gate panel."""
+    if not summary:
+      return '<ul><li class="muted">Aucun profil de review readiness disponible.</li></ul>'
+
+    readiness = summary.get("review_readiness", [])
+    ready_review = summary.get("ready_for_review", [])
+    needs_evidence = summary.get("needs_more_evidence", [])
+    ready_handoff = summary.get("ready_for_handoff", [])
+    ready_archive = summary.get("ready_for_archive", [])
+
+    lines = [
+      f"<li>Review readiness: <strong>{escape(str(len(readiness)))}</strong> "
+      f"| ready_for_review: <strong>{escape(str(len(ready_review)))}</strong> "
+      f"| needs_more_evidence: <strong>{escape(str(len(needs_evidence)))}</strong> "
+      f"| handoff: <strong>{escape(str(len(ready_handoff)))}</strong> "
+      f"| archive: <strong>{escape(str(len(ready_archive)))}</strong></li>"
+    ]
+
+    if readiness:
+      items = "".join(
+        f"<li><code>{escape(str(r.get('review_id', '?')))}</code> "
+        f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| state=<strong>{escape(str(r.get('readiness_state', 'not_ready')).upper())}</strong> "
+        f"| score={escape(str(r.get('readiness_score', 0)))} "
+        f"| disposition={escape(str(r.get('recommended_disposition', '-')))}</li>"
+        for r in readiness[:6]
+      )
+      lines.append(f"<li>Review readiness (top 6):<ul>{items}</ul></li>")
+
+    if ready_review:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| score={escape(str(r.get('readiness_score', 0)))} "
+        f"| notes={escape(str(r.get('review_notes', '-')))}</li>"
+        for r in ready_review[:5]
+      )
+    else:
+      items = '<li class="muted">No scopes ready for review yet.</li>'
+    lines.append(f"<li>Ready for review (top 5):<ul>{items}</ul></li>")
+
+    if needs_evidence:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| missing={escape(', '.join([str(x) for x in r.get('missing_elements', [])]) or '-')}</li>"
+        for r in needs_evidence[:5]
+      )
+    else:
+      items = '<li class="muted">No additional evidence needed.</li>'
+    lines.append(f"<li>Needs more evidence (top 5):<ul>{items}</ul></li>")
+
+    if ready_handoff:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| strengths={escape(', '.join([str(x) for x in r.get('strengths', [])]) or '-')}</li>"
+        for r in ready_handoff[:5]
+      )
+    else:
+      items = '<li class="muted">No scopes ready for handoff.</li>'
+    lines.append(f"<li>Ready for handoff (top 5):<ul>{items}</ul></li>")
+
+    if ready_archive:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| disposition={escape(str(r.get('recommended_disposition', '-')))} "
+        f"| score={escape(str(r.get('readiness_score', 0)))}</li>"
+        for r in ready_archive[:5]
+      )
+    else:
+      items = '<li class="muted">No scopes ready for archive.</li>'
+    lines.append(f"<li>Ready for archive (top 5):<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -1117,6 +1193,20 @@ def render_dashboard_html(devices, stamp: str) -> str:
       generated_at=stamp,
     )
     recommendation_tuning_summary = summarize_recommendation_tuning_profiles(recommendation_profiles)
+
+    review_readiness_profiles = build_review_readiness_profiles(
+      operator_queue_items,
+      evidence_packs=evidence_packs,
+      queue_health_snapshot=queue_health_snapshot,
+      outcomes=operator_outcomes,
+      alerts=operator_alerts,
+      timeline_events=recent_operator_events,
+      campaigns=campaign_rows,
+      workflow_summary=workflow_summary,
+      investigation_profile=investigation_profile,
+      generated_at=stamp,
+    )
+    review_readiness_summary = summarize_review_readiness(review_readiness_profiles)
 
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
@@ -1521,6 +1611,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Recommendation Tuning / Operator Confidence</h2>
     {render_recommendation_tuning_panel(recommendation_tuning_summary)}
     <div class="muted">Confidence des recommandations, playbooks efficaces, recommandations faibles et revue manuelle.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Review Readiness / Readiness Gate</h2>
+    {render_review_readiness_panel(review_readiness_summary)}
+    <div class="muted">État de readiness pour review, handoff et archive selon les signaux opérateur.</div>
   </div>
 
   <div class="grid2">
