@@ -13,6 +13,11 @@ from ble_radar.history.cases import load_cases as load_watch_cases
 from ble_radar.history.case_workflow import case_workflow_summary, next_action
 from ble_radar.history.investigation_workspace import build_investigation_profile
 from ble_radar.history.operator_playbook import recommend_operator_playbook
+from ble_radar.history.operator_rule_engine import (
+  evaluate_operator_rules,
+  load_automation_events,
+  summarize_rule_results,
+)
 from ble_radar.history.operator_timeline import build_operator_timeline, recent_timeline_events
 from ble_radar.history.triage import triage_device_list
 from ble_radar.session.session_movement import build_session_movement
@@ -192,6 +197,59 @@ def render_operator_playbook_panel(recommendations: list) -> str:
     return f"<ul>{''.join(rows)}</ul>"
 
 
+def render_operator_rule_engine_panel(summary: dict, recent_log_events: list) -> str:
+    """Render compact local rule engine results."""
+    auto_rows = summary.get("auto_applied", []) if isinstance(summary, dict) else []
+    pending_rows = summary.get("pending_confirmations", []) if isinstance(summary, dict) else []
+    recent_rows = summary.get("recent_matched", []) if isinstance(summary, dict) else []
+
+    lines = [
+        f"<li>Auto-applied actions: <strong>{len(auto_rows)}</strong> | "
+        f"Pending confirmations: <strong>{len(pending_rows)}</strong> | "
+        f"Recently matched rules: <strong>{len(recent_rows)}</strong></li>"
+    ]
+
+    if auto_rows:
+        items = "".join(
+            f"<li><code>{escape(str(r.get('address', '?')))}</code> "
+            f"| {escape(str(r.get('rule_id', '-')))} "
+            f"| {escape(str(r.get('recommended_action', '-')))}</li>"
+            for r in auto_rows[:5]
+        )
+        lines.append(f"<li>Auto-applied (top 5):<ul>{items}</ul></li>")
+
+    if pending_rows:
+        items = "".join(
+            f"<li><code>{escape(str(r.get('address', '?')))}</code> "
+            f"| {escape(str(r.get('rule_id', '-')))} "
+            f"| reason={escape(str(r.get('reason', '-')))}</li>"
+            for r in pending_rows[:5]
+        )
+        lines.append(f"<li>Pending confirmations (top 5):<ul>{items}</ul></li>")
+
+    if recent_rows:
+        items = "".join(
+            f"<li><code>{escape(str(r.get('address', '?')))}</code> "
+            f"| {escape(str(r.get('rule_id', '-')))} "
+            f"| matched={escape(str(r.get('matched', False)))}"
+            f"</li>"
+            for r in recent_rows[:5]
+        )
+        lines.append(f"<li>Recently matched (current eval):<ul>{items}</ul></li>")
+
+    if recent_log_events:
+        items = "".join(
+            f"<li><span class=\"muted\">{escape(str(e.get('timestamp', '-')))}</span> "
+            f"| <code>{escape(str(e.get('address', '?')))}</code> "
+            f"| {escape(str(e.get('rule_id', '-')))} "
+            f"| auto={escape(str(e.get('auto_applied', False)))}</li>"
+            for e in recent_log_events[-5:]
+        )
+        lines.append(f"<li>Recent local automation log:<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -357,6 +415,58 @@ def render_dashboard_html(devices, stamp: str) -> str:
         })
       except Exception:
         continue
+
+    playbook_by_address = {
+      str(r.get("address", "")).strip().upper(): r
+      for r in operator_playbook_recommendations
+      if isinstance(r, dict)
+    }
+
+    operator_rule_results = []
+
+    if focus_address:
+      triage_row = next(
+        (r for r in triage_results if str(r.get("address", "")).strip().upper() == focus_address),
+        None,
+      )
+      try:
+        rows = evaluate_operator_rules(
+          focus_address,
+          playbook_recommendation=playbook_by_address.get(focus_address),
+          case_record=watch_cases.get(focus_address, {}),
+          timeline_events=operator_timeline.get("events", []),
+          triage_row=triage_row,
+          investigation_profile=investigation_profile,
+          apply_auto=True,
+          persist_log=False,
+        )
+        operator_rule_results.extend([{"address": focus_address, **r} for r in rows])
+      except Exception:
+        pass
+
+    for row in triage_results[:5]:
+      addr = str(row.get("address", "")).strip().upper()
+      if not addr or addr == focus_address:
+        continue
+      try:
+        rows = evaluate_operator_rules(
+          addr,
+          playbook_recommendation=playbook_by_address.get(addr),
+          case_record=watch_cases.get(addr, {}),
+          triage_row=row,
+          apply_auto=True,
+          persist_log=False,
+        )
+        operator_rule_results.extend([{"address": addr, **r} for r in rows])
+      except Exception:
+        continue
+
+    operator_rule_summary = summarize_rule_results(operator_rule_results)
+    try:
+      recent_rule_log_events = load_automation_events(limit=8)
+    except Exception:
+      recent_rule_log_events = []
+
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -701,6 +811,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Operator Playbook Recommendations</h2>
     {render_operator_playbook_panel(operator_playbook_recommendations)}
     <div class="muted">Recommandations d'action opérateur (focus + top triage).</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Operator Rule Engine (Safe Auto-Actions)</h2>
+    {render_operator_rule_engine_panel(operator_rule_summary, recent_rule_log_events)}
+    <div class="muted">Actions auto-appliquées, confirmations en attente et règles récemment matchées.</div>
   </div>
 
   <div class="grid2">
