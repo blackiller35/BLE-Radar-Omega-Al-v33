@@ -12,6 +12,7 @@ from ble_radar.history.device_scoring import compute_device_score
 from ble_radar.history.cases import load_cases as load_watch_cases
 from ble_radar.history.case_workflow import case_workflow_summary, next_action
 from ble_radar.history.investigation_workspace import build_investigation_profile
+from ble_radar.history.operator_playbook import recommend_operator_playbook
 from ble_radar.history.operator_timeline import build_operator_timeline, recent_timeline_events
 from ble_radar.history.triage import triage_device_list
 from ble_radar.session.session_movement import build_session_movement
@@ -164,6 +165,33 @@ def render_operator_timeline_panel(events: list) -> str:
     return f"<ul>{items}</ul>"
 
 
+def render_operator_playbook_panel(recommendations: list) -> str:
+    """Render compact operator playbook recommendations."""
+    if not recommendations:
+        return '<ul><li class="muted">Aucune recommandation opérateur disponible.</li></ul>'
+
+    rows = []
+    for rec in recommendations:
+        steps = rec.get("suggested_steps", [])
+        steps_html = ""
+        if steps:
+            steps_items = "".join(f"<li>{escape(str(s))}</li>" for s in steps[:3])
+            steps_html = f"<ul>{steps_items}</ul>"
+
+        rows.append(
+            f"<li>"
+            f"<strong>[{escape(str(rec.get('priority', 'low')).upper())}]</strong> "
+            f"<code>{escape(str(rec.get('address', '?')))}</code> "
+            f"| playbook={escape(str(rec.get('playbook_id', '-')))} "
+            f"| action={escape(str(rec.get('recommended_action', '-')))} "
+            f"| reason={escape(str(rec.get('reason', '-')))}"
+            f"{steps_html}"
+            f"</li>"
+        )
+
+    return f"<ul>{''.join(rows)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -290,6 +318,45 @@ def render_dashboard_html(devices, stamp: str) -> str:
       except Exception:
         operator_timeline = {"events": []}
         recent_operator_events = []
+
+    operator_playbook_recommendations = []
+    if focus_address:
+      triage_row = None
+      for row in triage_results:
+        if str(row.get("address", "")).strip().upper() == focus_address:
+          triage_row = row
+          break
+      try:
+        focus_rec = recommend_operator_playbook(
+          focus_address,
+          triage_row=triage_row,
+          investigation_profile=investigation_profile,
+          case_record=watch_cases.get(focus_address, {}),
+          timeline_events=operator_timeline.get("events", []),
+        )
+        operator_playbook_recommendations.append({
+          "address": focus_address,
+          **focus_rec,
+        })
+      except Exception:
+        pass
+
+    for row in triage_results[:5]:
+      addr = str(row.get("address", "")).strip().upper()
+      if not addr or addr == focus_address:
+        continue
+      try:
+        rec = recommend_operator_playbook(
+          addr,
+          triage_row=row,
+          case_record=watch_cases.get(addr, {}),
+        )
+        operator_playbook_recommendations.append({
+          "address": addr,
+          **rec,
+        })
+      except Exception:
+        continue
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -628,6 +695,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Operator Timeline (Focused Device)</h2>
     {render_operator_timeline_panel(recent_operator_events)}
     <div class="muted">Événements opérateur récents unifiés (registry, workflow, mouvement, triage, packs).</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Operator Playbook Recommendations</h2>
+    {render_operator_playbook_panel(operator_playbook_recommendations)}
+    <div class="muted">Recommandations d'action opérateur (focus + top triage).</div>
   </div>
 
   <div class="grid2">
