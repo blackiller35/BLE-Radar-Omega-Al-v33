@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.4.9
+- module `ble_radar/export_context.py` ajouté
+- export global latest session / recent sessions / session diff ajouté
+- sortie JSON + Markdown du contexte global ajoutée
+- README / PROJECT_STATUS / CHANGELOG mis à jour
+- base de tests portée à 149 tests
+\n
+
 ## v0.4.8
 - incident packs enrichis avec le session catalog
 - manifest JSON enrichi avec `session_overview` et `recent_sessions`

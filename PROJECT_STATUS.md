@@ -73,3 +73,7 @@ Repository ready as a stable working baseline.
 ## v0.4.8 extension
 - v0.4.8 : incident packs enrichis avec session catalog
 - contexte des sessions récentes disponible dans les packs
+
+## v0.4.9 extension
+- v0.4.9 : export context bundle
+- contexte global latest session / recent sessions / session diff exportable

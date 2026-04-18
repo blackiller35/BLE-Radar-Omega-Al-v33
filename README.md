@@ -372,3 +372,17 @@ Exemple :
 - `Latest session overview`
 - `Recent sessions`
 - `Top vendor`
+
+## Export context bundle
+
+Le projet peut maintenant produire un bundle de contexte global :
+
+- `ble_radar/export_context.py`
+- latest session overview
+- recent sessions
+- latest session diff
+- export JSON + Markdown
+
+Exemple d'usage :
+
+    from ble_radar.export_context import save_export_context
