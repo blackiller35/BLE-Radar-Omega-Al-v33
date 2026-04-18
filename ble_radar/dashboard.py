@@ -447,7 +447,12 @@ def render_bluehood_summary(devices, registry=None, session_id="dashboard-sessio
             a = escape(str(pair.get("device_a", "?")))
             b = escape(str(pair.get("device_b", "?")))
             score = escape(str(pair.get("correlation_score", 0)))
-            items.append(f"<li><code>{a}</code> + <code>{b}</code> <strong>(score {score})</strong></li>")
+            vendor_a = escape(str(pair.get("vendor_a", "-")))
+            vendor_b = escape(str(pair.get("vendor_b", "-")))
+            items.append(
+                f"<li><code>{a}</code> ({vendor_a}) + <code>{b}</code> ({vendor_b}) "
+                f"<strong>(score {score})</strong></li>"
+            )
         corr_html = "<ul>" + "".join(items) + "</ul>"
     else:
         corr_html = "<p>No correlated pairs.</p>"
