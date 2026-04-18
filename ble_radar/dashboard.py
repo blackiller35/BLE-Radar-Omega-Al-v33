@@ -19,6 +19,7 @@ from ble_radar.history.operator_correlation import build_correlation_clusters, s
 from ble_radar.history.operator_evidence_pack import build_evidence_packs, load_evidence_packs, summarize_evidence_packs
 from ble_radar.history.operator_playbook import recommend_operator_playbook
 from ble_radar.history.operator_queue import build_operator_queue, summarize_operator_queue
+from ble_radar.history.operator_queue_health import build_queue_health_snapshot, summarize_queue_health
 from ble_radar.history.operator_rule_engine import (
   evaluate_operator_rules,
   load_automation_events,
@@ -532,6 +533,63 @@ def render_operator_queue_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_queue_health_panel(summary: dict) -> str:
+    """Render compact queue health / aging / bottleneck panel."""
+    if not summary:
+      return '<ul><li class="muted">Aucun snapshot queue health disponible.</li></ul>'
+
+    health = summary.get("queue_health", {})
+    aging = summary.get("aging_overview", [])
+    blocked = summary.get("blocked_items", [])
+    stale = summary.get("stale_items", [])
+    pressure = summary.get("operator_pressure", {})
+
+    lines = [
+      f"<li>Queue health: total=<strong>{escape(str(health.get('total_items', 0)))}</strong> "
+      f"| ready={escape(str(health.get('ready_count', 0)))} "
+      f"| blocked={escape(str(health.get('blocked_count', 0)))} "
+      f"| in_review={escape(str(health.get('in_review_count', 0)))} "
+      f"| pressure=<strong>{escape(str(health.get('queue_pressure', 'low')).upper())}</strong></li>"
+    ]
+
+    if aging:
+      items = "".join(
+        f"<li>{escape(str(a.get('bucket', '-')))}: <strong>{escape(str(a.get('count', 0)))}</strong></li>"
+        for a in aging
+      )
+      lines.append(f"<li>Aging overview:<ul>{items}</ul></li>")
+
+    if blocked:
+      items = "".join(
+        f"<li><code>{escape(str(i.get('item_id', '?')))}</code> "
+        f"| state={escape(str(i.get('queue_state', '-')))} "
+        f"| blockers={escape(', '.join([str(b) for b in i.get('blocking_factors', [])]) or '-')}</li>"
+        for i in blocked[:5]
+      )
+      lines.append(f"<li>Blocked items (top 5):<ul>{items}</ul></li>")
+
+    if stale:
+      items = "".join(
+        f"<li><code>{escape(str(i.get('item_id', '?')))}</code> "
+        f"| age_min={escape(str(i.get('age_minutes', 0)))} "
+        f"| state={escape(str(i.get('queue_state', '-')))}</li>"
+        for i in stale[:5]
+      )
+      lines.append(f"<li>Stale items (top 5):<ul>{items}</ul></li>")
+
+    if pressure:
+      reasons = pressure.get("bottleneck_reasons", [])
+      reasons_html = ""
+      if reasons:
+        reasons_html = "<ul>" + "".join(f"<li>{escape(str(r))}</li>" for r in reasons[:5]) + "</ul>"
+      lines.append(
+        f"<li>Operator pressure: <strong>{escape(str(pressure.get('queue_pressure', 'low')).upper())}</strong> "
+        f"| follow-up: {escape(str(pressure.get('recommended_followup', '-')))}{reasons_html}</li>"
+      )
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -884,6 +942,20 @@ def render_dashboard_html(devices, stamp: str) -> str:
       stamp=stamp,
     )
     operator_queue_summary = summarize_operator_queue(operator_queue_items)
+
+    queue_health_snapshot = build_queue_health_snapshot(
+      operator_queue_items,
+      workflow_summary=workflow_summary,
+      pending_confirmations=operator_rule_summary.get("pending_confirmations", []),
+      alerts=operator_alerts,
+      campaigns=campaign_rows,
+      evidence_packs=evidence_packs,
+      generated_at=stamp,
+    )
+    queue_health_summary = summarize_queue_health(
+      queue_health_snapshot,
+      operator_queue_items,
+    )
 
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
@@ -1270,6 +1342,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Operator Queue / Case Board</h2>
     {render_operator_queue_panel(operator_queue_summary)}
     <div class="muted">File opérateur, revue, blocages, actions prêtes et résolutions récentes.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Operator Queue Health / Aging / Bottlenecks</h2>
+    {render_operator_queue_health_panel(queue_health_summary)}
+    <div class="muted">Santé de file, vieillissement, blocages, stale items et pression opérateur.</div>
   </div>
 
   <div class="grid2">
