@@ -17,6 +17,7 @@ from ble_radar.history.operator_briefing import build_operator_briefing
 from ble_radar.history.operator_campaign_tracking import build_campaign_lifecycle, load_campaign_records, summarize_campaigns
 from ble_radar.history.operator_correlation import build_correlation_clusters, summarize_clusters
 from ble_radar.history.operator_evidence_pack import build_evidence_packs, load_evidence_packs, summarize_evidence_packs
+from ble_radar.history.operator_outcomes import build_operator_outcomes, summarize_operator_outcomes
 from ble_radar.history.operator_playbook import recommend_operator_playbook
 from ble_radar.history.operator_queue import build_operator_queue, summarize_operator_queue
 from ble_radar.history.operator_queue_health import build_queue_health_snapshot, summarize_queue_health
@@ -590,6 +591,71 @@ def render_operator_queue_health_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_outcomes_panel(summary: dict) -> str:
+    """Render compact operator outcomes / feedback loop panel."""
+    if not summary:
+      return '<ul><li class="muted">Aucun outcome opérateur disponible.</li></ul>'
+
+    outcomes = summary.get("operator_outcomes", [])
+    effective = summary.get("most_effective_actions", [])
+    reopened = summary.get("reopened_items", [])
+    weak = summary.get("weak_recommendations", [])
+
+    lines = [
+      f"<li>Operator outcomes: <strong>{escape(str(len(outcomes)))}</strong> "
+      f"| reopened: <strong>{escape(str(len(reopened)))}</strong> "
+      f"| weak recommendations: <strong>{escape(str(len(weak)))}</strong></li>"
+    ]
+
+    if outcomes:
+      items = "".join(
+        f"<li><code>{escape(str(r.get('outcome_id', '?')))}</code> "
+        f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| label=<strong>{escape(str(r.get('outcome_label', '-')))}</strong> "
+        f"| eff={escape(str(r.get('effectiveness', 0)))} "
+        f"| action={escape(str(r.get('source_action', '-')))}</li>"
+        for r in outcomes[:6]
+      )
+      lines.append(f"<li>Operator outcomes (top 6):<ul>{items}</ul></li>")
+
+    if effective:
+      items = "".join(
+        f"<li>{escape(str(r.get('source_action', '-')))} "
+        f"| avg_eff=<strong>{escape(str(r.get('avg_effectiveness', 0)))}</strong> "
+        f"| count={escape(str(r.get('count', 0)))}</li>"
+        for r in effective[:5]
+      )
+    else:
+      items = '<li class="muted">No effective action ranking yet.</li>'
+    lines.append(f"<li>Most effective actions:<ul>{items}</ul></li>")
+
+    if reopened:
+      items = "".join(
+        f"<li><code>{escape(str(r.get('scope_id', '-')))}</code> "
+        f"| {escape(str(r.get('scope_type', '-')))} "
+        f"| {escape(str(r.get('outcome_label', '-')))} "
+        f"| from {escape(str(r.get('queue_state_before', '-')))} to {escape(str(r.get('queue_state_after', '-')))}</li>"
+        for r in reopened[:5]
+      )
+    else:
+      items = '<li class="muted">No reopened items.</li>'
+    lines.append(f"<li>Reopened items (top 5):<ul>{items}</ul></li>")
+
+    if weak:
+      items = "".join(
+        f"<li><code>{escape(str(r.get('scope_id', '-')))}</code> "
+        f"| label={escape(str(r.get('outcome_label', '-')))} "
+        f"| eff={escape(str(r.get('effectiveness', 0)))} "
+        f"| playbook={escape(str(r.get('source_playbook', '-')) or '-')}</li>"
+        for r in weak[:5]
+      )
+    else:
+      items = '<li class="muted">No weak recommendations flagged.</li>'
+    lines.append(f"<li>Weak recommendations (top 5):<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -956,6 +1022,19 @@ def render_dashboard_html(devices, stamp: str) -> str:
       queue_health_snapshot,
       operator_queue_items,
     )
+
+    operator_outcomes = build_operator_outcomes(
+      operator_queue_items,
+      workflow_summary=workflow_summary,
+      playbook_recommendations=operator_playbook_recommendations,
+      rule_results=operator_rule_results,
+      alerts=operator_alerts,
+      campaigns=campaign_rows,
+      evidence_packs=evidence_packs,
+      queue_health_snapshot=queue_health_snapshot,
+      generated_at=stamp,
+    )
+    operator_outcomes_summary = summarize_operator_outcomes(operator_outcomes)
 
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
@@ -1348,6 +1427,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Operator Queue Health / Aging / Bottlenecks</h2>
     {render_operator_queue_health_panel(queue_health_summary)}
     <div class="muted">Santé de file, vieillissement, blocages, stale items et pression opérateur.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Operator Outcomes / Feedback Loop</h2>
+    {render_operator_outcomes_panel(operator_outcomes_summary)}
+    <div class="muted">Outcomes opérateur, actions efficaces, réouvertures et recommandations faibles.</div>
   </div>
 
   <div class="grid2">
