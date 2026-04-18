@@ -1,3 +1,4 @@
+from ble_radar.bluehood_layer import enrich_devices_for_session
 from pathlib import Path
 import time
 
@@ -5050,3 +5051,22 @@ def _omega_safe_int(value, default=0):
 
 if __name__ == "__main__":
     main()
+
+
+def _bluehood_enrich_safe(devices, registry=None, session_id="live-session", seen_at="now"):
+    try:
+        return enrich_devices_for_session(
+            devices=devices or [],
+            registry=registry or {},
+            session_id=session_id,
+            seen_at=seen_at,
+        )
+    except Exception as exc:
+        return {
+            "registry": registry or {},
+            "devices_enriched": devices or [],
+            "presence_timeline": {"timeline": [], "bucket_count": 0},
+            "top_correlated": [],
+            "watch_hits": [],
+            "bluehood_error": str(exc),
+        }
