@@ -17,6 +17,10 @@ from ble_radar.history.operator_briefing import build_operator_briefing
 from ble_radar.history.operator_campaign_tracking import build_campaign_lifecycle, load_campaign_records, summarize_campaigns
 from ble_radar.history.operator_correlation import build_correlation_clusters, summarize_clusters
 from ble_radar.history.operator_evidence_pack import build_evidence_packs, load_evidence_packs, summarize_evidence_packs
+from ble_radar.history.operator_escalation_feedback import (
+  build_operator_escalation_feedback_records,
+  summarize_operator_escalation_feedback,
+)
 from ble_radar.history.operator_escalation_package import (
   build_operator_escalation_packages,
   summarize_operator_escalation_packages,
@@ -996,6 +1000,81 @@ def render_operator_escalation_package_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_escalation_feedback_panel(summary: dict) -> str:
+    """Render compact escalation feedback / specialist return panel."""
+    if not summary:
+      return '<ul><li class="muted">Aucun feedback d\'escalade disponible.</li></ul>'
+
+    feedback = summary.get("escalation_feedback", [])
+    followup = summary.get("returned_for_followup", [])
+    decisions = summary.get("specialist_decisions", [])
+    ready_close = summary.get("ready_to_close", [])
+    needs_data = summary.get("needs_more_data", [])
+
+    lines = [
+      f"<li>Escalation feedback: <strong>{escape(str(len(feedback)))}</strong> "
+      f"| returned for follow-up: <strong>{escape(str(len(followup)))}</strong> "
+      f"| ready to close: <strong>{escape(str(len(ready_close)))}</strong> "
+      f"| needs more data: <strong>{escape(str(len(needs_data)))}</strong></li>"
+    ]
+
+    if feedback:
+      items = "".join(
+        f"<li><code>{escape(str(r.get('feedback_id', '?')))}</code> "
+        f"| esc=<code>{escape(str(r.get('escalation_id', '-')))}</code> "
+        f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| result=<strong>{escape(str(r.get('review_result', '-')))}</strong></li>"
+        for r in feedback[:6]
+      )
+    else:
+      items = '<li class="muted">No escalation feedback available.</li>'
+    lines.append(f"<li>Escalation feedback (top 6):<ul>{items}</ul></li>")
+
+    if decisions:
+      items = "".join(
+        f"<li>{escape(str(d.get('scope_type', '-')))}:{escape(str(d.get('scope_id', '-')))} "
+        f"| result={escape(str(d.get('review_result', '-')))} "
+        f"| {escape(str(d.get('decision_summary', '-')))}</li>"
+        for d in decisions[:6]
+      )
+    else:
+      items = '<li class="muted">No specialist decisions.</li>'
+    lines.append(f"<li>Specialist decisions (top 6):<ul>{items}</ul></li>")
+
+    if followup:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| return_state={escape(str(r.get('return_queue_state', '-')))} "
+        f"| followup={escape(', '.join([str(x) for x in r.get('requested_followup', [])]) or '-')}</li>"
+        for r in followup[:6]
+      )
+    else:
+      items = '<li class="muted">No returned-for-follow-up entries.</li>'
+    lines.append(f"<li>Returned for follow-up (top 6):<ul>{items}</ul></li>")
+
+    if ready_close:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| recommendation={escape(str(r.get('closure_recommendation', '-')))}</li>"
+        for r in ready_close[:6]
+      )
+    else:
+      items = '<li class="muted">No items ready to close.</li>'
+    lines.append(f"<li>Ready to close (top 6):<ul>{items}</ul></li>")
+
+    if needs_data:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| notes={escape(str(r.get('specialist_notes', '-')))}</li>"
+        for r in needs_data[:6]
+      )
+    else:
+      items = '<li class="muted">No items requiring more data.</li>'
+    lines.append(f"<li>Needs more data (top 6):<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -1559,6 +1638,20 @@ def render_dashboard_html(devices, stamp: str) -> str:
     )
     operator_escalation_summary = summarize_operator_escalation_packages(operator_escalation_packages)
 
+    operator_escalation_feedback = build_operator_escalation_feedback_records(
+      operator_escalation_packages,
+      readiness_profiles=review_readiness_profiles,
+      outcomes=operator_outcomes,
+      recommendation_profiles=recommendation_profiles,
+      queue_items=operator_queue_items,
+      queue_health_snapshot=queue_health_snapshot,
+      evidence_packs=evidence_packs,
+      session_journal=operator_session_journal,
+      pattern_matches=operator_pattern_matches,
+      generated_at=stamp,
+    )
+    operator_escalation_feedback_summary = summarize_operator_escalation_feedback(operator_escalation_feedback)
+
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -1986,6 +2079,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Operator Escalation Packages / Transmission</h2>
     {render_operator_escalation_package_panel(operator_escalation_summary)}
     <div class="muted">Packages d'escalade compacts, prêts à transmission avec signaux, risques et ownership recommandé.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Operator Escalation Feedback / Specialist Return</h2>
+    {render_operator_escalation_feedback_panel(operator_escalation_feedback_summary)}
+    <div class="muted">Feedback specialist return, décisions de suivi et recommandations de clôture.</div>
   </div>
 
   <div class="grid2">
