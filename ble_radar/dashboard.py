@@ -27,6 +27,10 @@ from ble_radar.history.operator_reopen_policy import (
   build_operator_reopen_records,
   summarize_operator_reopen_records,
 )
+from ble_radar.history.operator_lifecycle_lineage import (
+  build_operator_lifecycle_lineage_records,
+  summarize_operator_lifecycle_lineage,
+)
 from ble_radar.history.operator_correlation import build_correlation_clusters, summarize_clusters
 from ble_radar.history.operator_evidence_pack import build_evidence_packs, load_evidence_packs, summarize_evidence_packs
 from ble_radar.history.operator_escalation_feedback import (
@@ -1319,6 +1323,87 @@ def render_operator_reopen_policy_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_lifecycle_lineage_panel(summary: dict) -> str:
+    """Render compact lifecycle lineage / multi-cycle history panel."""
+    if not summary:
+      return '<ul><li class="muted">Aucune lignée de cycle de vie disponible.</li></ul>'
+
+    lineage = summary.get("lifecycle_lineage", [])
+    repeated = summary.get("repeated_reopeners", [])
+    triggers = summary.get("recurring_triggers", [])
+    multi_cycle = summary.get("multi_cycle_cases", [])
+    stabilized = summary.get("stabilized_after_reopen", [])
+
+    lines = [
+      f"<li>Lifecycle lineage: <strong>{escape(str(len(lineage)))}</strong> "
+      f"| repeated reopeners: <strong>{escape(str(len(repeated)))}</strong> "
+      f"| recurring triggers: <strong>{escape(str(len(triggers)))}</strong> "
+      f"| multi-cycle cases: <strong>{escape(str(len(multi_cycle)))}</strong> "
+      f"| stabilized after reopen: <strong>{escape(str(len(stabilized)))}</strong></li>"
+    ]
+
+    if lineage:
+      items = "".join(
+        f"<li><code>{escape(str(r.get('lineage_id', '?')))}</code> "
+        f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| cycles=<strong>{escape(str(r.get('cycle_count', 1)))}</strong> "
+        f"| opened={escape(str(r.get('opened_count', 0)))} "
+        f"| reopened={escape(str(r.get('reopened_count', 0)))} "
+        f"| closures={escape(str(r.get('closure_count', 0)))} "
+        f"| escalations={escape(str(r.get('escalation_count', 0)))}</li>"
+        for r in lineage[:6]
+      )
+    else:
+      items = '<li class="muted">No lifecycle lineage records.</li>'
+    lines.append(f"<li>Lifecycle lineage (top 6):<ul>{items}</ul></li>")
+
+    if repeated:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| reopened={escape(str(r.get('reopened_count', 0)))} "
+        f"| last_trigger={escape(str(r.get('last_trigger_type', 'none')))}</li>"
+        for r in repeated[:6]
+      )
+    else:
+      items = '<li class="muted">No repeated reopeners.</li>'
+    lines.append(f"<li>Repeated reopeners (top 6):<ul>{items}</ul></li>")
+
+    if triggers:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| trigger={escape(str(r.get('last_trigger_type', 'none')))} "
+        f"| reopened={escape(str(r.get('reopened_count', 0)))}</li>"
+        for r in triggers[:6]
+      )
+    else:
+      items = '<li class="muted">No recurring triggers.</li>'
+    lines.append(f"<li>Recurring triggers (top 6):<ul>{items}</ul></li>")
+
+    if multi_cycle:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| cycles={escape(str(r.get('cycle_count', 1)))} "
+        f"| timeline={escape(str(r.get('timeline_summary', '-')))}</li>"
+        for r in multi_cycle[:6]
+      )
+    else:
+      items = '<li class="muted">No multi-cycle cases.</li>'
+    lines.append(f"<li>Multi-cycle cases (top 6):<ul>{items}</ul></li>")
+
+    if stabilized:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| state={escape(str(r.get('current_lifecycle_state', '-')))} "
+        f"| updated={escape(str(r.get('updated_at', '-')))}</li>"
+        for r in stabilized[:6]
+      )
+    else:
+      items = '<li class="muted">No scopes stabilized after reopen.</li>'
+    lines.append(f"<li>Stabilized after reopen (top 6):<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -2050,6 +2135,24 @@ def render_dashboard_html(devices, stamp: str) -> str:
     )
     operator_reopen_summary = summarize_operator_reopen_records(operator_reopen_records)
 
+    operator_lineage_records = build_operator_lifecycle_lineage_records(
+      current_monitoring_scopes,
+      outcomes=operator_outcomes,
+      closure_packages=operator_closure_packages,
+      post_closure_monitoring_policies=operator_monitoring_policies,
+      reopen_policy_records=operator_reopen_records,
+      escalation_packages=operator_escalation_packages,
+      escalation_feedback=operator_escalation_feedback,
+      session_journal=operator_session_journal,
+      pattern_library=operator_patterns,
+      pattern_matches=operator_pattern_matches,
+      operator_queue_context=operator_queue_items,
+      campaign_tracking=campaign_rows,
+      evidence_packs=evidence_packs,
+      generated_at=stamp,
+    )
+    operator_lineage_summary = summarize_operator_lifecycle_lineage(operator_lineage_records)
+
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -2501,6 +2604,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Controlled Reopen Policy / Case Reopening</h2>
     {render_operator_reopen_policy_panel(operator_reopen_summary)}
     <div class="muted">Réouvertures compactes, triggers récents, retour en file et suivi des réouvertures répétées.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Lifecycle Lineage / Multi-Cycle History</h2>
+    {render_operator_lifecycle_lineage_panel(operator_lineage_summary)}
+    <div class="muted">Lignée compacte des cycles opérateur, réouvertures répétées, triggers récurrents et stabilisation.</div>
   </div>
 
   <div class="grid2">
