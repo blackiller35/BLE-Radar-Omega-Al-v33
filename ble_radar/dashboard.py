@@ -35,6 +35,10 @@ from ble_radar.history.operator_resolution_quality import (
   build_operator_resolution_quality_records,
   summarize_operator_resolution_quality,
 )
+from ble_radar.history.operator_improvement_plan import (
+  build_operator_improvement_plan_records,
+  summarize_operator_improvement_plans,
+)
 from ble_radar.history.operator_correlation import build_correlation_clusters, summarize_clusters
 from ble_radar.history.operator_evidence_pack import build_evidence_packs, load_evidence_packs, summarize_evidence_packs
 from ble_radar.history.operator_escalation_feedback import (
@@ -1480,6 +1484,86 @@ def render_operator_resolution_quality_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_improvement_plan_panel(summary: dict) -> str:
+    """Render compact resolution improvement plan panel."""
+    if not summary:
+        return '<ul><li class="muted">Pas de plan d\'amélioration disponible.</li></ul>'
+
+    priority_counts = summary.get("priority_counts", {})
+    plans = summary.get("improvement_plans", [])
+    fragile = summary.get("fragile_closures_needing_action", [])
+    gaps = summary.get("top_blocking_gaps", [])
+    gains = summary.get("expected_stability_gains", [])
+    followups = summary.get("suggested_followup_modes", [])
+
+    critical_count = priority_counts.get("critical", 0)
+    high_count = priority_counts.get("high", 0)
+    medium_count = priority_counts.get("medium", 0)
+    low_count = priority_counts.get("low", 0)
+
+    lines = [
+        f"<li>Improvement plans by priority: "
+        f"critical=<strong>{escape(str(critical_count))}</strong> | "
+        f"high=<strong>{escape(str(high_count))}</strong> | "
+        f"medium=<strong>{escape(str(medium_count))}</strong> | "
+        f"low=<strong>{escape(str(low_count))}</strong></li>"
+    ]
+
+    if plans:
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| goal={escape(str(r.get('improvement_goal', '-')))} "
+            f"| priority={escape(str(r.get('priority_level', '-')))}</li>"
+            for r in plans[:6]
+        )
+    else:
+        items = '<li class="muted">No active improvement plans.</li>'
+    lines.append(f"<li>Improvement plans (top 6):<ul>{items}</ul></li>")
+
+    if fragile:
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| quality={escape(str(r.get('resolution_quality', '-')))} "
+            f"| goal={escape(str(r.get('improvement_goal', '-')))}</li>"
+            for r in fragile[:6]
+        )
+    else:
+        items = '<li class="muted">No fragile closures requiring action.</li>'
+    lines.append(f"<li>Fragile closures needing action (top 6):<ul>{items}</ul></li>")
+
+    if gaps:
+        gap_items = "".join(
+            f"<li>{escape(str(gap[0]))} (found in <strong>{escape(str(gap[1]))}</strong> plans)</li>"
+            for gap in gaps[:5]
+        )
+    else:
+        gap_items = '<li class="muted">No blocking gaps identified.</li>'
+    lines.append(f"<li>Top blocking gaps (top 5):<ul>{gap_items}</ul></li>")
+
+    if gains:
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| current={escape(str(r.get('current_stability', 0)))} "
+            f"→ projected={escape(str(r.get('projected_stability', 0)))}</li>"
+            for r in gains[:6]
+        )
+    else:
+        items = '<li class="muted">No stability gains projected.</li>'
+    lines.append(f"<li>Expected stability gains (top 6):<ul>{items}</ul></li>")
+
+    if followups:
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| followup={escape(str(r.get('followup_mode', '-')))}</li>"
+            for r in followups[:6]
+        )
+    else:
+        items = '<li class="muted">No follow-up modes suggested.</li>'
+    lines.append(f"<li>Suggested follow-up modes (top 6):<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -2247,6 +2331,21 @@ def render_dashboard_html(devices, stamp: str) -> str:
     operator_quality_summary = summarize_operator_resolution_quality(operator_quality_records)
 
     history = load_scan_history()[-8:]
+    operator_plan_records = build_operator_improvement_plan_records(
+        current_monitoring_scopes,
+        quality_records=operator_quality_records,
+        lineage_records=operator_lineage_records,
+        closure_packages=operator_closure_packages,
+        reopen_policy_records=operator_reopen_records,
+        post_closure_monitoring_policies=operator_monitoring_policies,
+        escalation_feedback=operator_escalation_feedback,
+        operator_outcomes=operator_outcomes,
+        recommendation_tuning=recommendation_profiles,
+        pattern_library=operator_patterns,
+        session_journal=operator_session_journal,
+        generated_at=stamp,
+    )
+    operator_plan_summary = summarize_operator_improvement_plans(operator_plan_records)
     previous = history[-1] if history else None
 
     critical = [d for d in devices if d.get("alert_level") == "critique"]
@@ -2709,6 +2808,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Resolution Quality / Stability Assessment</h2>
     {render_operator_resolution_quality_panel(operator_quality_summary)}
     <div class="muted">Évaluation compacte de la qualité des résolutions, stabilité, risque de réouverture et suggestions d'amélioration.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Resolution Improvement Plans / Corrective Guidance</h2>
+    {render_operator_improvement_plan_panel(operator_plan_summary)}
+    <div class="muted">Plans d'amélioration compacts, actions recommandées, lacunes bloquantes et modes de suivi.</div>
   </div>
 
   <div class="grid2">
