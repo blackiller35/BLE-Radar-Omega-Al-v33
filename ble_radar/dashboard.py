@@ -18,6 +18,11 @@ from ble_radar.history.operator_campaign_tracking import build_campaign_lifecycl
 from ble_radar.history.operator_correlation import build_correlation_clusters, summarize_clusters
 from ble_radar.history.operator_evidence_pack import build_evidence_packs, load_evidence_packs, summarize_evidence_packs
 from ble_radar.history.operator_outcomes import build_operator_outcomes, summarize_operator_outcomes
+from ble_radar.history.operator_pattern_library import (
+  build_operator_pattern_records,
+  match_scopes_to_patterns,
+  summarize_operator_pattern_library,
+)
 from ble_radar.history.operator_playbook import recommend_operator_playbook
 from ble_radar.history.operator_queue import build_operator_queue, summarize_operator_queue
 from ble_radar.history.operator_queue_health import build_queue_health_snapshot, summarize_queue_health
@@ -859,6 +864,67 @@ def render_operator_session_journal_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_pattern_library_panel(summary: dict) -> str:
+    """Render compact operator pattern library / recurring case memory panel."""
+    if not summary:
+      return '<ul><li class="muted">Aucune librairie de patterns disponible.</li></ul>'
+
+    known = summary.get("known_patterns", [])
+    recurring = summary.get("recurring_case_types", [])
+    matches = summary.get("likely_matches", [])
+    guidance = summary.get("pattern_based_guidance", [])
+
+    lines = [
+      f"<li>Known patterns: <strong>{escape(str(len(known)))}</strong> | "
+      f"Recurring case types: <strong>{escape(str(len(recurring)))}</strong> | "
+      f"Likely matches: <strong>{escape(str(len(matches)))}</strong></li>"
+    ]
+
+    if known:
+      items = "".join(
+        f"<li><code>{escape(str(p.get('pattern_id', '?')))}</code> "
+        f"| type={escape(str(p.get('pattern_type', '-')))} "
+        f"| risk={escape(str(p.get('risk_profile', '-')))} "
+        f"| confidence={escape(str(p.get('confidence_level', '-')))} "
+        f"| title={escape(str(p.get('title', '-')))}</li>"
+        for p in known[:6]
+      )
+    else:
+      items = '<li class="muted">No known patterns yet.</li>'
+    lines.append(f"<li>Known patterns (top 6):<ul>{items}</ul></li>")
+
+    if recurring:
+      items = "".join(
+        f"<li>{escape(str(r.get('pattern_type', '-')))} "
+        f"| {escape(str(r.get('title', '-')))} "
+        f"| risk={escape(str(r.get('risk_profile', '-')))}</li>"
+        for r in recurring[:6]
+      )
+    else:
+      items = '<li class="muted">No recurring case types detected.</li>'
+    lines.append(f"<li>Recurring case types (top 6):<ul>{items}</ul></li>")
+
+    if matches:
+      items = "".join(
+        f"<li>{escape(str(m.get('scope_type', '-')))}:{escape(str(m.get('scope_id', '-')))} "
+        f"| pattern=<code>{escape(str(m.get('pattern_id', '-')))}</code> "
+        f"| score={escape(str(m.get('match_score', 0.0)))} "
+        f"| confidence={escape(str(m.get('confidence_level', '-')))}</li>"
+        for m in matches[:6]
+      )
+    else:
+      items = '<li class="muted">No likely matches for current scopes.</li>'
+    lines.append(f"<li>Likely matches (top 6):<ul>{items}</ul></li>")
+
+    if guidance:
+      items = "".join(f"<li>{escape(str(g))}</li>" for g in guidance[:6])
+    else:
+      items = '<li class="muted">No pattern-based guidance yet.</li>'
+    lines.append(f"<li>Pattern-based guidance:<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -1282,6 +1348,77 @@ def render_dashboard_html(devices, stamp: str) -> str:
       readiness_profiles=review_readiness_profiles,
     )
 
+    operator_patterns = build_operator_pattern_records(
+      outcomes=operator_outcomes,
+      recommendation_profiles=recommendation_profiles,
+      alerts=operator_alerts,
+      campaigns=campaign_rows,
+      clusters=correlation_clusters,
+      queue_items=operator_queue_items,
+      readiness_profiles=review_readiness_profiles,
+      session_journal=operator_session_journal,
+      generated_at=stamp,
+    )
+
+    current_pattern_scopes = []
+    for row in operator_queue_items:
+      current_pattern_scopes.append(
+        {
+          "scope_type": str(row.get("scope_type", "device")),
+          "scope_id": str(row.get("scope_id", "-")),
+          "queue_state": str(row.get("queue_state", "new")),
+        }
+      )
+      current_pattern_scopes.append(
+        {
+          "scope_type": "queue_item",
+          "scope_id": str(row.get("item_id", "-")),
+          "queue_state": str(row.get("queue_state", "new")),
+        }
+      )
+
+    for row in campaign_rows:
+      current_pattern_scopes.append(
+        {
+          "scope_type": "campaign",
+          "scope_id": str(row.get("campaign_id", "-")),
+          "status": str(row.get("status", "new")),
+        }
+      )
+
+    for row in correlation_clusters:
+      current_pattern_scopes.append(
+        {
+          "scope_type": "cluster",
+          "scope_id": str(row.get("cluster_id", row.get("id", "-"))),
+          "status": str(row.get("status", "active")),
+        }
+      )
+
+    for row in evidence_packs:
+      current_pattern_scopes.append(
+        {
+          "scope_type": "evidence_pack",
+          "scope_id": str(row.get("pack_id", row.get("scope_id", "-"))),
+          "status": str(row.get("pack_state", "ready")),
+        }
+      )
+
+    for row in review_readiness_profiles[:10]:
+      current_pattern_scopes.append(
+        {
+          "scope_type": str(row.get("scope_type", "device")),
+          "scope_id": str(row.get("scope_id", "-")),
+          "readiness_state": str(row.get("readiness_state", "not_ready")),
+        }
+      )
+
+    operator_pattern_matches = match_scopes_to_patterns(current_pattern_scopes, operator_patterns)
+    operator_pattern_summary = summarize_operator_pattern_library(
+      operator_patterns,
+      matches=operator_pattern_matches,
+    )
+
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -1697,6 +1834,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Operator Session Journal / Shift Continuity</h2>
     {render_operator_session_journal_panel(operator_session_journal_summary)}
     <div class="muted">Journal de session courant, activité de shift, carry-over et priorités de relève.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Operator Pattern Library / Recurring Case Memory</h2>
+    {render_operator_pattern_library_panel(operator_pattern_summary)}
+    <div class="muted">Patterns connus, types récurrents, matches probables et guidance basée sur mémoire opérateur.</div>
   </div>
 
   <div class="grid2">
