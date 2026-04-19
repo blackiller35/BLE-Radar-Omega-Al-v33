@@ -19,6 +19,10 @@ from ble_radar.history.operator_closure_package import (
   build_operator_closure_packages,
   summarize_operator_closure_packages,
 )
+from ble_radar.history.operator_post_closure_monitoring_policy import (
+  build_operator_post_closure_monitoring_policies,
+  summarize_operator_post_closure_monitoring_policies,
+)
 from ble_radar.history.operator_correlation import build_correlation_clusters, summarize_clusters
 from ble_radar.history.operator_evidence_pack import build_evidence_packs, load_evidence_packs, summarize_evidence_packs
 from ble_radar.history.operator_escalation_feedback import (
@@ -1150,6 +1154,82 @@ def render_operator_closure_package_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_post_closure_monitoring_policy_panel(summary: dict) -> str:
+    """Render compact operator post-closure monitoring policy / recurrence watch panel."""
+    if not summary:
+      return '<ul><li class="muted">Aucune politique de monitoring post-clôture disponible.</li></ul>'
+
+    policies = summary.get("monitoring_policies", [])
+    watch_recurrence = summary.get("watch_for_recurrence", [])
+    scheduled = summary.get("scheduled_rechecks", [])
+    high_attention = summary.get("high_attention", [])
+    reopen_triggers = summary.get("recent_reopen_triggers", [])
+
+    lines = [
+      f"<li>Monitoring policies: <strong>{escape(str(len(policies)))}</strong> "
+      f"| watch_for_recurrence: <strong>{escape(str(len(watch_recurrence)))}</strong> "
+      f"| scheduled_rechecks: <strong>{escape(str(len(scheduled)))}</strong></li>"
+    ]
+
+    if policies:
+      items = "".join(
+        f"<li><code>{escape(str(r.get('policy_id', '?')))}</code> "
+        f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| mode=<strong>{escape(str(r.get('monitoring_mode', '-')))}</strong> "
+        f"| review_window={escape(str(r.get('review_window', '-')))} "
+        f"| priority={escape(str(r.get('priority_after_closure', '-')))}</li>"
+        for r in policies[:6]
+      )
+    else:
+      items = '<li class="muted">No monitoring policies.</li>'
+    lines.append(f"<li>Post-closure monitoring (top 6):<ul>{items}</ul></li>")
+
+    if watch_recurrence:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| reason={escape(str(r.get('monitoring_reason', '-')[:40]))} "
+        f"| watch_signals={escape(str(len(r.get('watch_signals', []))))}</li>"
+        for r in watch_recurrence[:6]
+      )
+    else:
+      items = '<li class="muted">No watch_for_recurrence policies.</li>'
+    lines.append(f"<li>Watch for recurrence (top 6):<ul>{items}</ul></li>")
+
+    if scheduled:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| window={escape(str(r.get('review_window', '-')))} "
+        f"| priority={escape(str(r.get('priority_after_closure', '-')))}</li>"
+        for r in scheduled[:6]
+      )
+    else:
+      items = '<li class="muted">No scheduled rechecks.</li>'
+    lines.append(f"<li>Scheduled rechecks (top 6):<ul>{items}</ul></li>")
+
+    if high_attention:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| reason={escape(str(r.get('monitoring_reason', '-')[:40]))} "
+        f"| triggers={escape(str(len(r.get('reopen_triggers', []))))}</li>"
+        for r in high_attention[:6]
+      )
+    else:
+      items = '<li class="muted">No high attention policies.</li>'
+    lines.append(f"<li>High attention after closure (top 6):<ul>{items}</ul></li>")
+
+    if reopen_triggers:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| triggers={escape(str('|'.join(r.get('reopen_triggers', [])[:3])))}</li>"
+        for r in reopen_triggers[:6]
+      )
+    else:
+      items = '<li class="muted">No recent reopen triggers.</li>'
+    lines.append(f"<li>Recent reopen triggers (top 6):<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -1796,6 +1876,75 @@ def render_dashboard_html(devices, stamp: str) -> str:
     )
     operator_closure_summary = summarize_operator_closure_packages(operator_closure_packages)
 
+    current_monitoring_scopes = []
+    for row in operator_queue_items:
+      current_monitoring_scopes.append(
+        {
+          "scope_type": str(row.get("scope_type", "device")),
+          "scope_id": str(row.get("scope_id", "-")),
+          "queue_state": str(row.get("queue_state", "new")),
+        }
+      )
+      current_monitoring_scopes.append(
+        {
+          "scope_type": "queue_item",
+          "scope_id": str(row.get("item_id", "-")),
+          "queue_state": str(row.get("queue_state", "new")),
+        }
+      )
+
+    for row in campaign_rows:
+      current_monitoring_scopes.append(
+        {
+          "scope_type": "campaign",
+          "scope_id": str(row.get("campaign_id", "-")),
+          "status": str(row.get("status", "new")),
+        }
+      )
+
+    for row in correlation_clusters:
+      current_monitoring_scopes.append(
+        {
+          "scope_type": "cluster",
+          "scope_id": str(row.get("cluster_id", row.get("id", "-"))),
+          "status": str(row.get("status", "active")),
+        }
+      )
+
+    for row in evidence_packs:
+      current_monitoring_scopes.append(
+        {
+          "scope_type": "evidence_pack",
+          "scope_id": str(row.get("pack_id", row.get("scope_id", "-"))),
+          "status": str(row.get("pack_state", "ready")),
+        }
+      )
+
+    for row in review_readiness_profiles[:10]:
+      current_monitoring_scopes.append(
+        {
+          "scope_type": str(row.get("scope_type", "device")),
+          "scope_id": str(row.get("scope_id", "-")),
+          "readiness_state": str(row.get("readiness_state", "not_ready")),
+        }
+      )
+
+    operator_monitoring_policies = build_operator_post_closure_monitoring_policies(
+      current_monitoring_scopes,
+      closure_packages=operator_closure_packages,
+      escalation_feedback=operator_escalation_feedback,
+      outcomes=operator_outcomes,
+      recommendation_profiles=recommendation_profiles,
+      pattern_matches=operator_pattern_matches,
+      campaign_records=campaign_rows,
+      queue_health_snapshot=queue_health_snapshot,
+      alerts_history=operator_alerts,
+      review_readiness=review_readiness_profiles,
+      session_journal=operator_session_journal,
+      generated_at=stamp,
+    )
+    operator_monitoring_summary = summarize_operator_post_closure_monitoring_policies(operator_monitoring_policies)
+
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -2235,6 +2384,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Operator Closure Packages / Final Resolution</h2>
     {render_operator_closure_package_panel(operator_closure_summary)}
     <div class="muted">Packages de clôture compacts, résolution finale et recommandations d'archive/follow-up.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Post-Closure Monitoring / Recurrence Watch</h2>
+    {render_operator_post_closure_monitoring_policy_panel(operator_monitoring_summary)}
+    <div class="muted">Politiques de monitoring post-clôture, observation de récurrence et rouverture potentielle.</div>
   </div>
 
   <div class="grid2">
