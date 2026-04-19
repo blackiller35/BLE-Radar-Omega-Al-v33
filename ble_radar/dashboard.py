@@ -31,6 +31,10 @@ from ble_radar.history.operator_lifecycle_lineage import (
   build_operator_lifecycle_lineage_records,
   summarize_operator_lifecycle_lineage,
 )
+from ble_radar.history.operator_resolution_quality import (
+  build_operator_resolution_quality_records,
+  summarize_operator_resolution_quality,
+)
 from ble_radar.history.operator_correlation import build_correlation_clusters, summarize_clusters
 from ble_radar.history.operator_evidence_pack import build_evidence_packs, load_evidence_packs, summarize_evidence_packs
 from ble_radar.history.operator_escalation_feedback import (
@@ -1404,6 +1408,78 @@ def render_operator_lifecycle_lineage_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_resolution_quality_panel(summary: dict) -> str:
+    """Render compact resolution quality / stability assessment panel."""
+    if not summary:
+        return '<ul><li class="muted">Pas d\'évaluation de qualité de résolution disponible.</li></ul>'
+
+    quality_summary = summary.get("resolution_quality", {})
+    durable = summary.get("durable_closures", [])
+    fragile = summary.get("fragile_closures", [])
+    likely_reopen = summary.get("likely_reopeners", [])
+    improvements = summary.get("improvement_suggestions", [])
+
+    durable_count = quality_summary.get("durable", 0)
+    mostly_stable_count = quality_summary.get("mostly_stable", 0)
+    fragile_count = quality_summary.get("fragile", 0)
+    likely_reopen_count = quality_summary.get("likely_to_reopen", 0)
+    insufficient_count = quality_summary.get("insufficient_resolution", 0)
+
+    lines = [
+        f"<li>Resolution quality: "
+        f"durable=<strong>{escape(str(durable_count))}</strong> | "
+        f"mostly_stable=<strong>{escape(str(mostly_stable_count))}</strong> | "
+        f"fragile=<strong>{escape(str(fragile_count))}</strong> | "
+        f"likely_reopen=<strong>{escape(str(likely_reopen_count))}</strong> | "
+        f"insufficient=<strong>{escape(str(insufficient_count))}</strong></li>"
+    ]
+
+    if durable:
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| stability=<strong>{escape(str(r.get('stability_score', 0)))}</strong> "
+            f"| reopen_risk={escape(str(r.get('reopen_risk', 0)))}</li>"
+            for r in durable[:6]
+        )
+    else:
+        items = '<li class="muted">No durable closures.</li>'
+    lines.append(f"<li>Durable closures (top 6):<ul>{items}</ul></li>")
+
+    if fragile:
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| quality={escape(str(r.get('resolution_quality', '-')))} "
+            f"| stability={escape(str(r.get('stability_score', 0)))}</li>"
+            for r in fragile[:6]
+        )
+    else:
+        items = '<li class="muted">No fragile closures.</li>'
+    lines.append(f"<li>Fragile / at-risk closures (top 6):<ul>{items}</ul></li>")
+
+    if likely_reopen:
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| risk={escape(str(r.get('reopen_risk', 0)))} "
+            f"| factors={escape(', '.join(r.get('weak_factors', [])[:2]))}</li>"
+            for r in likely_reopen[:6]
+        )
+    else:
+        items = '<li class="muted">No high reopen risk items.</li>'
+    lines.append(f"<li>Likely reopeners (top 6):<ul>{items}</ul></li>")
+
+    if improvements:
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| suggestion={escape(str(r.get('recommendation', '-')))}</li>"
+            for r in improvements[:6]
+        )
+    else:
+        items = '<li class="muted">No improvement suggestions.</li>'
+    lines.append(f"<li>Improvement suggestions (top 6):<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -2153,6 +2229,23 @@ def render_dashboard_html(devices, stamp: str) -> str:
     )
     operator_lineage_summary = summarize_operator_lifecycle_lineage(operator_lineage_records)
 
+    operator_quality_records = build_operator_resolution_quality_records(
+      current_monitoring_scopes,
+      lineage_records=operator_lineage_records,
+      closure_packages=operator_closure_packages,
+      reopen_policy_records=operator_reopen_records,
+      post_closure_monitoring_policies=operator_monitoring_policies,
+      operator_outcomes=operator_outcomes,
+      escalation_feedback=operator_escalation_feedback,
+      recommendation_tuning=recommendation_profiles,
+      pattern_library=operator_patterns,
+      pattern_matches=operator_pattern_matches,
+      operator_queue_context=operator_queue_items,
+      session_journal=operator_session_journal,
+      generated_at=stamp,
+    )
+    operator_quality_summary = summarize_operator_resolution_quality(operator_quality_records)
+
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -2610,6 +2703,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Lifecycle Lineage / Multi-Cycle History</h2>
     {render_operator_lifecycle_lineage_panel(operator_lineage_summary)}
     <div class="muted">Lignée compacte des cycles opérateur, réouvertures répétées, triggers récurrents et stabilisation.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Resolution Quality / Stability Assessment</h2>
+    {render_operator_resolution_quality_panel(operator_quality_summary)}
+    <div class="muted">Évaluation compacte de la qualité des résolutions, stabilité, risque de réouverture et suggestions d'amélioration.</div>
   </div>
 
   <div class="grid2">
