@@ -23,6 +23,10 @@ from ble_radar.history.operator_post_closure_monitoring_policy import (
   build_operator_post_closure_monitoring_policies,
   summarize_operator_post_closure_monitoring_policies,
 )
+from ble_radar.history.operator_reopen_policy import (
+  build_operator_reopen_records,
+  summarize_operator_reopen_records,
+)
 from ble_radar.history.operator_correlation import build_correlation_clusters, summarize_clusters
 from ble_radar.history.operator_evidence_pack import build_evidence_packs, load_evidence_packs, summarize_evidence_packs
 from ble_radar.history.operator_escalation_feedback import (
@@ -1230,6 +1234,91 @@ def render_operator_post_closure_monitoring_policy_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_reopen_policy_panel(summary: dict) -> str:
+    """Render compact operator controlled reopen policy panel."""
+    if not summary:
+      return '<ul><li class="muted">Aucune réouverture contrôlée disponible.</li></ul>'
+
+    records = summary.get("reopen_records", [])
+    reopened_cases = summary.get("reopened_cases", [])
+    recent_triggers = summary.get("recent_reopen_triggers", [])
+    returned_to_queue = summary.get("returned_to_queue", [])
+    repeated_reopeners = summary.get("repeated_reopeners", [])
+    high_priority = summary.get("high_priority_reopens", [])
+
+    lines = [
+      f"<li>Reopen records: <strong>{escape(str(len(records)))}</strong> "
+      f"| reopened cases: <strong>{escape(str(len(reopened_cases)))}</strong> "
+      f"| returned to queue: <strong>{escape(str(len(returned_to_queue)))}</strong></li>"
+    ]
+
+    if records:
+      items = "".join(
+        f"<li><code>{escape(str(r.get('reopen_id', '?')))}</code> "
+        f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| trigger=<strong>{escape(str(r.get('trigger_type', '-')))}</strong> "
+        f"| priority={escape(str(r.get('reopen_priority', '-')))} "
+        f"| queue={escape(str(r.get('target_queue_state', '-')))}</li>"
+        for r in records[:6]
+      )
+    else:
+      items = '<li class="muted">No reopen records.</li>'
+    lines.append(f"<li>Reopen records (top 6):<ul>{items}</ul></li>")
+
+    if reopened_cases:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| reason={escape(str(r.get('reopen_reason', '-')[:64]))}</li>"
+        for r in reopened_cases[:6]
+      )
+    else:
+      items = '<li class="muted">No reopened cases.</li>'
+    lines.append(f"<li>Reopened cases (top 6):<ul>{items}</ul></li>")
+
+    if recent_triggers:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| {escape(str(r.get('trigger_type', '-')))} "
+        f"| {escape(str(r.get('trigger_summary', '-')[:80]))}</li>"
+        for r in recent_triggers[:6]
+      )
+    else:
+      items = '<li class="muted">No recent reopen triggers.</li>'
+    lines.append(f"<li>Recent reopen triggers (top 6):<ul>{items}</ul></li>")
+
+    if returned_to_queue:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| target={escape(str(r.get('target_queue_state', '-')))}</li>"
+        for r in returned_to_queue[:6]
+      )
+    else:
+      items = '<li class="muted">No return-to-queue actions.</li>'
+    lines.append(f"<li>Returned to queue (top 6):<ul>{items}</ul></li>")
+
+    if repeated_reopeners:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| reopen_count={escape(str(r.get('reopen_count', 1)))}</li>"
+        for r in repeated_reopeners[:6]
+      )
+    else:
+      items = '<li class="muted">No repeated reopeners.</li>'
+    lines.append(f"<li>Repeated reopeners (top 6):<ul>{items}</ul></li>")
+
+    if high_priority:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| priority=<strong>{escape(str(r.get('reopen_priority', '-')).upper())}</strong></li>"
+        for r in high_priority[:6]
+      )
+    else:
+      items = '<li class="muted">No high priority reopens.</li>'
+    lines.append(f"<li>High priority reopens (top 6):<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -1945,6 +2034,22 @@ def render_dashboard_html(devices, stamp: str) -> str:
     )
     operator_monitoring_summary = summarize_operator_post_closure_monitoring_policies(operator_monitoring_policies)
 
+    operator_reopen_records = build_operator_reopen_records(
+      current_monitoring_scopes,
+      closure_packages=operator_closure_packages,
+      post_closure_monitoring_policies=operator_monitoring_policies,
+      escalation_feedback=operator_escalation_feedback,
+      outcomes=operator_outcomes,
+      pattern_library=operator_patterns,
+      queue_health_snapshot=queue_health_snapshot,
+      alerts_history=operator_alerts,
+      campaign_tracking=campaign_rows,
+      evidence_packs=evidence_packs,
+      session_journal=operator_session_journal,
+      generated_at=stamp,
+    )
+    operator_reopen_summary = summarize_operator_reopen_records(operator_reopen_records)
+
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -2390,6 +2495,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Post-Closure Monitoring / Recurrence Watch</h2>
     {render_operator_post_closure_monitoring_policy_panel(operator_monitoring_summary)}
     <div class="muted">Politiques de monitoring post-clôture, observation de récurrence et rouverture potentielle.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Controlled Reopen Policy / Case Reopening</h2>
+    {render_operator_reopen_policy_panel(operator_reopen_summary)}
+    <div class="muted">Réouvertures compactes, triggers récents, retour en file et suivi des réouvertures répétées.</div>
   </div>
 
   <div class="grid2">
