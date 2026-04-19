@@ -15,6 +15,10 @@ from ble_radar.history.investigation_workspace import build_investigation_profil
 from ble_radar.history.operator_alerting import build_operator_alerts, load_alert_log, summarize_alerts
 from ble_radar.history.operator_briefing import build_operator_briefing
 from ble_radar.history.operator_campaign_tracking import build_campaign_lifecycle, load_campaign_records, summarize_campaigns
+from ble_radar.history.operator_closure_package import (
+  build_operator_closure_packages,
+  summarize_operator_closure_packages,
+)
 from ble_radar.history.operator_correlation import build_correlation_clusters, summarize_clusters
 from ble_radar.history.operator_evidence_pack import build_evidence_packs, load_evidence_packs, summarize_evidence_packs
 from ble_radar.history.operator_escalation_feedback import (
@@ -1075,6 +1079,77 @@ def render_operator_escalation_feedback_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_closure_package_panel(summary: dict) -> str:
+    """Render compact operator closure package / final resolution panel."""
+    if not summary:
+      return '<ul><li class="muted">Aucun package de clôture disponible.</li></ul>'
+
+    packages = summary.get("closure_packages", [])
+    recently_closed = summary.get("recently_closed", [])
+    closed_after_esc = summary.get("closed_after_escalation", [])
+    resolved_fp = summary.get("resolved_vs_false_positive", {})
+    followup = summary.get("followup_still_needed", [])
+
+    lines = [
+      f"<li>Closure packages: <strong>{escape(str(len(packages)))}</strong> "
+      f"| recently closed: <strong>{escape(str(len(recently_closed)))}</strong> "
+      f"| closed after escalation: <strong>{escape(str(len(closed_after_esc)))}</strong></li>"
+    ]
+
+    if packages:
+      items = "".join(
+        f"<li><code>{escape(str(r.get('closure_id', '?')))}</code> "
+        f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| disposition=<strong>{escape(str(r.get('final_disposition', '-')))}</strong> "
+        f"| risk={escape(str(r.get('final_risk_level', '-')))} "
+        f"| followup={escape(str(r.get('followup_mode', '-')))}</li>"
+        for r in packages[:6]
+      )
+    else:
+      items = '<li class="muted">No closure packages.</li>'
+    lines.append(f"<li>Closure packages (top 6):<ul>{items}</ul></li>")
+
+    if recently_closed:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| closed_at={escape(str(r.get('closed_at', '-')))} "
+        f"| archive={escape(str(r.get('archive_recommendation', '-')))}</li>"
+        for r in recently_closed[:6]
+      )
+    else:
+      items = '<li class="muted">No recently closed scopes.</li>'
+    lines.append(f"<li>Recently closed (top 6):<ul>{items}</ul></li>")
+
+    lines.append(
+      f"<li>Resolved vs false positive: "
+      f"resolved=<strong>{escape(str(resolved_fp.get('resolved', 0)))}</strong> "
+      f"| false_positive=<strong>{escape(str(resolved_fp.get('false_positive', 0)))}</strong></li>"
+    )
+
+    if closed_after_esc:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| summary={escape(str(r.get('resolution_summary', '-')))}</li>"
+        for r in closed_after_esc[:6]
+      )
+    else:
+      items = '<li class="muted">No closures after escalation.</li>'
+    lines.append(f"<li>Closed after escalation (top 6):<ul>{items}</ul></li>")
+
+    if followup:
+      items = "".join(
+        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+        f"| followup={escape(str(r.get('followup_mode', '-')))} "
+        f"| risk={escape(str(r.get('final_risk_level', '-')))}</li>"
+        for r in followup[:6]
+      )
+    else:
+      items = '<li class="muted">No follow-up still needed.</li>'
+    lines.append(f"<li>Follow-up still needed (top 6):<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -1652,6 +1727,75 @@ def render_dashboard_html(devices, stamp: str) -> str:
     )
     operator_escalation_feedback_summary = summarize_operator_escalation_feedback(operator_escalation_feedback)
 
+    current_closure_scopes = []
+    for row in operator_queue_items:
+      current_closure_scopes.append(
+        {
+          "scope_type": str(row.get("scope_type", "device")),
+          "scope_id": str(row.get("scope_id", "-")),
+          "queue_state": str(row.get("queue_state", "new")),
+        }
+      )
+      current_closure_scopes.append(
+        {
+          "scope_type": "queue_item",
+          "scope_id": str(row.get("item_id", "-")),
+          "queue_state": str(row.get("queue_state", "new")),
+        }
+      )
+
+    for row in campaign_rows:
+      current_closure_scopes.append(
+        {
+          "scope_type": "campaign",
+          "scope_id": str(row.get("campaign_id", "-")),
+          "status": str(row.get("status", "new")),
+        }
+      )
+
+    for row in correlation_clusters:
+      current_closure_scopes.append(
+        {
+          "scope_type": "cluster",
+          "scope_id": str(row.get("cluster_id", row.get("id", "-"))),
+          "status": str(row.get("status", "active")),
+        }
+      )
+
+    for row in evidence_packs:
+      current_closure_scopes.append(
+        {
+          "scope_type": "evidence_pack",
+          "scope_id": str(row.get("pack_id", row.get("scope_id", "-"))),
+          "status": str(row.get("pack_state", "ready")),
+        }
+      )
+
+    for row in review_readiness_profiles[:10]:
+      current_closure_scopes.append(
+        {
+          "scope_type": str(row.get("scope_type", "device")),
+          "scope_id": str(row.get("scope_id", "-")),
+          "readiness_state": str(row.get("readiness_state", "not_ready")),
+        }
+      )
+
+    operator_closure_packages = build_operator_closure_packages(
+      current_closure_scopes,
+      escalation_feedback=operator_escalation_feedback,
+      escalation_packages=operator_escalation_packages,
+      readiness_profiles=review_readiness_profiles,
+      outcomes=operator_outcomes,
+      recommendation_profiles=recommendation_profiles,
+      queue_items=operator_queue_items,
+      queue_health_snapshot=queue_health_snapshot,
+      evidence_packs=evidence_packs,
+      pattern_matches=operator_pattern_matches,
+      session_journal=operator_session_journal,
+      generated_at=stamp,
+    )
+    operator_closure_summary = summarize_operator_closure_packages(operator_closure_packages)
+
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -2085,6 +2229,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Operator Escalation Feedback / Specialist Return</h2>
     {render_operator_escalation_feedback_panel(operator_escalation_feedback_summary)}
     <div class="muted">Feedback specialist return, décisions de suivi et recommandations de clôture.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Operator Closure Packages / Final Resolution</h2>
+    {render_operator_closure_package_panel(operator_closure_summary)}
+    <div class="muted">Packages de clôture compacts, résolution finale et recommandations d'archive/follow-up.</div>
   </div>
 
   <div class="grid2">
