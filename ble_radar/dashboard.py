@@ -17,6 +17,10 @@ from ble_radar.history.operator_briefing import build_operator_briefing
 from ble_radar.history.operator_campaign_tracking import build_campaign_lifecycle, load_campaign_records, summarize_campaigns
 from ble_radar.history.operator_correlation import build_correlation_clusters, summarize_clusters
 from ble_radar.history.operator_evidence_pack import build_evidence_packs, load_evidence_packs, summarize_evidence_packs
+from ble_radar.history.operator_escalation_package import (
+  build_operator_escalation_packages,
+  summarize_operator_escalation_packages,
+)
 from ble_radar.history.operator_outcomes import build_operator_outcomes, summarize_operator_outcomes
 from ble_radar.history.operator_pattern_library import (
   build_operator_pattern_records,
@@ -925,6 +929,73 @@ def render_operator_pattern_library_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_escalation_package_panel(summary: dict) -> str:
+    """Render compact escalation package / transmission panel."""
+    if not summary:
+      return '<ul><li class="muted">Aucun package d\'escalade disponible.</li></ul>'
+
+    packages = summary.get("escalation_packages", [])
+    ready = summary.get("ready_to_escalate", [])
+    specialist = summary.get("specialist_review_needed", [])
+    high_risk = summary.get("high_risk_open_items", [])
+    recent = summary.get("recent_escalations", [])
+
+    lines = [
+      f"<li>Escalation packages: <strong>{escape(str(len(packages)))}</strong> "
+      f"| ready to escalate: <strong>{escape(str(len(ready)))}</strong> "
+      f"| specialist review needed: <strong>{escape(str(len(specialist)))}</strong> "
+      f"| high-risk open items: <strong>{escape(str(len(high_risk)))}</strong></li>"
+    ]
+
+    if packages:
+      items = "".join(
+        f"<li><code>{escape(str(p.get('escalation_id', '?')))}</code> "
+        f"| {escape(str(p.get('scope_type', '-')))}:{escape(str(p.get('scope_id', '-')))} "
+        f"| reason=<strong>{escape(str(p.get('escalation_reason', '-')))}</strong> "
+        f"| priority={escape(str(p.get('priority', '-')))} "
+        f"| owner={escape(str(p.get('recommended_next_owner', '-')))}</li>"
+        for p in packages[:6]
+      )
+    else:
+      items = '<li class="muted">No escalation packages.</li>'
+    lines.append(f"<li>Escalation packages (top 6):<ul>{items}</ul></li>")
+
+    if specialist:
+      items = "".join(
+        f"<li>{escape(str(p.get('scope_type', '-')))}:{escape(str(p.get('scope_id', '-')))} "
+        f"| owner={escape(str(p.get('recommended_next_owner', '-')))} "
+        f"| reason={escape(str(p.get('escalation_reason', '-')))}</li>"
+        for p in specialist[:6]
+      )
+    else:
+      items = '<li class="muted">No specialist review needed.</li>'
+    lines.append(f"<li>Specialist review needed (top 6):<ul>{items}</ul></li>")
+
+    if high_risk:
+      items = "".join(
+        f"<li>{escape(str(p.get('scope_type', '-')))}:{escape(str(p.get('scope_id', '-')))} "
+        f"| priority={escape(str(p.get('priority', '-')))} "
+        f"| open_risks={escape(', '.join([str(x) for x in p.get('open_risks', [])]) or '-')}</li>"
+        for p in high_risk[:6]
+      )
+    else:
+      items = '<li class="muted">No high-risk open items.</li>'
+    lines.append(f"<li>High-risk open items (top 6):<ul>{items}</ul></li>")
+
+    if recent:
+      items = "".join(
+        f"<li><code>{escape(str(p.get('escalation_id', '?')))}</code> "
+        f"| created={escape(str(p.get('created_at', '-')))} "
+        f"| reason={escape(str(p.get('escalation_reason', '-')))}</li>"
+        for p in recent[:6]
+      )
+    else:
+      items = '<li class="muted">No recent escalations.</li>'
+    lines.append(f"<li>Recent escalations (top 6):<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -1419,6 +1490,75 @@ def render_dashboard_html(devices, stamp: str) -> str:
       matches=operator_pattern_matches,
     )
 
+    current_escalation_scopes = []
+    for row in operator_queue_items:
+      current_escalation_scopes.append(
+        {
+          "scope_type": str(row.get("scope_type", "device")),
+          "scope_id": str(row.get("scope_id", "-")),
+          "queue_state": str(row.get("queue_state", "new")),
+        }
+      )
+      current_escalation_scopes.append(
+        {
+          "scope_type": "queue_item",
+          "scope_id": str(row.get("item_id", "-")),
+          "queue_state": str(row.get("queue_state", "new")),
+        }
+      )
+
+    for row in campaign_rows:
+      current_escalation_scopes.append(
+        {
+          "scope_type": "campaign",
+          "scope_id": str(row.get("campaign_id", "-")),
+          "status": str(row.get("status", "new")),
+        }
+      )
+
+    for row in correlation_clusters:
+      current_escalation_scopes.append(
+        {
+          "scope_type": "cluster",
+          "scope_id": str(row.get("cluster_id", row.get("id", "-"))),
+          "status": str(row.get("status", "active")),
+        }
+      )
+
+    for row in evidence_packs:
+      current_escalation_scopes.append(
+        {
+          "scope_type": "evidence_pack",
+          "scope_id": str(row.get("pack_id", row.get("scope_id", "-"))),
+          "status": str(row.get("pack_state", "ready")),
+        }
+      )
+
+    for row in review_readiness_profiles[:10]:
+      current_escalation_scopes.append(
+        {
+          "scope_type": str(row.get("scope_type", "device")),
+          "scope_id": str(row.get("scope_id", "-")),
+          "readiness_state": str(row.get("readiness_state", "not_ready")),
+        }
+      )
+
+    operator_escalation_packages = build_operator_escalation_packages(
+      current_escalation_scopes,
+      alerts=operator_alerts,
+      outcomes=operator_outcomes,
+      recommendation_profiles=recommendation_profiles,
+      queue_items=operator_queue_items,
+      queue_health_snapshot=queue_health_snapshot,
+      readiness_profiles=review_readiness_profiles,
+      evidence_packs=evidence_packs,
+      campaigns=campaign_rows,
+      pattern_matches=operator_pattern_matches,
+      session_journal=operator_session_journal,
+      generated_at=stamp,
+    )
+    operator_escalation_summary = summarize_operator_escalation_packages(operator_escalation_packages)
+
     history = load_scan_history()[-8:]
     previous = history[-1] if history else None
 
@@ -1840,6 +1980,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Operator Pattern Library / Recurring Case Memory</h2>
     {render_operator_pattern_library_panel(operator_pattern_summary)}
     <div class="muted">Patterns connus, types récurrents, matches probables et guidance basée sur mémoire opérateur.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Operator Escalation Packages / Transmission</h2>
+    {render_operator_escalation_package_panel(operator_escalation_summary)}
+    <div class="muted">Packages d'escalade compacts, prêts à transmission avec signaux, risques et ownership recommandé.</div>
   </div>
 
   <div class="grid2">
