@@ -112,6 +112,36 @@ def test_render_security_status_panel_fallback():
     assert "Security context unavailable." in html
 
 
+def test_render_security_audit_events_panel_recent_rows():
+    html = dashboard.render_security_audit_events_panel(
+        [
+            {
+                "ts": "2026-04-20 12:00:01",
+                "kind": "security.operator_session.unlocked",
+                "message": "Operator session unlocked",
+                "data": {"reason": "manual_unlock"},
+            },
+            {
+                "ts": "2026-04-20 12:00:00",
+                "kind": "security.sensitive_action.denied",
+                "message": "Sensitive action denied",
+                "data": {},
+            },
+        ]
+    )
+
+    assert "security.operator_session.unlocked" in html
+    assert "2026-04-20 12:00:01" in html
+    assert "manual_unlock" in html
+    assert "security.sensitive_action.denied" in html
+    assert "Sensitive action denied" in html
+
+
+def test_render_security_audit_events_panel_empty_fallback():
+    html = dashboard.render_security_audit_events_panel([])
+    assert "No recent security audit events." in html
+
+
 def test_dashboard_html_contains_security_status_panel(monkeypatch):
     monkeypatch.setattr(dashboard, "load_scan_history", lambda: [])
     monkeypatch.setattr(dashboard, "load_registry", lambda: {})
@@ -131,10 +161,23 @@ def test_dashboard_html_contains_security_status_panel(monkeypatch):
             secrets_unlocked=True,
         ),
     )
+    monkeypatch.setattr(
+        dashboard,
+        "read_events",
+        lambda limit=25: [
+            {
+                "ts": "2026-04-20 12:00:01",
+                "kind": "security.operator_session.unlocked",
+                "message": "Operator session unlocked",
+                "data": {"reason": "manual_unlock"},
+            }
+        ],
+    )
 
     html = dashboard.render_dashboard_html(SAMPLE_DEVICES, "2026-04-20_12-00-00")
 
     assert "Security status" in html
+    assert "Security audit events" in html
     assert "Mode: <strong>operator</strong>" in html
     assert "YubiKey present: <strong>true</strong>" in html
     assert "Key source: <strong>primary</strong>" in html
@@ -144,6 +187,8 @@ def test_dashboard_html_contains_security_status_panel(monkeypatch):
     assert "Elevated sensitive access: <strong>enabled</strong>" in html
     assert "Operator-only actions:" in html
     assert "Operator enabled" in html
+    assert "security.operator_session.unlocked" in html
+    assert "manual_unlock" in html
 
 
 def test_dashboard_html_security_status_fallback(monkeypatch):

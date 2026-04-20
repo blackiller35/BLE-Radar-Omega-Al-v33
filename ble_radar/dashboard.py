@@ -111,6 +111,7 @@ from ble_radar.history.triage import triage_device_list
 from ble_radar.session.session_movement import build_session_movement
 from ble_radar.security import build_security_context
 from ble_radar.state import load_last_scan, load_scan_history
+from ble_radar.eventlog import read_events
 
 
 def _safe_int(value, default=0):
@@ -1974,6 +1975,33 @@ def render_security_status_panel(security_context) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_security_audit_events_panel(events: list[dict] | None) -> str:
+    """Render compact recent security/operator audit events."""
+    rows = [
+        event
+        for event in (events or [])
+        if str(event.get("kind", "")).startswith("security.")
+    ]
+    if not rows:
+        return '<ul><li class="muted">No recent security audit events.</li></ul>'
+
+    items = []
+    for event in rows[:8]:
+        ts = escape(str(event.get("ts", "-")))
+        kind = escape(str(event.get("kind", "unknown")))
+        data = event.get("data", {}) if isinstance(event.get("data"), dict) else {}
+        detail = (
+            data.get("reason")
+            or data.get("timeout_seconds")
+            or event.get("message")
+            or "-"
+        )
+        items.append(
+            f'<li><strong>{kind}</strong> | <span class="muted">{ts}</span> | {escape(str(detail))}</li>'
+        )
+    return f"<ul>{''.join(items)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -2049,6 +2077,10 @@ def render_dashboard_html(devices, stamp: str) -> str:
         security_context = build_security_context()
     except Exception:
         security_context = None
+    try:
+        security_audit_events = read_events(25)
+    except Exception:
+        security_audit_events = []
     devices = [normalize_device(d) for d in devices]
     try:
         registry = load_registry()
@@ -3132,6 +3164,12 @@ ul {{ margin:0; padding-left:18px; }}
         <h2>Security status</h2>
         {render_security_status_panel(security_context)}
         <div class="muted">Runtime security context snapshot.</div>
+    </div>
+
+    <div class="panel" style="margin-bottom:18px;">
+        <h2>Security audit events</h2>
+        {render_security_audit_events_panel(security_audit_events)}
+        <div class="muted">Recent operator/security audit activity.</div>
     </div>
 
   <div class="panel" style="margin-bottom:18px;">
