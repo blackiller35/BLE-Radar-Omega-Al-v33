@@ -45,6 +45,21 @@ def parse_command(text: str) -> dict:
     if first in ("profiles", "profile", "profil"):
         return {"action": "profile", "query": rest}
 
+    if first == "session" and len(parts) > 1:
+        if parts[1] == "unlock":
+            return {"action": "operator_session_unlock"}
+        if parts[1] == "lock":
+            return {"action": "operator_session_lock"}
+        if parts[1] == "status":
+            return {"action": "operator_session_status"}
+
+    if first in ("session_unlock", "opunlock"):
+        return {"action": "operator_session_unlock"}
+    if first in ("session_lock", "oplock"):
+        return {"action": "operator_session_lock"}
+    if first in ("session_status", "opstatus"):
+        return {"action": "operator_session_status"}
+
     if first in ("search", "find", "query", "recherche") and rest:
         return {"action": "search_last", "query": rest}
     if first in ("hist", "searchhist", "recherchehist") and rest:
@@ -87,6 +102,9 @@ def command_help_lines():
         "profile paranoid",
         "profile tracker_hunt",
         "profile quiet",
+        "session unlock",
+        "session lock",
+        "session status",
         "html",
         "search apple",
         "search tracker",

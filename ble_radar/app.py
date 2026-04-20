@@ -62,22 +62,90 @@ from ble_radar.router import (
 )
 from ble_radar.ui import *
 from ble_radar.fortress import doctor_menu, snapshot_menu, integrity_status_label
-from ble_radar.nexus import search_device_summaries, timeline_for_address, timeline_lines, persistence_rankings, recurrent_pattern_rankings, daily_change_summary, daily_change_lines, save_enriched_incident, incident_lines
-from ble_radar.knowledge import sync_current_devices, top_known_devices, search_known_devices, set_manual_label
+from ble_radar.nexus import (
+    search_device_summaries,
+    timeline_for_address,
+    timeline_lines,
+    persistence_rankings,
+    recurrent_pattern_rankings,
+    daily_change_summary,
+    daily_change_lines,
+    save_enriched_incident,
+    incident_lines,
+)
+from ble_radar.knowledge import (
+    sync_current_devices,
+    top_known_devices,
+    search_known_devices,
+    set_manual_label,
+)
 from ble_radar.behavior import rank_behavior_anomalies
-from ble_radar.daily_report import build_daily_report, daily_report_lines, save_daily_report
-from ble_radar.argus import rank_priority, build_case_file, case_file_lines, argus_recommended_actions
+from ble_radar.daily_report import (
+    build_daily_report,
+    daily_report_lines,
+    save_daily_report,
+)
+from ble_radar.argus import (
+    rank_priority,
+    build_case_file,
+    case_file_lines,
+    argus_recommended_actions,
+)
 from ble_radar.sentinel import build_sentinel_report, sentinel_lines, save_watch_session
-from ble_radar.atlas import atlas_snapshot, hot_edges, neighbors_for_address, vendor_profile_clusters, risk_groups
+from ble_radar.atlas import (
+    atlas_snapshot,
+    hot_edges,
+    neighbors_for_address,
+    vendor_profile_clusters,
+    risk_groups,
+)
 from ble_radar.helios import build_helios_report, helios_lines
-from ble_radar.aegis import load_aegis_config, toggle_aegis_engine, shift_threshold, evaluate_aegis, get_playbook, playbook_lines, aegis_summary_lines
+from ble_radar.aegis import (
+    load_aegis_config,
+    toggle_aegis_engine,
+    shift_threshold,
+    evaluate_aegis,
+    get_playbook,
+    playbook_lines,
+    aegis_summary_lines,
+)
 from ble_radar.oracle import build_oracle_report, oracle_lines, project_rankings
-from ble_radar.nebula import load_casebook, list_cases, upsert_case_from_device, append_case_note, close_case, build_nebula_report, nebula_lines, build_session_summary, session_summary_lines, save_session_summary
-from ble_radar.citadel import build_citadel_report, citadel_lines, save_citadel_report, export_global_bundle, export_incident_pack, run_maintenance_cycle
-from ble_radar.commander import MANUAL_FILE, build_startup_status, startup_lines, build_commander_brief, commander_brief_lines, workflow_lines
+from ble_radar.nebula import (
+    load_casebook,
+    list_cases,
+    upsert_case_from_device,
+    append_case_note,
+    close_case,
+    build_nebula_report,
+    nebula_lines,
+    build_session_summary,
+    session_summary_lines,
+    save_session_summary,
+)
+from ble_radar.citadel import (
+    build_citadel_report,
+    citadel_lines,
+    save_citadel_report,
+    export_global_bundle,
+    export_incident_pack,
+    run_maintenance_cycle,
+)
+from ble_radar.commander import (
+    MANUAL_FILE,
+    build_startup_status,
+    startup_lines,
+    build_commander_brief,
+    commander_brief_lines,
+    workflow_lines,
+)
 from ble_radar.stableplus import build_stableplus_report, stableplus_lines
 from ble_radar.eventlog import read_events
-from ble_radar.automation import load_automation_config, toggle_automation_engine, toggle_rule_by_index, run_automation_pipeline
+from ble_radar.automation import (
+    load_automation_config,
+    toggle_automation_engine,
+    toggle_rule_by_index,
+    run_automation_pipeline,
+)
 from ble_radar.centers.snapshot_center import (
     create_snapshot as _create_snapshot_impl,
     batch39_snapshots_restore_pro as _batch39_snapshots_restore_pro_impl,
@@ -97,6 +165,11 @@ from ble_radar.centers.aegis_center import (
     aegis_thresholds_view,
     aegis_center,
 )
+from ble_radar.security import (
+    lock_operator_session,
+    read_operator_session_status,
+    unlock_operator_session,
+)
 
 
 def active_profile():
@@ -109,12 +182,18 @@ def active_mission():
 
 def prof_scan_seconds():
     cfg = load_runtime_config()
-    return int(active_profile().get("scan_seconds", cfg.get("scan_timeout", FULL_SCAN_SECONDS)))
+    return int(
+        active_profile().get("scan_seconds", cfg.get("scan_timeout", FULL_SCAN_SECONDS))
+    )
 
 
 def prof_live_seconds():
     cfg = load_runtime_config()
-    return int(active_profile().get("live_seconds", cfg.get("live_scan_timeout", LIVE_SCAN_SECONDS)))
+    return int(
+        active_profile().get(
+            "live_seconds", cfg.get("live_scan_timeout", LIVE_SCAN_SECONDS)
+        )
+    )
 
 
 def prof_alert_floor():
@@ -144,8 +223,6 @@ def show_mission_summary(devices):
         print(line)
 
 
-
-
 def show_automation_result(auto_result):
     print()
     print(color("Automation engine", CYAN, bold=True))
@@ -160,7 +237,9 @@ def show_automation_result(auto_result):
     print(f"high        : {ctx.get('high', 0)}")
     print(f"trackers    : {ctx.get('trackers', 0)}")
     print(f"watch_hits  : {ctx.get('watch_hits', 0)}")
-    print(f"health      : {ctx.get('health_score', 0)} ({ctx.get('health_label', '-')})")
+    print(
+        f"health      : {ctx.get('health_score', 0)} ({ctx.get('health_label', '-')})"
+    )
 
     executed = auto_result.get("executed", [])
     if not executed:
@@ -186,7 +265,9 @@ def show_event_log():
         return
 
     for e in events:
-        print(f"[{e.get('ts','-')}] {e.get('level','-').upper()} | {e.get('kind','-')} | {e.get('message','-')}")
+        print(
+            f"[{e.get('ts', '-')}] {e.get('level', '-').upper()} | {e.get('kind', '-')} | {e.get('message', '-')}"
+        )
     pause()
 
 
@@ -204,8 +285,8 @@ def automation_center():
         for i, r in enumerate(rules, start=1):
             print(
                 f"{i}) [{'ON' if r.get('enabled', True) else 'OFF'}] "
-                f"{r.get('label','-')} | cond={r.get('condition','-')} | "
-                f"seuil={r.get('threshold','-')} | action={r.get('action','-')}"
+                f"{r.get('label', '-')} | cond={r.get('condition', '-')} | "
+                f"seuil={r.get('threshold', '-')} | action={r.get('action', '-')}"
             )
 
         print()
@@ -243,6 +324,7 @@ def automation_center():
             print(color("Choix invalide", RED, bold=True))
             pause()
 
+
 def do_scan_mode(mode_key):
     mode = get_scan_mode(mode_key)
     result = run_engine_cycle(seconds=mode["seconds"])
@@ -255,7 +337,9 @@ def do_scan_mode(mode_key):
         pause()
         return
 
-    render_devices(devices, f"Scan IA — mode {mode['label']} [{active_profile()['label']}]")
+    render_devices(
+        devices, f"Scan IA — mode {mode['label']} [{active_profile()['label']}]"
+    )
     show_engine_summary(summarize_engine_result(result))
     show_radio_health(devices)
     show_mission_summary(devices)
@@ -271,7 +355,13 @@ def do_scan():
     while True:
         clear()
         banner()
-        print(color(f"\nScan intelligent [{active_profile()['label']} | {active_mission()['label']}]", CYAN, bold=True))
+        print(
+            color(
+                f"\nScan intelligent [{active_profile()['label']} | {active_mission()['label']}]",
+                CYAN,
+                bold=True,
+            )
+        )
         print(hr())
         print("1) Mode rapide")
         print("2) Mode normal")
@@ -359,12 +449,15 @@ def show_trackers_only():
         elif choice == "2":
             show_trackers_ranked(
                 "Trackers haute confiance",
-                [d for d in devices if d.get("follow_score", 0) >= 45 or d.get("watch_hit")]
+                [
+                    d
+                    for d in devices
+                    if d.get("follow_score", 0) >= 45 or d.get("watch_hit")
+                ],
             )
         elif choice == "3":
             show_trackers_ranked(
-                "Trackers — watchlist hits",
-                [d for d in devices if d.get("watch_hit")]
+                "Trackers — watchlist hits", [d for d in devices if d.get("watch_hit")]
             )
         elif choice == "4":
             break
@@ -447,7 +540,9 @@ def smart_views_menu():
 
 
 def open_last():
-    files = sorted(Path("reports").glob("*.html"), key=lambda p: p.stat().st_mtime, reverse=True)
+    files = sorted(
+        Path("reports").glob("*.html"), key=lambda p: p.stat().st_mtime, reverse=True
+    )
     clear()
     banner()
     if files:
@@ -524,7 +619,13 @@ def _smart_add_to_named_list(target="white"):
         data.append(entry)
         save_watchlist(data)
 
-    print(color(f"\nAjouté à la {list_name}: {entry.get('address') or entry.get('name')}", GREEN, bold=True))
+    print(
+        color(
+            f"\nAjouté à la {list_name}: {entry.get('address') or entry.get('name')}",
+            GREEN,
+            bold=True,
+        )
+    )
     pause()
 
 
@@ -553,7 +654,7 @@ def remove_from_named_list(target="white"):
         return
 
     for i, item in enumerate(data, start=1):
-        print(f"{i}) {item.get('name','')} | {item.get('address','')}")
+        print(f"{i}) {item.get('name', '')} | {item.get('address', '')}")
     print("0) Retour")
 
     raw = input("Choix > ").strip()
@@ -568,7 +669,13 @@ def remove_from_named_list(target="white"):
 
     removed = data.pop(idx - 1)
     saver(data)
-    print(color(f"\nSupprimé: {removed.get('address','') or removed.get('name','')}", GREEN, bold=True))
+    print(
+        color(
+            f"\nSupprimé: {removed.get('address', '') or removed.get('name', '')}",
+            GREEN,
+            bold=True,
+        )
+    )
     pause()
 
 
@@ -596,9 +703,9 @@ def show_top_recurrents():
 
     for addr, info in items[:20]:
         print(
-            f"{info.get('name','Inconnu')} | {addr} | vus:{info.get('seen_count',0)} | "
-            f"near:{info.get('near_count',0)} | alert:{info.get('last_alert_level','faible')} | "
-            f"profile:{info.get('last_profile','unknown')} | "
+            f"{info.get('name', 'Inconnu')} | {addr} | vus:{info.get('seen_count', 0)} | "
+            f"near:{info.get('near_count', 0)} | alert:{info.get('last_alert_level', 'faible')} | "
+            f"profile:{info.get('last_profile', 'unknown')} | "
             f"suivi?: {info.get('possible_suivi', False)}"
         )
     pause()
@@ -609,11 +716,20 @@ def search_last_scan_interactive(query_override=None):
     clear()
     banner()
     if not devices:
-        print(color("\nAucun dernier scan disponible. Lance un scan complet IA d'abord.", YELLOW, bold=True))
+        print(
+            color(
+                "\nAucun dernier scan disponible. Lance un scan complet IA d'abord.",
+                YELLOW,
+                bold=True,
+            )
+        )
         pause()
         return
 
-    query = query_override or input(color("\nRecherche dernier scan > ", CYAN, bold=True)).strip()
+    query = (
+        query_override
+        or input(color("\nRecherche dernier scan > ", CYAN, bold=True)).strip()
+    )
     results = query_devices(devices, query, 20)
 
     if not results:
@@ -635,7 +751,10 @@ def search_history_interactive(query_override=None):
         pause()
         return
 
-    query = query_override or input(color("\nRecherche historique > ", CYAN, bold=True)).strip()
+    query = (
+        query_override
+        or input(color("\nRecherche historique > ", CYAN, bold=True)).strip()
+    )
     results = query_history(history, query, 25)
     show_history_search_results(query, results)
 
@@ -649,7 +768,9 @@ def inspect_last_scan_device():
         pause()
         return
 
-    selected = select_device_interactive(devices, "Choisis un appareil du dernier scan", 20)
+    selected = select_device_interactive(
+        devices, "Choisis un appareil du dernier scan", 20
+    )
     if not selected:
         return
 
@@ -673,12 +794,16 @@ def show_last_two_scan_compare():
     if comp["added"]:
         print(color("\nTop nouveaux", BLUE, bold=True))
         for d in comp["added"][:8]:
-            print(f"- {d.get('name','Inconnu')} | {d.get('address','-')} | {d.get('vendor','Unknown')}")
+            print(
+                f"- {d.get('name', 'Inconnu')} | {d.get('address', '-')} | {d.get('vendor', 'Unknown')}"
+            )
 
     if comp["removed"]:
         print(color("\nTop disparus", BLUE, bold=True))
         for d in comp["removed"][:8]:
-            print(f"- {d.get('name','Inconnu')} | {d.get('address','-')} | {d.get('vendor','Unknown')}")
+            print(
+                f"- {d.get('name', 'Inconnu')} | {d.get('address', '-')} | {d.get('vendor', 'Unknown')}"
+            )
 
     pause()
 
@@ -696,15 +821,15 @@ def show_query_suggestions():
 
 
 def open_investigation_menu():
-    investigation_menu({
-        "search_last": search_last_scan_interactive,
-        "search_history": search_history_interactive,
-        "inspect_last": inspect_last_scan_device,
-        "compare_last_two": show_last_two_scan_compare,
-        "suggest_queries": show_query_suggestions,
-    })
-
-
+    investigation_menu(
+        {
+            "search_last": search_last_scan_interactive,
+            "search_history": search_history_interactive,
+            "inspect_last": inspect_last_scan_device,
+            "compare_last_two": show_last_two_scan_compare,
+            "suggest_queries": show_query_suggestions,
+        }
+    )
 
 
 def show_nexus_quick_summary(devices):
@@ -871,8 +996,6 @@ def nexus_center():
             pause()
 
 
-
-
 def show_omegax_quick_summary(devices):
     sync_current_devices(devices)
     anomalies = rank_behavior_anomalies(devices, load_scan_history(), 5)
@@ -886,8 +1009,8 @@ def show_omegax_quick_summary(devices):
         print("Top base de connaissance:")
         for row in known[:3]:
             print(
-                f"- {row.get('address','-')} | trust={row.get('trust_label','unknown')} | "
-                f"sightings={row.get('sightings',0)} | max={row.get('max_score',0)}"
+                f"- {row.get('address', '-')} | trust={row.get('trust_label', 'unknown')} | "
+                f"sightings={row.get('sightings', 0)} | max={row.get('max_score', 0)}"
             )
     else:
         print("Base de connaissance vide.")
@@ -898,7 +1021,7 @@ def show_omegax_quick_summary(devices):
         for row in anomalies[:3]:
             d = row["device"]
             print(
-                f"- {d.get('name','Inconnu')} | {d.get('address','-')} | "
+                f"- {d.get('name', 'Inconnu')} | {d.get('address', '-')} | "
                 f"anomaly={row['anomaly_score']} | "
                 f"{', '.join(row['anomalies']) if row['anomalies'] else '-'}"
             )
@@ -920,9 +1043,9 @@ def omegax_known_devices_view():
 
     for row in rows:
         print(
-            f"- {row.get('last_name','Inconnu')} | {row.get('address','-')} | "
-            f"trust={row.get('trust_label','unknown')} | sightings={row.get('sightings',0)} | "
-            f"max={row.get('max_score',0)} | note={row.get('note','') or '-'}"
+            f"- {row.get('last_name', 'Inconnu')} | {row.get('address', '-')} | "
+            f"trust={row.get('trust_label', 'unknown')} | sightings={row.get('sightings', 0)} | "
+            f"max={row.get('max_score', 0)} | note={row.get('note', '') or '-'}"
         )
     pause()
 
@@ -943,9 +1066,9 @@ def omegax_search_known_device():
 
     for row in rows:
         print(
-            f"- {row.get('last_name','Inconnu')} | {row.get('address','-')} | "
-            f"trust={row.get('trust_label','unknown')} | sightings={row.get('sightings',0)} | "
-            f"label={row.get('manual_label','') or '-'} | note={row.get('note','') or '-'}"
+            f"- {row.get('last_name', 'Inconnu')} | {row.get('address', '-')} | "
+            f"trust={row.get('trust_label', 'unknown')} | sightings={row.get('sightings', 0)} | "
+            f"label={row.get('manual_label', '') or '-'} | note={row.get('note', '') or '-'}"
         )
     pause()
 
@@ -1029,7 +1152,7 @@ def omegax_behavior_view():
     for row in rows:
         d = row["device"]
         print(
-            f"- {d.get('name','Inconnu')} | {d.get('address','-')} | "
+            f"- {d.get('name', 'Inconnu')} | {d.get('address', '-')} | "
             f"anomaly={row['anomaly_score']} | "
             f"{', '.join(row['anomalies']) if row['anomalies'] else '-'}"
         )
@@ -1095,8 +1218,6 @@ def omegax_center():
             pause()
 
 
-
-
 def show_argus_quick_summary(devices):
     rows = rank_priority(devices, load_scan_history(), 5)
     print()
@@ -1110,9 +1231,9 @@ def show_argus_quick_summary(devices):
     for row in rows[:3]:
         d = row["device"]
         print(
-            f"- {d.get('name','Inconnu')} | {d.get('address','-')} | "
+            f"- {d.get('name', 'Inconnu')} | {d.get('address', '-')} | "
             f"priority={row['priority_score']} | trust={row['trust_label']} | "
-            f"persist={row['persistence'].get('persistence_score',0)}"
+            f"persist={row['persistence'].get('persistence_score', 0)}"
         )
 
 
@@ -1132,7 +1253,7 @@ def argus_priority_view():
     for row in rows:
         d = row["device"]
         print(
-            f"- {d.get('name','Inconnu')} | {d.get('address','-')} | "
+            f"- {d.get('name', 'Inconnu')} | {d.get('address', '-')} | "
             f"priority={row['priority_score']} | trust={row['trust_label']} | "
             f"reasons={', '.join(row['reasons']) if row['reasons'] else '-'}"
         )
@@ -1159,7 +1280,9 @@ def argus_casefile_view():
 
     for i, row in enumerate(rows, start=1):
         d = row["device"]
-        print(f"{i}) {d.get('name','Inconnu')} | {d.get('address','-')} | priority={row['priority_score']}")
+        print(
+            f"{i}) {d.get('name', 'Inconnu')} | {d.get('address', '-')} | priority={row['priority_score']}"
+        )
     print("0) Retour")
 
     raw = input("Choix > ").strip()
@@ -1225,8 +1348,6 @@ def argus_center():
         else:
             print(color("Choix invalide", RED, bold=True))
             pause()
-
-
 
 
 def show_sentinel_quick_summary(devices):
@@ -1323,7 +1444,7 @@ def sentinel_escalations_view():
     for row in escalations:
         d = row["current"]["device"]
         print(
-            f"- {d.get('name','Inconnu')} | {d.get('address','-')} | "
+            f"- {d.get('name', 'Inconnu')} | {d.get('address', '-')} | "
             f"delta={row['delta']} | reasons={', '.join(row['reasons'])}"
         )
     pause()
@@ -1382,8 +1503,6 @@ def sentinel_center():
             pause()
 
 
-
-
 def show_atlas_quick_summary(devices):
     snap = atlas_snapshot(devices, load_scan_history())
     print()
@@ -1400,7 +1519,9 @@ def show_atlas_quick_summary(devices):
 
     if edges:
         e = edges[0]
-        print(f"Top edge    : {e['a_name']} <-> {e['b_name']} | co-présence={e['weight']}")
+        print(
+            f"Top edge    : {e['a_name']} <-> {e['b_name']} | co-présence={e['weight']}"
+        )
 
 
 def atlas_hot_edges_view():
@@ -1444,7 +1565,9 @@ def atlas_neighbors_view():
         return
 
     for i, row in enumerate(matches, start=1):
-        print(f"{i}) {row['name']} | {row['address']} | persist={row['persistence_score']}")
+        print(
+            f"{i}) {row['name']} | {row['address']} | persist={row['persistence_score']}"
+        )
     print("0) Retour")
 
     raw = input("Choix > ").strip()
@@ -1523,11 +1646,13 @@ def atlas_risk_groups_view():
         return
 
     for grp in groups:
-        print(f"- {grp['key']} | count={grp['count']} | top_priority={grp['top_priority']}")
+        print(
+            f"- {grp['key']} | count={grp['count']} | top_priority={grp['top_priority']}"
+        )
         for row in grp["rows"][:4]:
             d = row["device"]
             print(
-                f"   • {d.get('name','Inconnu')} | {d.get('address','-')} | "
+                f"   • {d.get('name', 'Inconnu')} | {d.get('address', '-')} | "
                 f"priority={row['priority_score']} | trust={row['trust_label']}"
             )
     pause()
@@ -1559,8 +1684,6 @@ def atlas_center():
         else:
             print(color("Choix invalide", RED, bold=True))
             pause()
-
-
 
 
 def show_helios_quick_summary(devices):
@@ -1667,8 +1790,6 @@ def helios_center():
             pause()
 
 
-
-
 def show_oracle_quick_summary(devices):
     return _show_oracle_quick_summary_impl(devices)
 
@@ -1683,8 +1804,6 @@ def oracle_targets_view():
 
 def oracle_center():
     return _oracle_center_impl()
-
-
 
 
 def show_nebula_quick_summary(devices):
@@ -1767,9 +1886,9 @@ def nebula_cases_view():
 
     for row in rows:
         print(
-            f"- {row.get('name','Inconnu')} | {row.get('address','-')} | "
-            f"status={row.get('status','open')} | alert={row.get('alert_level','faible')} | "
-            f"score={row.get('final_score',0)} | updated={row.get('updated_at','-')}"
+            f"- {row.get('name', 'Inconnu')} | {row.get('address', '-')} | "
+            f"status={row.get('status', 'open')} | alert={row.get('alert_level', 'faible')} | "
+            f"score={row.get('final_score', 0)} | updated={row.get('updated_at', '-')}"
         )
     pause()
 
@@ -1812,7 +1931,9 @@ def nebula_add_note_view():
         return
 
     for i, row in enumerate(rows, start=1):
-        print(f"{i}) {row.get('name','Inconnu')} | {row.get('address','-')} | status={row.get('status','open')}")
+        print(
+            f"{i}) {row.get('name', 'Inconnu')} | {row.get('address', '-')} | status={row.get('status', 'open')}"
+        )
     print("0) Retour")
 
     raw = input("Choix > ").strip()
@@ -1839,7 +1960,7 @@ def nebula_add_note_view():
 
 
 def nebula_close_case_view():
-    rows = [r for r in list_cases(30) if r.get("status","open") == "open"]
+    rows = [r for r in list_cases(30) if r.get("status", "open") == "open"]
     clear()
     banner()
     print(color("\nNEBULA — Fermer un dossier", CYAN, bold=True))
@@ -1851,7 +1972,7 @@ def nebula_close_case_view():
         return
 
     for i, row in enumerate(rows, start=1):
-        print(f"{i}) {row.get('name','Inconnu')} | {row.get('address','-')}")
+        print(f"{i}) {row.get('name', 'Inconnu')} | {row.get('address', '-')}")
     print("0) Retour")
 
     raw = input("Choix > ").strip()
@@ -1908,8 +2029,6 @@ def nebula_center():
         else:
             print(color("Choix invalide", RED, bold=True))
             pause()
-
-
 
 
 def show_citadel_quick_summary():
@@ -1974,7 +2093,9 @@ def citadel_maintenance_view():
     banner()
     print(color("\nCITADEL — Maintenance cycle", CYAN, bold=True))
     print(hr())
-    print(f"Réparé JSON : {result['repaired'] if result['repaired'] else 'aucune réparation'}")
+    print(
+        f"Réparé JSON : {result['repaired'] if result['repaired'] else 'aucune réparation'}"
+    )
     print(f"Snapshot    : {result['snapshot']['path']}")
     print(f"Report JSON : {result['saved_report']['json']}")
     print(f"Report TXT  : {result['saved_report']['txt']}")
@@ -2013,8 +2134,6 @@ def citadel_center():
         else:
             print(color("Choix invalide", RED, bold=True))
             pause()
-
-
 
 
 def show_commander_quick_summary(devices):
@@ -2145,17 +2264,17 @@ def commander_center():
             pause()
 
 
-
-
 def _batch34_sev(alert):
-    return {"faible": 0, "moyen": 1, "élevé": 2, "critique": 3}.get(str(alert or "faible"), 0)
+    return {"faible": 0, "moyen": 1, "élevé": 2, "critique": 3}.get(
+        str(alert or "faible"), 0
+    )
 
 
 def _batch34_label_device(d):
     return (
-        f"{d.get('name','Inconnu')} | {d.get('address','-')} | "
+        f"{d.get('name', 'Inconnu')} | {d.get('address', '-')} | "
         f"score={d.get('final_score', d.get('score', 0))} | "
-        f"alert={d.get('alert_level','faible')} | rssi={d.get('rssi', -100)}"
+        f"alert={d.get('alert_level', 'faible')} | rssi={d.get('rssi', -100)}"
     )
 
 
@@ -2253,7 +2372,10 @@ def batch34_scan_hub():
             if devices:
                 try:
                     brief = build_commander_brief(devices, history)
-                    if int(brief.get("top_priority", 0)) >= 60 or int(brief.get("watch_hits", 0)) >= 1:
+                    if (
+                        int(brief.get("top_priority", 0)) >= 60
+                        or int(brief.get("watch_hits", 0)) >= 1
+                    ):
                         mode = "deep"
                 except Exception:
                     mode = "normal"
@@ -2275,7 +2397,11 @@ def batch34_alert_center():
         devices = load_last_scan()
         history = load_scan_history()
         previous_devices = history[-2].get("devices", []) if len(history) >= 2 else []
-        sentinel = build_sentinel_report(devices, previous_devices, history) if devices else {"escalations": []}
+        sentinel = (
+            build_sentinel_report(devices, previous_devices, history)
+            if devices
+            else {"escalations": []}
+        )
 
         clear()
         banner()
@@ -2322,7 +2448,7 @@ def batch34_alert_center():
                 for row in rising[:20]:
                     d = row["current"]["device"]
                     print(
-                        f"- {d.get('name','Inconnu')} | {d.get('address','-')} | "
+                        f"- {d.get('name', 'Inconnu')} | {d.get('address', '-')} | "
                         f"delta={row['delta']} | reasons={', '.join(row['reasons'])}"
                     )
             pause()
@@ -2349,7 +2475,10 @@ def batch34_tracker_hunt():
             return
 
         tracker_rows = []
-        anomalies = {str(r["device"].get("address","-")).upper(): r for r in rank_behavior_anomalies(devices, history, 50)}
+        anomalies = {
+            str(r["device"].get("address", "-")).upper(): r
+            for r in rank_behavior_anomalies(devices, history, 50)
+        }
         for row in rank_priority(devices, history, 50):
             d = row["device"]
             if (
@@ -2358,7 +2487,9 @@ def batch34_tracker_hunt():
                 or d.get("watch_hit")
                 or d.get("persistent_nearby")
             ):
-                tracker_rows.append((row, anomalies.get(str(d.get("address","-")).upper())))
+                tracker_rows.append(
+                    (row, anomalies.get(str(d.get("address", "-")).upper()))
+                )
 
         print(f"Trackers / signaux: {len(tracker_rows)}")
         print()
@@ -2379,7 +2510,7 @@ def batch34_tracker_hunt():
                 for row, anom in tracker_rows[:20]:
                     d = row["device"]
                     print(
-                        f"- {d.get('name','Inconnu')} | {d.get('address','-')} | "
+                        f"- {d.get('name', 'Inconnu')} | {d.get('address', '-')} | "
                         f"priority={row['priority_score']} | trust={row['trust_label']} | "
                         f"reasons={', '.join(row['reasons']) if row['reasons'] else '-'}"
                     )
@@ -2395,9 +2526,13 @@ def batch34_tracker_hunt():
                 for row, anom in tracker_rows[:20]:
                     d = row["device"]
                     anomaly_score = anom["anomaly_score"] if anom else 0
-                    anomaly_text = ", ".join(anom["anomalies"]) if anom and anom["anomalies"] else "-"
+                    anomaly_text = (
+                        ", ".join(anom["anomalies"])
+                        if anom and anom["anomalies"]
+                        else "-"
+                    )
                     print(
-                        f"- {d.get('name','Inconnu')} | {d.get('address','-')} | "
+                        f"- {d.get('name', 'Inconnu')} | {d.get('address', '-')} | "
                         f"anomaly={anomaly_score} | {anomaly_text}"
                     )
             pause()
@@ -2430,8 +2565,10 @@ def batch34_investigation_hub():
             rows = search_device_summaries(query, history, 20)
             picked = _batch34_pick(
                 rows,
-                lambda r: f"{r['name']} | {r['address']} | persist={r['persistence_score']} | occ={r['occurrences']}",
-                "Résultats historique"
+                lambda r: (
+                    f"{r['name']} | {r['address']} | persist={r['persistence_score']} | occ={r['occurrences']}"
+                ),
+                "Résultats historique",
             )
             if picked:
                 tl = timeline_for_address(picked["address"], history, 80)
@@ -2451,8 +2588,10 @@ def batch34_investigation_hub():
             rows = rank_priority(devices, history, 20)
             picked = _batch34_pick(
                 rows,
-                lambda r: f"{r['device'].get('name','Inconnu')} | {r['device'].get('address','-')} | priority={r['priority_score']}",
-                "Case files disponibles"
+                lambda r: (
+                    f"{r['device'].get('name', 'Inconnu')} | {r['device'].get('address', '-')} | priority={r['priority_score']}"
+                ),
+                "Case files disponibles",
             )
             if picked:
                 case = build_case_file(picked["device"], history)
@@ -2469,8 +2608,10 @@ def batch34_investigation_hub():
             rows = search_device_summaries(query, history, 20)
             picked = _batch34_pick(
                 rows,
-                lambda r: f"{r['name']} | {r['address']} | persist={r['persistence_score']}",
-                "Choisir une cible"
+                lambda r: (
+                    f"{r['name']} | {r['address']} | persist={r['persistence_score']}"
+                ),
+                "Choisir une cible",
             )
             if picked:
                 neigh = neighbors_for_address(picked["address"], history, 20, 1)
@@ -2484,7 +2625,9 @@ def batch34_investigation_hub():
                     print(color("Aucun voisin significatif.", YELLOW, bold=True))
                 else:
                     for row in neigh:
-                        print(f"- {row['name']} | {row['address']} | co-présence={row['weight']}")
+                        print(
+                            f"- {row['name']} | {row['address']} | co-présence={row['weight']}"
+                        )
                 pause()
 
         elif choice == "4":
@@ -2513,16 +2656,25 @@ def batch34_smart_views():
 
         new_devices = [d for d in devices if d.get("is_new_device")]
         near_devices = [d for d in devices if int(d.get("rssi", -200)) >= -70]
-        persistent_devices = [d for d in devices if d.get("persistent_nearby") or int(d.get("seen_count", 0)) >= 2]
+        persistent_devices = [
+            d
+            for d in devices
+            if d.get("persistent_nearby") or int(d.get("seen_count", 0)) >= 2
+        ]
         suspicious_devices = [
-            r["device"] for r in ranked
+            r["device"]
+            for r in ranked
             if r["priority_score"] >= 60
             or r["device"].get("watch_hit")
             or r["device"].get("possible_suivi")
             or _batch34_sev(r["device"].get("alert_level")) >= 2
         ]
-        known_devices = [d for d in devices if str(d.get("name","Inconnu")) != "Inconnu"]
-        quiet_noise = [d for d in devices if int(d.get("final_score", d.get("score", 0))) <= 15]
+        known_devices = [
+            d for d in devices if str(d.get("name", "Inconnu")) != "Inconnu"
+        ]
+        quiet_noise = [
+            d for d in devices if int(d.get("final_score", d.get("score", 0))) <= 15
+        ]
 
         print("1) Nouveaux appareils")
         print("2) Appareils proches")
@@ -2551,7 +2703,6 @@ def batch34_smart_views():
         else:
             print(color("Choix invalide", RED, bold=True))
             pause()
-
 
 
 def batch35_command_center_pro():
@@ -2646,10 +2797,10 @@ def batch35_query_vault():
             else:
                 for row in rows:
                     print(
-                        f"- {row.get('last_name','Inconnu')} | {row.get('address','-')} | "
-                        f"trust={row.get('trust_label','unknown')} | "
-                        f"sightings={row.get('sightings',0)} | "
-                        f"note={row.get('note','') or '-'}"
+                        f"- {row.get('last_name', 'Inconnu')} | {row.get('address', '-')} | "
+                        f"trust={row.get('trust_label', 'unknown')} | "
+                        f"sightings={row.get('sightings', 0)} | "
+                        f"note={row.get('note', '') or '-'}"
                     )
             pause()
 
@@ -2726,7 +2877,7 @@ def batch35_metrics_anomalies_pro():
         for row in anomalies[:10]:
             d = row["device"]
             print(
-                f"- {d.get('name','Inconnu')} | {d.get('address','-')} | "
+                f"- {d.get('name', 'Inconnu')} | {d.get('address', '-')} | "
                 f"anomaly={row['anomaly_score']} | "
                 f"{', '.join(row['anomalies']) if row['anomalies'] else '-'}"
             )
@@ -2771,22 +2922,22 @@ def batch35_replay_lab_pro():
 
     print("Historique récent:")
     for scan in history[-8:]:
-        stamp = scan.get('stamp', scan.get('timestamp', '-'))
-        count = scan.get('count', len(scan.get('devices', [])))
-        crit = scan.get('critical', 0)
-        high = scan.get('high', 0)
-        med = scan.get('medium', 0)
+        stamp = scan.get("stamp", scan.get("timestamp", "-"))
+        count = scan.get("count", len(scan.get("devices", [])))
+        crit = scan.get("critical", 0)
+        high = scan.get("high", 0)
+        med = scan.get("medium", 0)
         print(f"- {stamp} | count={count} | crit={crit} | high={high} | med={med}")
 
     print()
     print("Ajoutés (top 10):")
     for row in comparison.get("added", [])[:10]:
-        print(f"- {row.get('name','Inconnu')} | {row.get('address','-')}")
+        print(f"- {row.get('name', 'Inconnu')} | {row.get('address', '-')}")
 
     print()
     print("Retirés (top 10):")
     for row in comparison.get("removed", [])[:10]:
-        print(f"- {row.get('name','Inconnu')} | {row.get('address','-')}")
+        print(f"- {row.get('name', 'Inconnu')} | {row.get('address', '-')}")
 
     print()
     print("Alertes changées (top 10):")
@@ -2797,7 +2948,6 @@ def batch35_replay_lab_pro():
         print("- aucune")
 
     pause()
-
 
 
 def batch36_operator_profiles_pro():
@@ -3035,7 +3185,11 @@ def batch36_html_dashboard_pro():
                 pause()
                 continue
 
-            html_files = sorted(reports_dir.glob("*.html"), key=lambda p: p.stat().st_mtime, reverse=True)
+            html_files = sorted(
+                reports_dir.glob("*.html"),
+                key=lambda p: p.stat().st_mtime,
+                reverse=True,
+            )
 
             if not html_files:
                 print(color("Aucun dashboard HTML.", YELLOW, bold=True))
@@ -3049,7 +3203,6 @@ def batch36_html_dashboard_pro():
         else:
             print(color("Choix invalide", RED, bold=True))
             pause()
-
 
 
 def _batch37_list_files(title, folder, pattern="*", limit=20):
@@ -3126,7 +3279,9 @@ def batch37_history_local_pro():
         print(f"Scans enregistrés : {len(history)}")
         if history:
             last = history[-1]
-            print(f"Dernier scan      : {last.get('stamp', last.get('timestamp', '-'))}")
+            print(
+                f"Dernier scan      : {last.get('stamp', last.get('timestamp', '-'))}"
+            )
         print()
         print("1) Résumé historique")
         print("2) Voir les derniers scans")
@@ -3153,7 +3308,9 @@ def batch37_history_local_pro():
                     crit = scan.get("critical", 0)
                     high = scan.get("high", 0)
                     med = scan.get("medium", 0)
-                    print(f"- {stamp} | count={count} | crit={crit} | high={high} | med={med}")
+                    print(
+                        f"- {stamp} | count={count} | crit={crit} | high={high} | med={med}"
+                    )
             pause()
         elif choice == "2":
             _batch37_list_files("Derniers scans", "reports", "scan_*.*", 25)
@@ -3232,7 +3389,7 @@ def batch37_whitelist_view_pro():
             addr = str(d.get("address", "-")).upper()
             name = str(d.get("name", "Inconnu")).upper()
             if addr in raw_text or name in raw_text:
-                print(f"- {d.get('name','Inconnu')} | {d.get('address','-')}")
+                print(f"- {d.get('name', 'Inconnu')} | {d.get('address', '-')}")
                 found += 1
         if found == 0:
             print("- aucun")
@@ -3295,7 +3452,6 @@ def batch37_whitelist_remove_pro():
             pause()
 
 
-
 def _batch38_watchlist_rows():
     from ble_radar.state import load_json
     from ble_radar.config import WATCHLIST_FILE
@@ -3339,9 +3495,9 @@ def batch38_watchlist_view_pro():
             name = str(d.get("name", "Inconnu")).upper()
             if addr in raw_text or name in raw_text:
                 print(
-                    f"- {d.get('name','Inconnu')} | {d.get('address','-')} | "
+                    f"- {d.get('name', 'Inconnu')} | {d.get('address', '-')} | "
                     f"score={d.get('final_score', d.get('score', 0))} | "
-                    f"alert={d.get('alert_level','faible')}"
+                    f"alert={d.get('alert_level', 'faible')}"
                 )
                 found += 1
         if found == 0:
@@ -3453,12 +3609,18 @@ def batch38_event_log_pro():
             print(color("\nJournal WARNING / ERROR", CYAN, bold=True))
             print(hr())
 
-            filtered = [e for e in events if str(e.get("level", "")).lower() in ("warning", "error")]
+            filtered = [
+                e
+                for e in events
+                if str(e.get("level", "")).lower() in ("warning", "error")
+            ]
             if not filtered:
                 print(color("Aucun événement WARNING/ERROR.", GREEN, bold=True))
             else:
                 for e in filtered[:80]:
-                    print(f"- [{e.get('ts','-')}] {e.get('level','-').upper()} | {e.get('message','-')}")
+                    print(
+                        f"- [{e.get('ts', '-')}] {e.get('level', '-').upper()} | {e.get('message', '-')}"
+                    )
             pause()
 
         elif choice == "3":
@@ -3466,7 +3628,6 @@ def batch38_event_log_pro():
         else:
             print(color("Choix invalide", RED, bold=True))
             pause()
-
 
 
 def batch40_argus_center_pro():
@@ -3623,7 +3784,6 @@ def batch40_aegis_center_pro():
             pause()
 
 
-
 def batch41_oracle_center_pro():
     while True:
         clear()
@@ -3778,6 +3938,7 @@ def batch41_exit_pro():
     print("Sortie propre OMEGA.")
     return True
 
+
 def saved_queries_menu():
     while True:
         clear()
@@ -3849,7 +4010,9 @@ def profiles_menu():
 
         profiles = list_profiles()
         for i, p in enumerate(profiles, start=1):
-            print(f"{i}) {p['label']} | key={p['key']} | scan={p['scan_seconds']}s | live={p['live_seconds']}s | alert_floor={p['alert_floor']}")
+            print(
+                f"{i}) {p['label']} | key={p['key']} | scan={p['scan_seconds']}s | live={p['live_seconds']}s | alert_floor={p['alert_floor']}"
+            )
             print(f"   {p['description']}")
         print("0) Retour")
 
@@ -3903,7 +4066,13 @@ def show_metrics():
 
     clear()
     banner()
-    print(color(f"\nMétriques, santé radio & anomalies [{active_profile()['label']}]", CYAN, bold=True))
+    print(
+        color(
+            f"\nMétriques, santé radio & anomalies [{active_profile()['label']}]",
+            CYAN,
+            bold=True,
+        )
+    )
     print(hr())
 
     for line in metrics_to_lines(current, baseline, anomalies):
@@ -3932,7 +4101,9 @@ def replay_lab():
 
         for pos, (hist_idx, scan) in enumerate(scans, start=1):
             stamp = scan.get("stamp", scan.get("timestamp", "-"))
-            print(f"{pos}) {stamp} | total={scan.get('count',0)} | crit={scan.get('critical',0)} | high={scan.get('high',0)} | medium={scan.get('medium',0)}")
+            print(
+                f"{pos}) {stamp} | total={scan.get('count', 0)} | crit={scan.get('critical', 0)} | high={scan.get('high', 0)} | medium={scan.get('medium', 0)}"
+            )
         print("v) Voir un scan")
         print("c) Comparer deux scans")
         print("0) Retour")
@@ -3948,7 +4119,10 @@ def replay_lab():
                 if 0 <= pos < len(scans):
                     _, scan = scans[pos]
                     devices = scan_devices(scan)
-                    render_devices(devices, f"Replay: {scan.get('stamp', scan.get('timestamp', '-'))}")
+                    render_devices(
+                        devices,
+                        f"Replay: {scan.get('stamp', scan.get('timestamp', '-'))}",
+                    )
                     print()
                     print(color("Résumé scan historique", CYAN, bold=True))
                     print(hr())
@@ -4027,10 +4201,38 @@ def command_center():
         q = (parsed.get("query") or "").strip()
         if q:
             set_profile_key(q)
-            print(color(f"\nProfil actif: {active_profile()['label']}", GREEN, bold=True))
+            print(
+                color(f"\nProfil actif: {active_profile()['label']}", GREEN, bold=True)
+            )
             pause()
         else:
             profiles_menu()
+    elif action == "operator_session_unlock":
+        unlock_operator_session()
+        status = read_operator_session_status()
+        print(color("\nOperator session unlocked.", GREEN, bold=True))
+        print(
+            f"mode={status.get('mode')} | session_unlocked={status.get('session_unlocked')}"
+        )
+        pause()
+    elif action == "operator_session_lock":
+        lock_operator_session()
+        status = read_operator_session_status()
+        print(color("\nOperator session locked.", YELLOW, bold=True))
+        print(
+            f"mode={status.get('mode')} | session_unlocked={status.get('session_unlocked')}"
+        )
+        pause()
+    elif action == "operator_session_status":
+        status = read_operator_session_status()
+        print(color("\nOperator session status", CYAN, bold=True))
+        print(hr())
+        print(f"mode={status.get('mode')}")
+        print(f"yubikey_present={status.get('yubikey_present')}")
+        print(f"session_unlocked={status.get('session_unlocked')}")
+        print(f"sensitive_enabled={status.get('sensitive_enabled')}")
+        print(f"session_timeout_seconds={status.get('session_timeout_seconds')}")
+        pause()
     elif action == "view_critical":
         run_view("Vue critique", view_critical)
     elif action == "view_high":
@@ -4056,51 +4258,49 @@ def live_radar():
     previous_cycle = []
     try:
         while True:
-            devices = only_alerts(run_engine_scan(prof_live_seconds()), prof_alert_floor())
+            devices = only_alerts(
+                run_engine_scan(prof_live_seconds()), prof_alert_floor()
+            )
             if not devices:
                 devices = run_engine_scan(prof_live_seconds())
 
             comp = compare_scan_sets(devices, previous_cycle)
             changes = changed_alerts(devices, previous_cycle)
 
-            render_devices(devices, f"Radar live IA [{active_profile()['label']} | {active_mission()['label']}] (Ctrl+C pour sortir)")
+            render_devices(
+                devices,
+                f"Radar live IA [{active_profile()['label']} | {active_mission()['label']}] (Ctrl+C pour sortir)",
+            )
             show_vendor_summary(devices)
             print()
             print(color("Changements live", CYAN, bold=True))
             print(hr())
-            print(f"Nouveaux: {len(comp['added'])} | Disparus: {len(comp['removed'])} | Changement niveau/score: {len(changes)}")
+            print(
+                f"Nouveaux: {len(comp['added'])} | Disparus: {len(comp['removed'])} | Changement niveau/score: {len(changes)}"
+            )
             for row in changes[:6]:
                 cur = row["current"]
                 prev = row["previous"]
                 print(
-                    f"- {cur.get('name','Inconnu')} | {cur.get('address','-')} | "
-                    f"{prev.get('alert_level','faible')}->{cur.get('alert_level','faible')} | "
+                    f"- {cur.get('name', 'Inconnu')} | {cur.get('address', '-')} | "
+                    f"{prev.get('alert_level', 'faible')}->{cur.get('alert_level', 'faible')} | "
                     f"{prev.get('final_score', prev.get('score', 0))}->{cur.get('final_score', cur.get('score', 0))}"
                 )
 
             print()
-            print(color(f"Rafraîchissement auto toutes les {prof_live_seconds()} secondes...", CYAN, bold=True))
+            print(
+                color(
+                    f"Rafraîchissement auto toutes les {prof_live_seconds()} secondes...",
+                    CYAN,
+                    bold=True,
+                )
+            )
             previous_cycle = devices
             time.sleep(prof_live_seconds())
     except KeyboardInterrupt:
         print()
         print(color("Sortie du radar live.", GREEN, bold=True))
         pause()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def main_menu():
@@ -4110,7 +4310,13 @@ def main_menu():
         prof = active_profile()
         mission = active_mission()
         fortress = integrity_status_label()
-        print(color(f"\nBLE RADAR OMEGA — COMMANDER CITADEL NEBULA ORACLE AEGIS HELIOS ATLAS SENTINEL ARGUS OMEGA-X NEXUS TITAN [{prof['label']} | {mission['label']} | {fortress}]\n", CYAN, bold=True))
+        print(
+            color(
+                f"\nBLE RADAR OMEGA — COMMANDER CITADEL NEBULA ORACLE AEGIS HELIOS ATLAS SENTINEL ARGUS OMEGA-X NEXUS TITAN [{prof['label']} | {mission['label']} | {fortress}]\n",
+                CYAN,
+                bold=True,
+            )
+        )
         print("1) Scan Hub Pro")
         print("2) Alert Center Pro")
         print("3) Tracker Hunt+ Pro")
@@ -4239,8 +4445,10 @@ def main_menu():
             print(color("Choix invalide", RED, bold=True))
             pause()
 
+
 def main():
     main_menu()
+
 
 def show_automation_result(auto_result):
     print()
@@ -4256,7 +4464,9 @@ def show_automation_result(auto_result):
     print(f"high        : {ctx.get('high', 0)}")
     print(f"trackers    : {ctx.get('trackers', 0)}")
     print(f"watch_hits  : {ctx.get('watch_hits', 0)}")
-    print(f"health      : {ctx.get('health_score', 0)} ({ctx.get('health_label', '-')})")
+    print(
+        f"health      : {ctx.get('health_score', 0)} ({ctx.get('health_label', '-')})"
+    )
 
     executed = auto_result.get("executed", [])
     if not executed:
@@ -4284,7 +4494,9 @@ def show_event_log():
         return
 
     for e in events:
-        print(f"[{e.get('ts','-')}] {e.get('level','-').upper()} | {e.get('kind','-')} | {e.get('message','-')}")
+        print(
+            f"[{e.get('ts', '-')}] {e.get('level', '-').upper()} | {e.get('kind', '-')} | {e.get('message', '-')}"
+        )
     pause()
 
 
@@ -4309,8 +4521,8 @@ def automation_center():
         for i, r in enumerate(rules, start=1):
             print(
                 f"{i}) [{'ON' if r.get('enabled', True) else 'OFF'}] "
-                f"{r.get('label','-')} | cond={r.get('condition','-')} | "
-                f"seuil={r.get('threshold','-')} | action={r.get('action','-')}"
+                f"{r.get('label', '-')} | cond={r.get('condition', '-')} | "
+                f"seuil={r.get('threshold', '-')} | action={r.get('action', '-')}"
             )
 
         print()
@@ -4347,6 +4559,7 @@ def automation_center():
         else:
             print(color("Choix invalide", RED, bold=True))
             pause()
+
 
 def batch39_automation_center_pro():
     while True:
@@ -4439,9 +4652,9 @@ def batch39_doctor_integrity_pro():
             pause()
 
 
-
 def create_snapshot(devices=None):
     return _create_snapshot_impl(devices, globals())
+
 
 def batch39_snapshots_restore_pro():
     return _batch39_snapshots_restore_pro_impl(create_snapshot_fn=create_snapshot)
@@ -4518,6 +4731,7 @@ def batch39_omegax_center_pro():
         else:
             print(color("Choix invalide", RED, bold=True))
             pause()
+
 
 def _batch43_brief():
     devices = load_last_scan()
@@ -4874,7 +5088,9 @@ def batch41_commander_center_pro():
         _batch43_header("39) COMMANDER Center Pro")
         try:
             stable = build_stableplus_report()
-            print(f"Stable+={stable.get('status','STABLE+ WARN')} | Doublons={stable.get('duplicate_count', 0)}")
+            print(
+                f"Stable+={stable.get('status', 'STABLE+ WARN')} | Doublons={stable.get('duplicate_count', 0)}"
+            )
             print()
         except Exception:
             pass
@@ -4935,6 +5151,7 @@ def batch41_exit_pro():
     print()
     print("Sortie propre OMEGA.")
     return True
+
 
 def _batch43_safe_int(value, default=0):
     if isinstance(value, bool):
@@ -5049,11 +5266,14 @@ def _omega_safe_int(value, default=0):
     except Exception:
         return default
 
+
 if __name__ == "__main__":
     main()
 
 
-def _bluehood_enrich_safe(devices, registry=None, session_id="live-session", seen_at="now"):
+def _bluehood_enrich_safe(
+    devices, registry=None, session_id="live-session", seen_at="now"
+):
     try:
         return enrich_devices_for_session(
             devices=devices or [],

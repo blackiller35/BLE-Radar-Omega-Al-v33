@@ -40,6 +40,13 @@ def test_render_security_status_panel_with_context():
     assert "Sensitive features: <strong>true</strong>" in html
     assert "Secrets unlocked: <strong>true</strong>" in html
     assert "Operator session: <strong>unlocked</strong>" in html
+    assert "Session controls (unlocked):" in html
+    assert "Unlock operator session" in html
+    assert "Lock operator session" in html
+    assert 'data-runtime-command="session unlock"' in html
+    assert 'data-runtime-command="session lock"' in html
+    assert " disabled>Unlock operator session</button>" in html
+    assert " disabled>Lock operator session</button>" not in html
     assert "Elevated sensitive access: <strong>enabled</strong>" in html
     assert "Operator-only actions:" in html
     assert "export context" in html
@@ -63,6 +70,12 @@ def test_render_security_status_panel_demo_mode_locked_actions():
 
     assert "Mode: <strong>demo</strong>" in html
     assert "Operator session: <strong>locked</strong>" in html
+    assert "Session controls (locked):" in html
+    assert " disabled>Unlock operator session</button>" in html
+    assert " disabled>Lock operator session</button>" in html
+    assert (
+        "YubiKey/operator mode is required before session controls can be used." in html
+    )
     assert "Operator-only actions:" in html
     assert "export context" in html
     assert "incident pack creation" in html
@@ -86,6 +99,9 @@ def test_render_security_status_panel_operator_mode_session_locked():
 
     assert "Mode: <strong>operator</strong>" in html
     assert "Operator session: <strong>locked</strong>" in html
+    assert "Session controls (locked):" in html
+    assert " disabled>Lock operator session</button>" in html
+    assert " disabled>Unlock operator session</button>" not in html
     assert "Sensitive secrets remain locked until operator session unlock." in html
     assert "Operator unlock required" in html
     assert "text-decoration:line-through;" in html

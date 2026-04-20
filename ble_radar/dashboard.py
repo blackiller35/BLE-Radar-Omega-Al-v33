@@ -1900,6 +1900,39 @@ def render_security_status_panel(security_context) -> str:
     lines.append(
         f"<li>Operator session: <strong>{'unlocked' if session_unlocked else 'locked'}</strong></li>"
     )
+
+    unlock_disabled = mode != "operator" or session_unlocked
+    lock_disabled = mode != "operator" or not session_unlocked
+
+    def _control_button(label: str, runtime_command: str, disabled: bool) -> str:
+        base = (
+            "padding:4px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.2);"
+            "background:rgba(255,255,255,.06);color:var(--text);font-size:12px;"
+        )
+        disabled_style = "opacity:.55;cursor:not-allowed;" if disabled else ""
+        disabled_attr = " disabled" if disabled else ""
+        return (
+            f'<button type="button" data-runtime-command="{escape(runtime_command)}"'
+            f' style="{base}{disabled_style}"{disabled_attr}>{escape(label)}</button>'
+        )
+
+    controls = (
+        _control_button("Unlock operator session", "session unlock", unlock_disabled)
+        + " "
+        + _control_button("Lock operator session", "session lock", lock_disabled)
+    )
+    lines.append(
+        f"<li>Session controls ({'unlocked' if session_unlocked else 'locked'}): {controls}</li>"
+    )
+    lines.append(
+        '<li class="muted">Runtime command path: Command center -> session unlock | session lock | session status</li>'
+    )
+
+    if mode == "demo":
+        lines.append(
+            '<li class="muted">YubiKey/operator mode is required before session controls can be used.</li>'
+        )
+
     if mode == "operator" and not session_unlocked:
         lines.append(
             '<li class="muted">Sensitive secrets remain locked until operator session unlock.</li>'
