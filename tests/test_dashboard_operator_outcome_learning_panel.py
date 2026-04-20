@@ -115,6 +115,7 @@ def test_render_operator_learning_snapshot_section_with_data():
     assert "Review burden: <strong>low</strong>" in html
     assert "Documentation mode: <strong>compact</strong>" in html
     assert "Handoff readiness: <strong>standby</strong>" in html
+    assert "Resolution posture: <strong>stable track</strong>" in html
     assert "Latest pattern" in html
     assert "Recommended reuse" in html
 
@@ -202,6 +203,7 @@ def test_render_operator_learning_snapshot_section_investigate_guidance():
     assert "Review burden: <strong>high</strong>" in html
     assert "Documentation mode: <strong>expanded</strong>" in html
     assert "Handoff readiness: <strong>immediate handoff</strong>" in html
+    assert "Resolution posture: <strong>active resolution</strong>" in html
 
 
 def test_dashboard_contains_learning_snapshot_section(monkeypatch):
@@ -506,4 +508,5 @@ def test_render_operator_learning_snapshot_section_watch_guidance():
     assert "Review burden: <strong>moderate</strong>" in html
     assert "Documentation mode: <strong>standard</strong>" in html
     assert "Handoff readiness: <strong>ready</strong>" in html
+    assert "Resolution posture: <strong>watch and reassess</strong>" in html
     assert "mixed signals require monitored reuse" in html

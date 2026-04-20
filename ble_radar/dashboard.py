@@ -1838,6 +1838,12 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     elif guidance == "investigate":
         handoff_readiness = "immediate handoff"
 
+    resolution_posture = "watch and reassess"
+    if guidance == "keep":
+        resolution_posture = "stable track"
+    elif guidance == "investigate":
+        resolution_posture = "active resolution"
+
     lines = [
         f"<li>Learned patterns: <strong>{escape(str(len(learning)))}</strong> | "
         f"high-value=<strong>{escape(str(len(high_value)))}</strong> | "
@@ -1863,6 +1869,7 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
         f"<li>Review burden: <strong>{escape(review_burden)}</strong></li>",
         f"<li>Documentation mode: <strong>{escape(documentation_mode)}</strong></li>",
         f"<li>Handoff readiness: <strong>{escape(handoff_readiness)}</strong></li>",
+        f"<li>Resolution posture: <strong>{escape(resolution_posture)}</strong></li>",
         f"<li>Latest pattern: {latest_scope} | pattern={latest_pattern} | "
         f"confidence={latest_conf} | reuse={latest_reuse}</li>",
     ]
