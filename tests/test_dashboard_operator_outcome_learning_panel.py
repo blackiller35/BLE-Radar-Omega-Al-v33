@@ -87,6 +87,8 @@ def test_render_operator_learning_snapshot_section_with_data():
     html = dashboard.render_operator_learning_snapshot_section(summary)
 
     assert "Learned patterns" in html
+    assert "Operator guidance" in html
+    assert "keep" in html
     assert "Latest pattern" in html
     assert "Recommended reuse" in html
 
@@ -94,6 +96,58 @@ def test_render_operator_learning_snapshot_section_with_data():
 def test_render_operator_learning_snapshot_section_fallback():
     html = dashboard.render_operator_learning_snapshot_section({})
     assert "No learning snapshot available" in html
+
+
+def test_render_operator_learning_snapshot_section_insufficient_data_fallback():
+    summary = {
+        "outcome_learning": [
+            {
+                "scope_type": "device",
+                "scope_id": "d1",
+                "action_pattern": "collect_additional_supporting_evidence",
+                "confidence_level": "medium",
+                "recommended_reuse": "reuse_with_operator_review",
+            }
+        ],
+        "high_value_action_patterns": [],
+        "reopen_reduction_signals": [],
+        "mixed_result_patterns": [],
+        "recommended_reuse": [],
+    }
+
+    html = dashboard.render_operator_learning_snapshot_section(summary)
+    assert "Insufficient learning data for operator guidance" in html
+
+
+def test_render_operator_learning_snapshot_section_investigate_guidance():
+    summary = {
+        "outcome_learning": [
+            {
+                "scope_type": "device",
+                "scope_id": "d1",
+                "action_pattern": "collect_additional_supporting_evidence",
+                "confidence_level": "low",
+                "recommended_reuse": "do_not_reuse_without_more_history",
+                "caution_flags": ["reopen_pressure_increasing"],
+            },
+            {
+                "scope_type": "case",
+                "scope_id": "c1",
+                "action_pattern": "review_closure_decision_logic",
+                "confidence_level": "medium",
+                "recommended_reuse": "reuse_with_operator_review",
+                "caution_flags": ["fragile_resolution_quality"],
+            },
+        ],
+        "high_value_action_patterns": [],
+        "reopen_reduction_signals": [],
+        "mixed_result_patterns": [{"scope_type": "device", "scope_id": "d1"}],
+        "recommended_reuse": [],
+    }
+
+    html = dashboard.render_operator_learning_snapshot_section(summary)
+    assert "Operator guidance" in html
+    assert "investigate" in html
 
 
 def test_dashboard_contains_learning_snapshot_section(monkeypatch):
@@ -173,7 +227,37 @@ def test_dashboard_contains_learning_snapshot_section(monkeypatch):
         "suggested_followup_modes": [],
     })
     monkeypatch.setattr(dashboard, "build_operator_outcome_learning_records", lambda *args, **kwargs: [])
-    monkeypatch.setattr(dashboard, "summarize_operator_outcome_learning", lambda *args, **kwargs: {})
+    monkeypatch.setattr(dashboard, "summarize_operator_outcome_learning", lambda *args, **kwargs: {
+        "outcome_learning": [
+            {
+                "scope_type": "device",
+                "scope_id": "d1",
+                "action_pattern": "collect_additional_supporting_evidence",
+                "confidence_level": "high",
+                "recommended_reuse": "reuse_with_similar_scope",
+                "caution_flags": [],
+            },
+            {
+                "scope_type": "case",
+                "scope_id": "c1",
+                "action_pattern": "review_closure_decision_logic",
+                "confidence_level": "medium",
+                "recommended_reuse": "reuse_with_operator_review",
+                "caution_flags": [],
+            },
+        ],
+        "high_value_action_patterns": [{"scope_type": "device", "scope_id": "d1"}],
+        "reopen_reduction_signals": [{"scope_type": "device", "scope_id": "d1"}],
+        "mixed_result_patterns": [],
+        "recommended_reuse": [
+            {
+                "scope_type": "device",
+                "scope_id": "d1",
+                "action_pattern": "collect_additional_supporting_evidence",
+                "recommended_reuse": "reuse_with_similar_scope",
+            }
+        ],
+    })
 
     monkeypatch.setattr(dashboard, "build_session_movement", lambda *args, **kwargs: {})
     monkeypatch.setattr(dashboard, "enrich_devices_for_session", lambda *args, **kwargs: [])
@@ -184,4 +268,38 @@ def test_dashboard_contains_learning_snapshot_section(monkeypatch):
     html = dashboard.render_dashboard_html(devices=[], stamp="2024-01-01T12:00:00Z")
 
     assert "Learning snapshot" in html
-    assert "No learning snapshot available" in html
+    assert "Operator guidance" in html
+    assert "keep" in html
+
+def test_render_operator_learning_snapshot_section_watch_guidance():
+    summary = {
+        "outcome_learning": [
+            {
+                "scope_type": "device",
+                "scope_id": "d1",
+                "action_pattern": "collect_additional_supporting_evidence",
+                "confidence_level": "medium",
+                "recommended_reuse": "reuse_with_operator_review",
+                "caution_flags": [],
+            },
+            {
+                "scope_type": "case",
+                "scope_id": "c1",
+                "action_pattern": "review_closure_decision_logic",
+                "confidence_level": "medium",
+                "recommended_reuse": "reuse_with_operator_review",
+                "caution_flags": [],
+            },
+        ],
+        "high_value_action_patterns": [],
+        "reopen_reduction_signals": [],
+        "mixed_result_patterns": [],
+        "recommended_reuse": [],
+    }
+
+    html = dashboard.render_operator_learning_snapshot_section(summary)
+
+    assert "Operator guidance" in html
+    assert "watch" in html
+    assert "mixed signals require monitored reuse" in html
+

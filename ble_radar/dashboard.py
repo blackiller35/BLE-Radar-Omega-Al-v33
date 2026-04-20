@@ -1644,17 +1644,37 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     if not learning:
         return '<ul><li class="muted">No learning snapshot available.</li></ul>'
 
+    # Keep snapshot explicit and testable: derive one operator guidance from existing learning signals only.
+    if len(learning) < 2 and not high_value and not reopen_reduction and not mixed:
+      return '<ul><li class="muted">Insufficient learning data for operator guidance.</li></ul>'
+
     latest = learning[0]
     latest_scope = f"{escape(str(latest.get('scope_type', '-')))}:{escape(str(latest.get('scope_id', '-')))}"
     latest_pattern = escape(str(latest.get("action_pattern", "-")))
     latest_conf = escape(str(latest.get("confidence_level", "-")))
     latest_reuse = escape(str(latest.get("recommended_reuse", "-")))
+    recent = learning[:6]
+    caution_flags = [
+      str(flag)
+      for row in recent
+      for flag in list(row.get("caution_flags", []) or [])
+    ]
+
+    guidance = "watch"
+    guidance_reason = "mixed signals require monitored reuse"
+    if latest_conf == "low" or "reopen_pressure_increasing" in caution_flags or len(mixed) > len(high_value):
+      guidance = "investigate"
+      guidance_reason = "fragility/reopen pressure detected in recent learning"
+    elif (high_value or reopen_reduction) and len(mixed) == 0 and latest_conf in {"high", "medium"}:
+      guidance = "keep"
+      guidance_reason = "consistent positive learning signals"
 
     lines = [
         f"<li>Learned patterns: <strong>{escape(str(len(learning)))}</strong> | "
         f"high-value=<strong>{escape(str(len(high_value)))}</strong> | "
         f"reopen-reduction=<strong>{escape(str(len(reopen_reduction)))}</strong> | "
         f"mixed=<strong>{escape(str(len(mixed)))}</strong></li>",
+      f"<li>Operator guidance: <strong>{escape(guidance)}</strong> | reason={escape(guidance_reason)}</li>",
         f"<li>Latest pattern: {latest_scope} | pattern={latest_pattern} | "
         f"confidence={latest_conf} | reuse={latest_reuse}</li>",
     ]
