@@ -1,14 +1,17 @@
 """Tests for ble_radar.history.case_workflow (step 10)."""
+
 from __future__ import annotations
 
 import json
 import pytest
 from pathlib import Path
+from ble_radar.security import SecurityContext
 
 
 # ---------------------------------------------------------------------------
 # Fixtures — isolate file I/O to tmp directories
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(autouse=True)
 def _isolate_storage(tmp_path, monkeypatch):
@@ -21,15 +24,29 @@ def _isolate_storage(tmp_path, monkeypatch):
 
     monkeypatch.setattr(cases_mod, "CASES_FILE", cases_file)
     monkeypatch.setattr(wf_mod, "CASE_EVENTS_FILE", events_file)
+    monkeypatch.setattr(
+        cases_mod,
+        "build_security_context",
+        lambda: SecurityContext(
+            mode="operator",
+            yubikey_present=True,
+            key_name="primary",
+            key_label="YubiKey-1",
+            sensitive_enabled=True,
+            secrets_unlocked=True,
+        ),
+    )
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _import():
     import importlib
     import ble_radar.history.case_workflow as m
+
     return m
 
 
@@ -37,9 +54,17 @@ def _import():
 # VALID_STATUSES / constants
 # ---------------------------------------------------------------------------
 
+
 def test_valid_statuses_contains_all():
     m = _import()
-    assert set(m.VALID_STATUSES) == {"new", "watch", "review", "investigating", "resolved", "ignored"}
+    assert set(m.VALID_STATUSES) == {
+        "new",
+        "watch",
+        "review",
+        "investigating",
+        "resolved",
+        "ignored",
+    }
 
 
 def test_open_statuses_excludes_terminal():
@@ -56,6 +81,7 @@ def test_needs_action_statuses_excludes_watch():
 # ---------------------------------------------------------------------------
 # log_event
 # ---------------------------------------------------------------------------
+
 
 def test_log_event_returns_event():
     m = _import()
@@ -91,6 +117,7 @@ def test_log_event_appends():
 # load_events
 # ---------------------------------------------------------------------------
 
+
 def test_load_events_filter_by_address():
     m = _import()
     m.log_event("AA:00:00:00:00:01", "case_created")
@@ -110,6 +137,7 @@ def test_load_events_no_filter_returns_all():
 # ---------------------------------------------------------------------------
 # transition_case
 # ---------------------------------------------------------------------------
+
 
 def test_transition_case_creates_new_record():
     m = _import()
@@ -143,9 +171,11 @@ def test_transition_to_resolved_logs_case_resolved():
 
 def test_transition_case_preserves_created_at():
     from ble_radar.history.cases import upsert_case
+
     m = _import()
     upsert_case("FF:00:01:02:03:04", "test", "watch")
     from ble_radar.history.cases import load_cases
+
     created_at = load_cases()["FF:00:01:02:03:04"]["created_at"]
     m.transition_case("FF:00:01:02:03:04", "review")
     assert load_cases()["FF:00:01:02:03:04"]["created_at"] == created_at
@@ -153,7 +183,9 @@ def test_transition_case_preserves_created_at():
 
 def test_transition_case_with_note_in_event():
     m = _import()
-    m.transition_case("00:11:22:33:44:55", "investigating", note="added satellite signal")
+    m.transition_case(
+        "00:11:22:33:44:55", "investigating", note="added satellite signal"
+    )
     events = m.load_events("00:11:22:33:44:55")
     assert any("added satellite signal" in e.get("detail", "") for e in events)
 
@@ -168,9 +200,11 @@ def test_transition_case_empty_address_raises():
 # case_workflow_summary
 # ---------------------------------------------------------------------------
 
+
 def _make_cases(*pairs):
     """Return a dict of cases from (address, status) pairs."""
     from datetime import datetime
+
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     cases = {}
     for addr, status in pairs:
@@ -194,7 +228,9 @@ def test_summary_empty_cases():
 
 def test_summary_counts_open():
     m = _import()
-    cases = _make_cases(("A1", "new"), ("A2", "watch"), ("A3", "reviewing"), ("A4", "resolved"))
+    cases = _make_cases(
+        ("A1", "new"), ("A2", "watch"), ("A3", "reviewing"), ("A4", "resolved")
+    )
     s = m.case_workflow_summary(cases)
     # "reviewing" is not a valid status but shouldn't crash; it just won't be in open
     open_statuses = {r["status"] for r in s["open"]}
@@ -237,6 +273,7 @@ def test_summary_total_count():
 def test_summary_loads_from_disk_when_none():
     m = _import()
     from ble_radar.history.cases import upsert_case
+
     upsert_case("DD:11:22:33:44:55", "disk test", "investigating")
     s = m.case_workflow_summary()  # no argument → loads from file
     assert s["total"] == 1
@@ -246,6 +283,7 @@ def test_summary_loads_from_disk_when_none():
 # ---------------------------------------------------------------------------
 # next_action
 # ---------------------------------------------------------------------------
+
 
 def test_next_action_all_statuses():
     m = _import()

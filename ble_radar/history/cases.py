@@ -12,12 +12,15 @@ Each entry is keyed by normalised MAC address:
     ...
   }
 """
+
 from __future__ import annotations
 
 from datetime import datetime
 from typing import Any, Dict, Optional
 
 from ble_radar.config import HISTORY_DIR
+from ble_radar.security import build_security_context
+from ble_radar.security.policy import require_operator
 from ble_radar.state import load_json, save_json
 
 CASES_FILE = HISTORY_DIR / "cases.json"
@@ -35,6 +38,7 @@ def _normalize_address(address: Any) -> str:
 # Public API
 # ---------------------------------------------------------------------------
 
+
 def load_cases() -> Dict[str, Dict[str, Any]]:
     """Return the full cases dict keyed by normalised address."""
     data = load_json(CASES_FILE, {})
@@ -45,6 +49,8 @@ def load_cases() -> Dict[str, Dict[str, Any]]:
 
 def save_cases(cases: Dict[str, Dict[str, Any]]) -> None:
     """Persist the cases dict to disk."""
+    security_context = build_security_context()
+    require_operator(security_context)
     save_json(CASES_FILE, cases)
 
 

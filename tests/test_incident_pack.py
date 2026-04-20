@@ -1,9 +1,32 @@
+import pytest
+
 from ble_radar import incident_pack, investigation
+from ble_radar.security import SecurityContext
+
+
+def _operator_security_context():
+    return SecurityContext(
+        mode="operator",
+        yubikey_present=True,
+        key_name="primary",
+        key_label="YubiKey-1",
+        sensitive_enabled=True,
+        secrets_unlocked=True,
+    )
+
+
+@pytest.fixture(autouse=True)
+def _operator_mode_autouse(monkeypatch):
+    monkeypatch.setattr(
+        investigation, "build_security_context", _operator_security_context
+    )
 
 
 def test_build_incident_pack_creates_manifest_and_summary(monkeypatch, tmp_path):
     monkeypatch.setattr(investigation, "CASES_DIR", tmp_path / "cases")
-    monkeypatch.setattr(incident_pack, "INCIDENT_PACKS_DIR", tmp_path / "incident_packs")
+    monkeypatch.setattr(
+        incident_pack, "INCIDENT_PACKS_DIR", tmp_path / "incident_packs"
+    )
 
     case = investigation.create_case("Tracker suspect")
     case = investigation.add_case_note(case["id"], "Premier signal confirmé")
@@ -20,7 +43,9 @@ def test_build_incident_pack_creates_manifest_and_summary(monkeypatch, tmp_path)
 
 def test_build_incident_pack_matches_latest_device_by_address(monkeypatch, tmp_path):
     monkeypatch.setattr(investigation, "CASES_DIR", tmp_path / "cases")
-    monkeypatch.setattr(incident_pack, "INCIDENT_PACKS_DIR", tmp_path / "incident_packs")
+    monkeypatch.setattr(
+        incident_pack, "INCIDENT_PACKS_DIR", tmp_path / "incident_packs"
+    )
 
     case = investigation.create_case(
         "Beacon check",
@@ -41,7 +66,9 @@ def test_build_incident_pack_matches_latest_device_by_address(monkeypatch, tmp_p
         }
     ]
 
-    result = incident_pack.build_incident_pack(case["id"], latest_devices=latest_devices)
+    result = incident_pack.build_incident_pack(
+        case["id"], latest_devices=latest_devices
+    )
 
     assert result["manifest"]["matched_devices_count"] == 1
     match = result["manifest"]["matched_devices"][0]
@@ -52,7 +79,9 @@ def test_build_incident_pack_matches_latest_device_by_address(monkeypatch, tmp_p
 
 def test_incident_summary_mentions_case_device_explanation(monkeypatch, tmp_path):
     monkeypatch.setattr(investigation, "CASES_DIR", tmp_path / "cases")
-    monkeypatch.setattr(incident_pack, "INCIDENT_PACKS_DIR", tmp_path / "incident_packs")
+    monkeypatch.setattr(
+        incident_pack, "INCIDENT_PACKS_DIR", tmp_path / "incident_packs"
+    )
 
     case = investigation.create_case(
         "Tracker review",
@@ -80,7 +109,9 @@ def test_incident_summary_mentions_case_device_explanation(monkeypatch, tmp_path
 
 def test_list_incident_packs_returns_created_pack_dirs(monkeypatch, tmp_path):
     monkeypatch.setattr(investigation, "CASES_DIR", tmp_path / "cases")
-    monkeypatch.setattr(incident_pack, "INCIDENT_PACKS_DIR", tmp_path / "incident_packs")
+    monkeypatch.setattr(
+        incident_pack, "INCIDENT_PACKS_DIR", tmp_path / "incident_packs"
+    )
 
     case = investigation.create_case("Pack list check")
     result = incident_pack.build_incident_pack(case["id"])

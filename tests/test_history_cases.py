@@ -1,16 +1,35 @@
 """Tests for ble_radar/history/cases.py — watch/case tracking module."""
+
 import pytest
 from unittest.mock import patch, MagicMock
+from ble_radar.security import SecurityContext
+
+
+@pytest.fixture(autouse=True)
+def _operator_mode_by_default(monkeypatch):
+    monkeypatch.setattr(
+        "ble_radar.history.cases.build_security_context",
+        lambda: SecurityContext(
+            mode="operator",
+            yubikey_present=True,
+            key_name="primary",
+            key_label="YubiKey-1",
+            sensitive_enabled=True,
+            secrets_unlocked=True,
+        ),
+    )
 
 
 # ---------------------------------------------------------------------------
 # Helpers — isolate every test from the real filesystem
 # ---------------------------------------------------------------------------
 
+
 def _make_cases_module(initial_data=None):
     """Return a fresh import of cases with load_json/save_json patched."""
     import importlib
     import ble_radar.history.cases as mod
+
     importlib.reload(mod)
     return mod
 
@@ -18,6 +37,7 @@ def _make_cases_module(initial_data=None):
 def _patch_io(initial=None):
     """Context manager that patches load_json / save_json."""
     from unittest.mock import patch, call
+
     store = [dict(initial) if initial else {}]
 
     def _load(path, default):
@@ -37,10 +57,12 @@ def _patch_io(initial=None):
 # load_cases
 # ---------------------------------------------------------------------------
 
+
 def test_load_cases_returns_dict_on_empty():
     p_load, p_save, _ = _patch_io()
     with p_load, p_save:
         from ble_radar.history.cases import load_cases
+
         result = load_cases()
     assert isinstance(result, dict)
     assert result == {}
@@ -59,6 +81,7 @@ def test_load_cases_passes_through_existing_data():
     p_load, p_save, _ = _patch_io(initial=data)
     with p_load, p_save:
         from ble_radar.history.cases import load_cases
+
         result = load_cases()
     assert "AA:BB:CC:DD:EE:FF" in result
 
@@ -68,6 +91,7 @@ def test_load_cases_tolerates_non_dict_json(tmp_path):
     with patch("ble_radar.history.cases.load_json", return_value=[]):
         with patch("ble_radar.history.cases.save_json"):
             from ble_radar.history.cases import load_cases
+
             result = load_cases()
     assert result == {}
 
@@ -76,10 +100,12 @@ def test_load_cases_tolerates_non_dict_json(tmp_path):
 # upsert_case — creation
 # ---------------------------------------------------------------------------
 
+
 def test_upsert_case_creates_new_entry():
     p_load, p_save, store = _patch_io()
     with p_load, p_save:
         from ble_radar.history.cases import upsert_case
+
         record = upsert_case("aa:bb:cc:dd:ee:ff", "tracker candidate")
     assert record["address"] == "AA:BB:CC:DD:EE:FF"
     assert record["reason"] == "tracker candidate"
@@ -92,6 +118,7 @@ def test_upsert_case_normalises_address_uppercase():
     p_load, p_save, store = _patch_io()
     with p_load, p_save:
         from ble_radar.history.cases import upsert_case
+
         record = upsert_case("aa:bb:cc:dd:ee:ff", "test")
     assert record["address"] == "AA:BB:CC:DD:EE:FF"
     assert "AA:BB:CC:DD:EE:FF" in store[0]
@@ -101,6 +128,7 @@ def test_upsert_case_custom_status():
     p_load, p_save, _ = _patch_io()
     with p_load, p_save:
         from ble_radar.history.cases import upsert_case
+
         record = upsert_case("11:22:33:44:55:66", "manual flag", status="escalated")
     assert record["status"] == "escalated"
 
@@ -109,6 +137,7 @@ def test_upsert_case_empty_address_raises():
     p_load, p_save, _ = _patch_io()
     with p_load, p_save:
         from ble_radar.history.cases import upsert_case
+
         with pytest.raises(ValueError):
             upsert_case("", "reason")
 
@@ -116,6 +145,7 @@ def test_upsert_case_empty_address_raises():
 # ---------------------------------------------------------------------------
 # upsert_case — update preserves created_at
 # ---------------------------------------------------------------------------
+
 
 def test_upsert_case_update_preserves_created_at():
     initial = {
@@ -130,6 +160,7 @@ def test_upsert_case_update_preserves_created_at():
     p_load, p_save, store = _patch_io(initial=initial)
     with p_load, p_save:
         from ble_radar.history.cases import upsert_case
+
         record = upsert_case("AA:BB:CC:DD:EE:FF", "new reason", status="closed")
     assert record["created_at"] == "2026-01-01 00:00:00"
     assert record["reason"] == "new reason"
@@ -149,6 +180,7 @@ def test_upsert_case_update_refreshes_updated_at():
     p_load, p_save, _ = _patch_io(initial=initial)
     with p_load, p_save:
         from ble_radar.history.cases import upsert_case
+
         with patch("ble_radar.history.cases._now", return_value="2026-04-18 12:00:00"):
             record = upsert_case("AA:BB:CC:DD:EE:FF", "r2")
     assert record["updated_at"] == "2026-04-18 12:00:00"
@@ -157,6 +189,7 @@ def test_upsert_case_update_refreshes_updated_at():
 # ---------------------------------------------------------------------------
 # get_case
 # ---------------------------------------------------------------------------
+
 
 def test_get_case_returns_existing():
     data = {
@@ -171,6 +204,7 @@ def test_get_case_returns_existing():
     p_load, p_save, _ = _patch_io(initial=data)
     with p_load, p_save:
         from ble_radar.history.cases import get_case
+
         result = get_case("aa:bb:cc:dd:ee:ff")  # lower-case lookup
     assert result is not None
     assert result["address"] == "AA:BB:CC:DD:EE:FF"
@@ -180,6 +214,7 @@ def test_get_case_returns_none_for_missing():
     p_load, p_save, _ = _patch_io()
     with p_load, p_save:
         from ble_radar.history.cases import get_case
+
         result = get_case("00:00:00:00:00:00")
     assert result is None
 
@@ -188,19 +223,65 @@ def test_get_case_returns_none_for_missing():
 # save_cases
 # ---------------------------------------------------------------------------
 
+
 def test_save_cases_calls_save_json():
     with patch("ble_radar.history.cases.save_json") as mock_save:
         with patch("ble_radar.history.cases.load_json", return_value={}):
             from ble_radar.history.cases import save_cases
+
             save_cases({"X": {"address": "X"}})
     mock_save.assert_called_once()
     _, kwargs_or_arg = mock_save.call_args[0][0], mock_save.call_args[0][1]
     assert kwargs_or_arg == {"X": {"address": "X"}}
 
 
+def test_save_cases_demo_mode_raises_permission_error(monkeypatch):
+    monkeypatch.setattr(
+        "ble_radar.history.cases.build_security_context",
+        lambda: SecurityContext(
+            mode="demo",
+            yubikey_present=False,
+            key_name=None,
+            key_label=None,
+            sensitive_enabled=False,
+            secrets_unlocked=False,
+        ),
+    )
+
+    with patch("ble_radar.history.cases.save_json") as mock_save:
+        from ble_radar.history.cases import save_cases
+
+        with pytest.raises(PermissionError):
+            save_cases({"X": {"address": "X"}})
+
+    mock_save.assert_not_called()
+
+
+def test_save_cases_operator_mode_allows_write(monkeypatch):
+    monkeypatch.setattr(
+        "ble_radar.history.cases.build_security_context",
+        lambda: SecurityContext(
+            mode="operator",
+            yubikey_present=True,
+            key_name="primary",
+            key_label="YubiKey-1",
+            sensitive_enabled=True,
+            secrets_unlocked=True,
+        ),
+    )
+
+    with patch("ble_radar.history.cases.save_json") as mock_save:
+        from ble_radar.history.cases import save_cases
+
+        save_cases({"X": {"address": "X"}})
+
+    mock_save.assert_called_once()
+
+
 # ---------------------------------------------------------------------------
 # Dashboard integration — panel present in HTML
 # ---------------------------------------------------------------------------
+
 
 def test_dashboard_renders_watch_cases_panel(monkeypatch):
     """render_dashboard_html must include the Watch/Cases panel marker."""
@@ -209,15 +290,19 @@ def test_dashboard_renders_watch_cases_panel(monkeypatch):
     monkeypatch.setattr(db, "load_registry", lambda: {})
     monkeypatch.setattr(db, "load_last_scan", lambda: [])
     monkeypatch.setattr(db, "load_scan_history", lambda: [])
-    monkeypatch.setattr(db, "load_watch_cases", lambda: {
-        "AA:BB:CC:DD:EE:FF": {
-            "address": "AA:BB:CC:DD:EE:FF",
-            "reason": "test",
-            "status": "watch",
-            "created_at": "2026-04-18 00:00:00",
-            "updated_at": "2026-04-18 00:00:00",
-        }
-    })
+    monkeypatch.setattr(
+        db,
+        "load_watch_cases",
+        lambda: {
+            "AA:BB:CC:DD:EE:FF": {
+                "address": "AA:BB:CC:DD:EE:FF",
+                "reason": "test",
+                "status": "watch",
+                "created_at": "2026-04-18 00:00:00",
+                "updated_at": "2026-04-18 00:00:00",
+            }
+        },
+    )
 
     html = db.render_dashboard_html([], "2026-04-18T00:00:00")
     assert "Watch / Cases" in html
@@ -242,13 +327,14 @@ def test_dashboard_watch_cases_panel_empty_message(monkeypatch):
 def test_render_watch_cases_panel_top10_cap():
     """Panel shows at most 10 entries plus an overflow indicator."""
     from ble_radar.dashboard import render_watch_cases_panel
+
     cases = {
         f"AA:BB:CC:DD:EE:{i:02X}": {
             "address": f"AA:BB:CC:DD:EE:{i:02X}",
             "reason": "r",
             "status": "watch",
             "created_at": "2026-01-01",
-            "updated_at": f"2026-01-{i+1:02d} 00:00:00",
+            "updated_at": f"2026-01-{i + 1:02d} 00:00:00",
         }
         for i in range(15)
     }

@@ -6,6 +6,8 @@ from datetime import datetime
 from pathlib import Path
 
 from ble_radar.device_contract import normalize_device
+from ble_radar.security import build_security_context
+from ble_radar.security.policy import require_operator
 
 
 CASES_DIR = Path("history/cases")
@@ -32,7 +34,12 @@ def _case_path(case_id: str) -> Path:
     return _ensure_cases_dir() / f"{case_id}.json"
 
 
-def create_case(title: str, device: dict | None = None, context: dict | None = None) -> dict:
+def create_case(
+    title: str, device: dict | None = None, context: dict | None = None
+) -> dict:
+    security_context = build_security_context()
+    require_operator(security_context)
+
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     case_id = f"case_{stamp}_{_slugify(title)}"
     now = _now_iso()
@@ -48,7 +55,9 @@ def create_case(title: str, device: dict | None = None, context: dict | None = N
         "notes": [],
     }
 
-    _case_path(case_id).write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    _case_path(case_id).write_text(
+        json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
     return data
 
 
@@ -58,9 +67,14 @@ def load_case(case_id: str) -> dict:
 
 
 def save_case(data: dict) -> dict:
+    security_context = build_security_context()
+    require_operator(security_context)
+
     data = dict(data)
     data["updated_at"] = _now_iso()
-    _case_path(data["id"]).write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    _case_path(data["id"]).write_text(
+        json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
     return data
 
 
