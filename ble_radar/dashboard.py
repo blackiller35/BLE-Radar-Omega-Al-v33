@@ -1771,6 +1771,12 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     elif guidance == "investigate":
         audit_readiness = "immediate"
 
+    review_burden = "moderate"
+    if guidance == "keep":
+        review_burden = "low"
+    elif guidance == "investigate":
+        review_burden = "high"
+
     lines = [
         f"<li>Learned patterns: <strong>{escape(str(len(learning)))}</strong> | "
         f"high-value=<strong>{escape(str(len(high_value)))}</strong> | "
@@ -1793,6 +1799,7 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
         f"<li>Operator checkpoint: <strong>{escape(operator_checkpoint)}</strong></li>",
         f"<li>Trace mode: <strong>{escape(trace_mode)}</strong></li>",
         f"<li>Audit readiness: <strong>{escape(audit_readiness)}</strong></li>",
+        f"<li>Review burden: <strong>{escape(review_burden)}</strong></li>",
         f"<li>Latest pattern: {latest_scope} | pattern={latest_pattern} | "
         f"confidence={latest_conf} | reuse={latest_reuse}</li>",
     ]
