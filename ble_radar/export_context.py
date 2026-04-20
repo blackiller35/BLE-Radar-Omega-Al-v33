@@ -4,8 +4,13 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+from ble_radar.security import build_security_context
+from ble_radar.security.policy import require_operator
 from ble_radar.session_catalog import build_session_catalog, latest_session_overview
-from ble_radar.session_diff import latest_session_diff, summary_lines as diff_summary_lines
+from ble_radar.session_diff import (
+    latest_session_diff,
+    summary_lines as diff_summary_lines,
+)
 
 
 EXPORT_CONTEXT_DIR = Path("reports/context")
@@ -84,6 +89,9 @@ def save_export_context(
     recent_limit: int = 5,
     output_root: Path | None = None,
 ) -> dict:
+    security_context = build_security_context()
+    require_operator(security_context)
+
     context = build_export_context(stamp=stamp, recent_limit=recent_limit)
 
     root = Path(output_root) if output_root else _ensure_export_context_dir()

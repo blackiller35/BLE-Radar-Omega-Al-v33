@@ -1,6 +1,7 @@
 import json
 
 from ble_radar import export_context
+from ble_radar.security import SecurityContext
 
 
 def test_build_export_context_collects_all_sections(monkeypatch):
@@ -43,7 +44,9 @@ def test_build_export_context_collects_all_sections(monkeypatch):
         },
     )
 
-    context = export_context.build_export_context(stamp="2026-04-17_20-31-00", recent_limit=3)
+    context = export_context.build_export_context(
+        stamp="2026-04-17_20-31-00", recent_limit=3
+    )
 
     assert context["stamp"] == "2026-04-17_20-31-00"
     assert context["session_overview"]["top_vendor"] == "TestVendor"
@@ -95,6 +98,18 @@ def test_context_markdown_lines_formats_context(monkeypatch):
 def test_save_export_context_writes_json_and_md(monkeypatch, tmp_path):
     monkeypatch.setattr(
         export_context,
+        "build_security_context",
+        lambda: SecurityContext(
+            mode="operator",
+            yubikey_present=True,
+            key_name="primary",
+            key_label="YubiKey-1",
+            sensitive_enabled=True,
+            secrets_unlocked=True,
+        ),
+    )
+    monkeypatch.setattr(
+        export_context,
         "build_export_context",
         lambda stamp=None, recent_limit=5: {
             "stamp": "2026-04-17_20-32-00",
@@ -107,7 +122,12 @@ def test_save_export_context_writes_json_and_md(monkeypatch, tmp_path):
     monkeypatch.setattr(
         export_context,
         "context_markdown_lines",
-        lambda context: ["# BLE Radar Omega AI - Export Context", "", "## Session diff", "- none"],
+        lambda context: [
+            "# BLE Radar Omega AI - Export Context",
+            "",
+            "## Session diff",
+            "- none",
+        ],
     )
 
     result = export_context.save_export_context(output_root=tmp_path)
@@ -137,3 +157,75 @@ def test_list_export_contexts_returns_latest_first(tmp_path):
 def test_list_export_contexts_returns_empty_when_missing(tmp_path):
     items = export_context.list_export_contexts(root=tmp_path / "missing")
     assert items == []
+
+
+def test_save_export_context_demo_mode_raises_permission_error(monkeypatch, tmp_path):
+    monkeypatch.setattr(
+        export_context,
+        "build_security_context",
+        lambda: SecurityContext(
+            mode="demo",
+            yubikey_present=False,
+            key_name=None,
+            key_label=None,
+            sensitive_enabled=False,
+            secrets_unlocked=False,
+        ),
+    )
+
+    called = {"build": False}
+
+    def _build_export_context(*args, **kwargs):
+        called["build"] = True
+        return {}
+
+    monkeypatch.setattr(export_context, "build_export_context", _build_export_context)
+
+    try:
+        export_context.save_export_context(output_root=tmp_path)
+        assert False, "Expected PermissionError in demo mode"
+    except PermissionError:
+        pass
+
+    assert called["build"] is False
+
+
+def test_save_export_context_operator_mode_allows_export_path(monkeypatch, tmp_path):
+    monkeypatch.setattr(
+        export_context,
+        "build_security_context",
+        lambda: SecurityContext(
+            mode="operator",
+            yubikey_present=True,
+            key_name="primary",
+            key_label="YubiKey-1",
+            sensitive_enabled=True,
+            secrets_unlocked=True,
+        ),
+    )
+    monkeypatch.setattr(
+        export_context,
+        "build_export_context",
+        lambda stamp=None, recent_limit=5: {
+            "stamp": "2026-04-20_12-34-56",
+            "session_overview": {"stamp": "2026-04-20_12-30-00"},
+            "recent_sessions": [],
+            "session_diff": {"has_diff": False},
+            "recent_limit": 5,
+        },
+    )
+    monkeypatch.setattr(
+        export_context,
+        "context_markdown_lines",
+        lambda context: [
+            "# BLE Radar Omega AI - Export Context",
+            "",
+            "## Session diff",
+            "- none",
+        ],
+    )
+
+    result = export_context.save_export_context(output_root=tmp_path)
+
+    assert result["json_path"].exists()
+    assert result["md_path"].exists()
