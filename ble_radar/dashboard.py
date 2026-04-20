@@ -109,6 +109,7 @@ from ble_radar.history.operator_timeline import (
 )
 from ble_radar.history.triage import triage_device_list
 from ble_radar.session.session_movement import build_session_movement
+from ble_radar.security import build_security_context
 from ble_radar.state import load_last_scan, load_scan_history
 
 
@@ -1881,6 +1882,22 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_security_status_panel(security_context) -> str:
+    """Render compact read-only security context status."""
+    if security_context is None:
+        return '<ul><li class="muted">Security context unavailable.</li></ul>'
+
+    key_source = str(getattr(security_context, "key_name", None) or "none")
+    lines = [
+        f"<li>Mode: <strong>{escape(str(getattr(security_context, 'mode', 'unknown')))}</strong></li>",
+        f"<li>YubiKey present: <strong>{escape(str(bool(getattr(security_context, 'yubikey_present', False))).lower())}</strong></li>",
+        f"<li>Key source: <strong>{escape(key_source)}</strong></li>",
+        f"<li>Sensitive features: <strong>{escape(str(bool(getattr(security_context, 'sensitive_enabled', False))).lower())}</strong></li>",
+        f"<li>Secrets unlocked: <strong>{escape(str(bool(getattr(security_context, 'secrets_unlocked', False))).lower())}</strong></li>",
+    ]
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -1952,6 +1969,10 @@ def render_session_movement_panel(movement: dict) -> str:
 
 def render_dashboard_html(devices, stamp: str) -> str:
     bluehood_summary = render_bluehood_summary(devices)
+    try:
+        security_context = build_security_context()
+    except Exception:
+        security_context = None
     devices = [normalize_device(d) for d in devices]
     try:
         registry = load_registry()
@@ -3030,6 +3051,12 @@ ul {{ margin:0; padding-left:18px; }}
       <ul>{"".join(recent_session_lines) if recent_session_lines else '<li class="muted">Aucune session récente</li>'}</ul>
     </div>
   </div>
+
+    <div class="panel" style="margin-bottom:18px;">
+        <h2>Security status</h2>
+        {render_security_status_panel(security_context)}
+        <div class="muted">Runtime security context snapshot.</div>
+    </div>
 
   <div class="panel" style="margin-bottom:18px;">
     <h2>Device registry snapshot</h2>
