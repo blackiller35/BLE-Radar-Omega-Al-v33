@@ -98,3 +98,10 @@ Repository ready as a stable working baseline.
 ## v1.0.4 patch
 - v1.0.4 : activity timeline patch
 - timeline locale des artefacts générés disponible
+
+## v1.1.0 release candidate (cible actuelle)
+- série learning snapshot step 35 à step 60 complétée
+- consolidation post-step-60 fusionnée dans `render_operator_learning_snapshot_section()`
+- consolidation keep/watch/investigate effectuée en refactor lisibilité uniquement
+- aucun changement de comportement, persistance ou wording dashboard
+- branche courante préparée pour une release stable v1.1.0

@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v1.1.0-rc
+- série learning snapshot step 35 à step 60 complétée
+- consolidation post-step-60 fusionnée dans `render_operator_learning_snapshot_section()`
+- consolidation interne des profils keep/watch/investigate sans changement de sortie
+- aucun changement de comportement, persistance ou wording dashboard
+- branche courante alignée sur la cible stable v1.1.0 (release candidate)
+
 ## v1.0.4
 - module `ble_radar/activity_timeline.py` ajouté
 - script `scripts/v104_timeline_check.sh` ajouté
