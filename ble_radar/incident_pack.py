@@ -7,7 +7,7 @@ from pathlib import Path
 from ble_radar.device_contract import explain_device, normalize_device
 from ble_radar.investigation import load_case, summarize_case
 from ble_radar.security import build_security_context
-from ble_radar.security.policy import require_operator
+from ble_radar.security.policy import require_operator, require_sensitive_feature
 from ble_radar.session_diff import (
     latest_session_diff,
     summary_lines as diff_summary_lines,
@@ -54,6 +54,7 @@ def build_incident_pack(
 ) -> dict:
     security_context = build_security_context()
     require_operator(security_context)
+    require_sensitive_feature(security_context)
 
     case = load_case(case_id)
     stamp = _now_stamp()

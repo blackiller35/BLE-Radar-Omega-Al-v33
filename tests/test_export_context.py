@@ -229,3 +229,34 @@ def test_save_export_context_operator_mode_allows_export_path(monkeypatch, tmp_p
 
     assert result["json_path"].exists()
     assert result["md_path"].exists()
+
+
+def test_save_export_context_operator_session_locked_denied(monkeypatch, tmp_path):
+    monkeypatch.setattr(
+        export_context,
+        "build_security_context",
+        lambda: SecurityContext(
+            mode="operator",
+            yubikey_present=True,
+            key_name="primary",
+            key_label="YubiKey-1",
+            sensitive_enabled=False,
+            secrets_unlocked=False,
+        ),
+    )
+
+    called = {"build": False}
+
+    def _build_export_context(*args, **kwargs):
+        called["build"] = True
+        return {}
+
+    monkeypatch.setattr(export_context, "build_export_context", _build_export_context)
+
+    try:
+        export_context.save_export_context(output_root=tmp_path)
+        assert False, "Expected PermissionError when operator session is locked"
+    except PermissionError:
+        pass
+
+    assert called["build"] is False
