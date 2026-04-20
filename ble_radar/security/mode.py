@@ -47,6 +47,17 @@ def lock_operator_session() -> None:
         return
 
 
+def read_operator_session_status(config_path: str | Path | None = None) -> dict:
+    security = build_security_context(config_path=config_path)
+    return {
+        "mode": security.mode,
+        "yubikey_present": security.yubikey_present,
+        "session_unlocked": security.secrets_unlocked,
+        "sensitive_enabled": security.sensitive_enabled,
+        "session_timeout_seconds": OPERATOR_SESSION_TIMEOUT_SECONDS,
+    }
+
+
 @dataclass(frozen=True)
 class SecurityContext:
     mode: str
