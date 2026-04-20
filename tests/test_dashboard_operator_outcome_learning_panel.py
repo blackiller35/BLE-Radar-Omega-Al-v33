@@ -102,6 +102,7 @@ def test_render_operator_learning_snapshot_section_with_data():
     assert "Reuse gate: <strong>open</strong>" in html
     assert "Approval mode: <strong>default</strong>" in html
     assert "Intervention level: <strong>minimal</strong>" in html
+    assert "Oversight level: <strong>light</strong>" in html
     assert "Latest pattern" in html
     assert "Recommended reuse" in html
 
@@ -174,6 +175,7 @@ def test_render_operator_learning_snapshot_section_investigate_guidance():
     assert "Reuse gate: <strong>blocked pending review</strong>" in html
     assert "Approval mode: <strong>hold</strong>" in html
     assert "Intervention level: <strong>direct</strong>" in html
+    assert "Oversight level: <strong>strict</strong>" in html
 
 
 def test_dashboard_contains_learning_snapshot_section(monkeypatch):
@@ -344,5 +346,6 @@ def test_render_operator_learning_snapshot_section_watch_guidance():
     assert "Reuse gate: <strong>guarded</strong>" in html
     assert "Approval mode: <strong>confirm</strong>" in html
     assert "Intervention level: <strong>selective</strong>" in html
+    assert "Oversight level: <strong>active</strong>" in html
     assert "mixed signals require monitored reuse" in html
 
