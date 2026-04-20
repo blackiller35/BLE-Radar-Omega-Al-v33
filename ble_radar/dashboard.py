@@ -108,6 +108,7 @@ from ble_radar.history.operator_timeline import (
     recent_timeline_events,
 )
 from ble_radar.history.triage import triage_device_list
+from ble_radar.eventlog import read_events
 from ble_radar.session.session_movement import build_session_movement
 from ble_radar.security import build_security_context
 from ble_radar.state import load_last_scan, load_scan_history
@@ -1974,6 +1975,77 @@ def render_security_status_panel(security_context) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def _security_audit_filter_key(event: dict) -> str:
+    kind = str(event.get("kind", "")).strip().lower()
+    if kind == "security.operator_session.auto_locked":
+        return "timeout"
+    if kind == "security.sensitive_action.denied":
+        return "denied"
+    if kind == "security.sensitive_action.allowed":
+        return "allowed"
+    if kind.startswith("security.operator_session."):
+        return "session"
+    return "all"
+
+
+def render_security_audit_events_panel(
+    events: list[dict] | None, active_filter: str = "all"
+) -> str:
+    """Render compact recent security/operator audit events."""
+    active_filter = str(active_filter or "all").strip().lower()
+    if active_filter not in {"all", "session", "denied", "allowed", "timeout"}:
+        active_filter = "all"
+
+    security_events = [
+        event
+        for event in (events or [])
+        if str(event.get("kind", "")).startswith("security.")
+    ]
+    filtered_events = [
+        event
+        for event in security_events
+        if active_filter == "all" or _security_audit_filter_key(event) == active_filter
+    ]
+
+    button_base = (
+        "padding:3px 7px;border-radius:999px;border:1px solid rgba(255,255,255,.16);"
+        "background:rgba(255,255,255,.05);color:var(--text);font-size:11px;margin-right:4px;"
+    )
+    controls = " ".join(
+        (
+            f'<button type="button" data-security-audit-filter="{name}" '
+            f"onclick=\"setSecurityAuditFilter('{name}')\" "
+            f'style="{button_base}{"background:rgba(125,245,163,.14);border-color:rgba(125,245,163,.35);" if name == active_filter else ""}">{escape(label)}</button>'
+        )
+        for name, label in (
+            ("all", "all"),
+            ("session", "session"),
+            ("denied", "denied"),
+            ("allowed", "allowed"),
+            ("timeout", "timeout"),
+        )
+    )
+
+    if not filtered_events:
+        body = '<ul><li class="muted">No recent security audit events.</li></ul>'
+    else:
+        items = []
+        for event in filtered_events[:8]:
+            ts = escape(str(event.get("ts", "-")))
+            kind = escape(str(event.get("kind", "unknown")))
+            data = event.get("data", {}) if isinstance(event.get("data"), dict) else {}
+            detail = data.get("reason") or event.get("message") or "-"
+            category = _security_audit_filter_key(event)
+            items.append(
+                f'<li data-security-audit-filter-row="{escape(category)}"><strong>{kind}</strong> | <span class="muted">{ts}</span> | {escape(str(detail))}</li>'
+            )
+        body = f"<ul>{''.join(items)}</ul>"
+
+    return (
+        f'<div class="muted" style="margin-bottom:8px;">Filter: {controls}</div>{body}'
+    )
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -2049,6 +2121,10 @@ def render_dashboard_html(devices, stamp: str) -> str:
         security_context = build_security_context()
     except Exception:
         security_context = None
+    try:
+        security_audit_events = read_events(25)
+    except Exception:
+        security_audit_events = []
     devices = [normalize_device(d) for d in devices]
     try:
         registry = load_registry()
@@ -3134,6 +3210,12 @@ ul {{ margin:0; padding-left:18px; }}
         <div class="muted">Runtime security context snapshot.</div>
     </div>
 
+    <div class="panel" style="margin-bottom:18px;">
+        <h2>Security audit events</h2>
+        {render_security_audit_events_panel(security_audit_events)}
+        <div class="muted">Recent operator/security audit activity.</div>
+    </div>
+
   <div class="panel" style="margin-bottom:18px;">
     <h2>Device registry snapshot</h2>
     <ul>{"".join(registry_lines) if registry_lines else '<li class="muted">Aucune donnée registry disponible</li>'}</ul>
@@ -3410,8 +3492,21 @@ function setMode(mode) {{
   applyFilters();
 }}
 
+function setSecurityAuditFilter(mode) {{
+    document.querySelectorAll('[data-security-audit-filter]').forEach(btn => {{
+        const active = btn.dataset.securityAuditFilter === mode;
+        btn.style.background = active ? 'rgba(125,245,163,.14)' : 'rgba(255,255,255,.05)';
+        btn.style.borderColor = active ? 'rgba(125,245,163,.35)' : 'rgba(255,255,255,.16)';
+    }});
+
+    document.querySelectorAll('[data-security-audit-filter-row]').forEach(row => {{
+        row.style.display = mode === 'all' || row.dataset.securityAuditFilterRow === mode ? '' : 'none';
+    }});
+}}
+
 searchBox.addEventListener('input', applyFilters);
 vendorSelect.addEventListener('change', applyFilters);
+setSecurityAuditFilter('all');
 </script>
 
 <!-- BLUEHOOD SUMMARY -->
