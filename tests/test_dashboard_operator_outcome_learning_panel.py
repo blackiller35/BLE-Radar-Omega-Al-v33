@@ -103,6 +103,7 @@ def test_render_operator_learning_snapshot_section_with_data():
     assert "Approval mode: <strong>default</strong>" in html
     assert "Intervention level: <strong>minimal</strong>" in html
     assert "Oversight level: <strong>light</strong>" in html
+    assert "Verification mode: <strong>spot-check</strong>" in html
     assert "Latest pattern" in html
     assert "Recommended reuse" in html
 
@@ -176,6 +177,7 @@ def test_render_operator_learning_snapshot_section_investigate_guidance():
     assert "Approval mode: <strong>hold</strong>" in html
     assert "Intervention level: <strong>direct</strong>" in html
     assert "Oversight level: <strong>strict</strong>" in html
+    assert "Verification mode: <strong>full review</strong>" in html
 
 
 def test_dashboard_contains_learning_snapshot_section(monkeypatch):
@@ -347,5 +349,6 @@ def test_render_operator_learning_snapshot_section_watch_guidance():
     assert "Approval mode: <strong>confirm</strong>" in html
     assert "Intervention level: <strong>selective</strong>" in html
     assert "Oversight level: <strong>active</strong>" in html
+    assert "Verification mode: <strong>confirm</strong>" in html
     assert "mixed signals require monitored reuse" in html
 
