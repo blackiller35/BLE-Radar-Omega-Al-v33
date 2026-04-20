@@ -1644,15 +1644,15 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     if not learning:
         return '<ul><li class="muted">No learning snapshot available.</li></ul>'
 
-    # Keep snapshot explicit and testable: derive one operator guidance from existing learning signals only.
     if len(learning) < 2 and not high_value and not reopen_reduction and not mixed:
-      return '<ul><li class="muted">Insufficient learning data for operator guidance.</li></ul>'
+        return '<ul><li class="muted">Insufficient learning data for operator guidance.</li></ul>'
 
     latest = learning[0]
     latest_scope = f"{escape(str(latest.get('scope_type', '-')))}:{escape(str(latest.get('scope_id', '-')))}"
     latest_pattern = escape(str(latest.get("action_pattern", "-")))
     latest_conf = escape(str(latest.get("confidence_level", "-")))
     latest_reuse = escape(str(latest.get("recommended_reuse", "-")))
+
     recent = learning[:6]
     caution_flags = [
         str(flag)
@@ -1668,27 +1668,18 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     elif (high_value or reopen_reduction) and len(mixed) == 0 and latest_conf in {"high", "medium"}:
         guidance = "keep"
         guidance_reason = "consistent positive learning signals"
+
     priority = "medium"
     if guidance == "keep":
-      priority = "low"
+        priority = "low"
     elif guidance == "investigate":
-      priority = "high"
+        priority = "high"
 
     recommended_action = "monitor next sessions before broad reuse"
     if guidance == "keep":
-      recommended_action = "continue current reuse pattern"
+        recommended_action = "continue current reuse pattern"
     elif guidance == "investigate":
-      recommended_action = "review recent mixed patterns before reuse"
-
-    action_map = {
-        ("keep", "low"): "keep current operating pattern",
-        ("watch", "medium"): "watch closely and continue monitored reuse",
-        ("investigate", "high"): "investigate before reusing this pattern",
-    }
-    recommended_action = action_map.get(
-        (guidance, priority),
-        "watch closely and continue monitored reuse",
-    )
+        recommended_action = "review recent mixed patterns before reuse"
 
     lines = [
         f"<li>Learned patterns: <strong>{escape(str(len(learning)))}</strong> | "
@@ -1712,7 +1703,6 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
         lines.append('<li class="muted">No recommended reuse candidates yet.</li>')
 
     return f"<ul>{''.join(lines)}</ul>"
-
 
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
