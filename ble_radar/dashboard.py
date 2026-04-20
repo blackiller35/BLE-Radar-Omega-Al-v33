@@ -12,68 +12,101 @@ from ble_radar.history.device_scoring import compute_device_score
 from ble_radar.history.cases import load_cases as load_watch_cases
 from ble_radar.history.case_workflow import case_workflow_summary, next_action
 from ble_radar.history.investigation_workspace import build_investigation_profile
-from ble_radar.history.operator_alerting import build_operator_alerts, load_alert_log, summarize_alerts
+from ble_radar.history.operator_alerting import (
+    build_operator_alerts,
+    load_alert_log,
+    summarize_alerts,
+)
 from ble_radar.history.operator_briefing import build_operator_briefing
-from ble_radar.history.operator_campaign_tracking import build_campaign_lifecycle, load_campaign_records, summarize_campaigns
+from ble_radar.history.operator_campaign_tracking import (
+    build_campaign_lifecycle,
+    load_campaign_records,
+    summarize_campaigns,
+)
 from ble_radar.history.operator_closure_package import (
-  build_operator_closure_packages,
-  summarize_operator_closure_packages,
+    build_operator_closure_packages,
+    summarize_operator_closure_packages,
 )
 from ble_radar.history.operator_post_closure_monitoring_policy import (
-  build_operator_post_closure_monitoring_policies,
-  summarize_operator_post_closure_monitoring_policies,
+    build_operator_post_closure_monitoring_policies,
+    summarize_operator_post_closure_monitoring_policies,
 )
 from ble_radar.history.operator_reopen_policy import (
-  build_operator_reopen_records,
-  summarize_operator_reopen_records,
+    build_operator_reopen_records,
+    summarize_operator_reopen_records,
 )
 from ble_radar.history.operator_lifecycle_lineage import (
-  build_operator_lifecycle_lineage_records,
-  summarize_operator_lifecycle_lineage,
+    build_operator_lifecycle_lineage_records,
+    summarize_operator_lifecycle_lineage,
 )
 from ble_radar.history.operator_resolution_quality import (
-  build_operator_resolution_quality_records,
-  summarize_operator_resolution_quality,
+    build_operator_resolution_quality_records,
+    summarize_operator_resolution_quality,
 )
 from ble_radar.history.operator_improvement_plan import (
-  build_operator_improvement_plan_records,
-  summarize_operator_improvement_plans,
+    build_operator_improvement_plan_records,
+    summarize_operator_improvement_plans,
 )
 from ble_radar.history.operator_outcome_learning import (
-  build_operator_outcome_learning_records,
-  summarize_operator_outcome_learning,
+    build_operator_outcome_learning_records,
+    summarize_operator_outcome_learning,
 )
-from ble_radar.history.operator_correlation import build_correlation_clusters, summarize_clusters
-from ble_radar.history.operator_evidence_pack import build_evidence_packs, load_evidence_packs, summarize_evidence_packs
+from ble_radar.history.operator_correlation import (
+    build_correlation_clusters,
+    summarize_clusters,
+)
+from ble_radar.history.operator_evidence_pack import (
+    build_evidence_packs,
+    load_evidence_packs,
+    summarize_evidence_packs,
+)
 from ble_radar.history.operator_escalation_feedback import (
-  build_operator_escalation_feedback_records,
-  summarize_operator_escalation_feedback,
+    build_operator_escalation_feedback_records,
+    summarize_operator_escalation_feedback,
 )
 from ble_radar.history.operator_escalation_package import (
-  build_operator_escalation_packages,
-  summarize_operator_escalation_packages,
+    build_operator_escalation_packages,
+    summarize_operator_escalation_packages,
 )
-from ble_radar.history.operator_outcomes import build_operator_outcomes, summarize_operator_outcomes
+from ble_radar.history.operator_outcomes import (
+    build_operator_outcomes,
+    summarize_operator_outcomes,
+)
 from ble_radar.history.operator_pattern_library import (
-  build_operator_pattern_records,
-  match_scopes_to_patterns,
-  summarize_operator_pattern_library,
+    build_operator_pattern_records,
+    match_scopes_to_patterns,
+    summarize_operator_pattern_library,
 )
 from ble_radar.history.operator_playbook import recommend_operator_playbook
-from ble_radar.history.operator_queue import build_operator_queue, summarize_operator_queue
-from ble_radar.history.operator_queue_health import build_queue_health_snapshot, summarize_queue_health
-from ble_radar.history.operator_session_journal import build_operator_session_journal, summarize_operator_session_journal
+from ble_radar.history.operator_queue import (
+    build_operator_queue,
+    summarize_operator_queue,
+)
+from ble_radar.history.operator_queue_health import (
+    build_queue_health_snapshot,
+    summarize_queue_health,
+)
+from ble_radar.history.operator_session_journal import (
+    build_operator_session_journal,
+    summarize_operator_session_journal,
+)
 from ble_radar.history.recommendation_tuning import (
-  build_recommendation_tuning_profiles,
-  summarize_recommendation_tuning_profiles,
+    build_recommendation_tuning_profiles,
+    summarize_recommendation_tuning_profiles,
 )
-from ble_radar.history.review_readiness import build_review_readiness_profiles, summarize_review_readiness
+from ble_radar.history.review_readiness import (
+    build_review_readiness_profiles,
+    summarize_review_readiness,
+)
 from ble_radar.history.operator_rule_engine import (
-  evaluate_operator_rules,
-  load_automation_events,
-  summarize_rule_results,
+    evaluate_operator_rules,
+    load_automation_events,
+    summarize_rule_results,
 )
-from ble_radar.history.operator_timeline import build_operator_timeline, recent_timeline_events
+from ble_radar.history.operator_timeline import (
+    build_operator_timeline,
+    recent_timeline_events,
+)
 from ble_radar.history.triage import triage_device_list
 from ble_radar.session.session_movement import build_session_movement
 from ble_radar.state import load_last_scan, load_scan_history
@@ -97,9 +130,9 @@ def _delta_label(current: int, previous) -> str:
 
 _BUCKET_STYLE = {
     "critical": "color:var(--pink);font-weight:700",
-    "review":   "color:var(--red)",
-    "watch":    "color:var(--yellow)",
-    "normal":   "color:var(--green)",
+    "review": "color:var(--red)",
+    "watch": "color:var(--yellow)",
+    "normal": "color:var(--green)",
 }
 
 
@@ -114,7 +147,7 @@ def render_triage_panel(triage_results: list) -> str:
         bucket = r.get("triage_bucket", "normal")
         style = _BUCKET_STYLE.get(bucket, "")
         items.append(
-            f"<li style=\"{style}\">"
+            f'<li style="{style}">'
             f"[{escape(bucket.upper())}] "
             f"<code>{escape(str(r.get('address', '?')))}</code> "
             f"| {escape(str(r.get('name', 'Inconnu')))} "
@@ -130,7 +163,9 @@ def render_triage_panel(triage_results: list) -> str:
 def render_investigation_profile_panel(profile: dict | None) -> str:
     """Render a compact workspace view for one focused device address."""
     if not profile:
-        return '<ul><li class="muted">Aucun profil d\'investigation disponible.</li></ul>'
+        return (
+            '<ul><li class="muted">Aucun profil d\'investigation disponible.</li></ul>'
+        )
 
     identity = profile.get("identity", {})
     registry = profile.get("registry", {})
@@ -177,7 +212,7 @@ def render_case_workflow_panel(summary: dict) -> str:
 
     lines = [
         f"<li>Cas ouverts : <strong>{len(open_cases)}</strong> | "
-        f"En cours d\'investigation : <strong>{len(investigating)}</strong> | "
+        f"En cours d'investigation : <strong>{len(investigating)}</strong> | "
         f"Action requise : <strong>{len(needs_action)}</strong> | "
         f"Résolus récents : <strong>{len(resolved)}</strong></li>",
     ]
@@ -217,7 +252,7 @@ def render_operator_timeline_panel(events: list) -> str:
         return '<ul><li class="muted">Aucun événement timeline disponible.</li></ul>'
 
     items = "".join(
-        f"<li><span class=\"muted\">{escape(str(e.get('timestamp') or 'n/a'))}</span> | "
+        f'<li><span class="muted">{escape(str(e.get("timestamp") or "n/a"))}</span> | '
         f"<strong>{escape(str(e.get('source', '?')))}</strong> | "
         f"{escape(str(e.get('summary', '-')))}</li>"
         for e in events
@@ -255,7 +290,9 @@ def render_operator_playbook_panel(recommendations: list) -> str:
 def render_operator_rule_engine_panel(summary: dict, recent_log_events: list) -> str:
     """Render compact local rule engine results."""
     auto_rows = summary.get("auto_applied", []) if isinstance(summary, dict) else []
-    pending_rows = summary.get("pending_confirmations", []) if isinstance(summary, dict) else []
+    pending_rows = (
+        summary.get("pending_confirmations", []) if isinstance(summary, dict) else []
+    )
     recent_rows = summary.get("recent_matched", []) if isinstance(summary, dict) else []
 
     lines = [
@@ -294,7 +331,7 @@ def render_operator_rule_engine_panel(summary: dict, recent_log_events: list) ->
 
     if recent_log_events:
         items = "".join(
-            f"<li><span class=\"muted\">{escape(str(e.get('timestamp', '-')))}</span> "
+            f'<li><span class="muted">{escape(str(e.get("timestamp", "-")))}</span> '
             f"| <code>{escape(str(e.get('address', '?')))}</code> "
             f"| {escape(str(e.get('rule_id', '-')))} "
             f"| auto={escape(str(e.get('auto_applied', False)))}</li>"
@@ -354,44 +391,44 @@ def render_operator_briefing_panel(briefing: dict) -> str:
 def render_operator_alerting_panel(summary: dict) -> str:
     """Render compact operator alerting and escalation panel."""
     if not summary:
-      return '<ul><li class="muted">Aucune alerte opérateur disponible.</li></ul>'
+        return '<ul><li class="muted">Aucune alerte opérateur disponible.</li></ul>'
 
     active = summary.get("active_alerts", [])
     escalations = summary.get("recent_escalations", [])
     immediate = summary.get("needs_immediate_review", [])
 
     lines = [
-      f"<li>Active alerts: <strong>{len(active)}</strong> | "
-      f"Recent escalations: <strong>{len(escalations)}</strong> | "
-      f"Needs immediate review: <strong>{len(immediate)}</strong></li>"
+        f"<li>Active alerts: <strong>{len(active)}</strong> | "
+        f"Recent escalations: <strong>{len(escalations)}</strong> | "
+        f"Needs immediate review: <strong>{len(immediate)}</strong></li>"
     ]
 
     if active:
-      items = "".join(
-        f"<li><span class=\"muted\">{escape(str(a.get('created_at', '-')))}</span> "
-        f"| <strong>{escape(str(a.get('severity', 'low')).upper())}</strong> "
-        f"| <code>{escape(str(a.get('device_address', '?')))}</code> "
-        f"| {escape(str(a.get('title', '-')))}</li>"
-        for a in active[:5]
-      )
-      lines.append(f"<li>Active alerts (top 5):<ul>{items}</ul></li>")
+        items = "".join(
+            f'<li><span class="muted">{escape(str(a.get("created_at", "-")))}</span> '
+            f"| <strong>{escape(str(a.get('severity', 'low')).upper())}</strong> "
+            f"| <code>{escape(str(a.get('device_address', '?')))}</code> "
+            f"| {escape(str(a.get('title', '-')))}</li>"
+            for a in active[:5]
+        )
+        lines.append(f"<li>Active alerts (top 5):<ul>{items}</ul></li>")
 
     if escalations:
-      items = "".join(
-        f"<li><code>{escape(str(a.get('device_address', '?')))}</code> "
-        f"| {escape(str(a.get('alert_id', '-')))} "
-        f"| {escape(str(a.get('reason', '-')))}</li>"
-        for a in escalations[:5]
-      )
-      lines.append(f"<li>Recent escalations (top 5):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(str(a.get('device_address', '?')))}</code> "
+            f"| {escape(str(a.get('alert_id', '-')))} "
+            f"| {escape(str(a.get('reason', '-')))}</li>"
+            for a in escalations[:5]
+        )
+        lines.append(f"<li>Recent escalations (top 5):<ul>{items}</ul></li>")
 
     if immediate:
-      items = "".join(
-        f"<li><code>{escape(str(a.get('device_address', '?')))}</code> "
-        f"| follow-up: {escape(str(a.get('recommended_followup', '-')))}</li>"
-        for a in immediate[:5]
-      )
-      lines.append(f"<li>Needs immediate review (top 5):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(str(a.get('device_address', '?')))}</code> "
+            f"| follow-up: {escape(str(a.get('recommended_followup', '-')))}</li>"
+            for a in immediate[:5]
+        )
+        lines.append(f"<li>Needs immediate review (top 5):<ul>{items}</ul></li>")
 
     return f"<ul>{''.join(lines)}</ul>"
 
@@ -399,43 +436,45 @@ def render_operator_alerting_panel(summary: dict) -> str:
 def render_operator_correlation_panel(summary: dict) -> str:
     """Render compact cluster/campaign view for operator correlation."""
     if not summary:
-      return '<ul><li class="muted">Aucun cluster de corrélation disponible.</li></ul>'
+        return (
+            '<ul><li class="muted">Aucun cluster de corrélation disponible.</li></ul>'
+        )
 
     top_clusters = summary.get("top_correlation_clusters", [])
     coordinated = summary.get("possible_coordinated_devices", [])
     needs_review = summary.get("needs_cluster_review", [])
 
     lines = [
-      f"<li>Top correlation clusters: <strong>{len(top_clusters)}</strong> | "
-      f"Possible coordinated devices: <strong>{len(coordinated)}</strong> | "
-      f"Needs cluster review: <strong>{len(needs_review)}</strong></li>"
+        f"<li>Top correlation clusters: <strong>{len(top_clusters)}</strong> | "
+        f"Possible coordinated devices: <strong>{len(coordinated)}</strong> | "
+        f"Needs cluster review: <strong>{len(needs_review)}</strong></li>"
     ]
 
     if top_clusters:
-      items = "".join(
-        f"<li><code>{escape(str(c.get('cluster_id', '?')))}</code> "
-        f"| risk=<strong>{escape(str(c.get('risk_level', 'low')).upper())}</strong> "
-        f"| members={escape(str(c.get('member_count', 0)))} "
-        f"| {escape(str(c.get('reason_summary', '-')))}</li>"
-        for c in top_clusters[:5]
-      )
-      lines.append(f"<li>Top clusters (top 5):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(str(c.get('cluster_id', '?')))}</code> "
+            f"| risk=<strong>{escape(str(c.get('risk_level', 'low')).upper())}</strong> "
+            f"| members={escape(str(c.get('member_count', 0)))} "
+            f"| {escape(str(c.get('reason_summary', '-')))}</li>"
+            for c in top_clusters[:5]
+        )
+        lines.append(f"<li>Top clusters (top 5):<ul>{items}</ul></li>")
 
     if coordinated:
-      items = "".join(
-        f"<li><code>{escape(', '.join(c.get('member_addresses', [])[:4]))}</code>"
-        f" | signals={escape(', '.join([str(s) for s in c.get('top_signals', [])[:3]]) or '-')}</li>"
-        for c in coordinated[:5]
-      )
-      lines.append(f"<li>Possible coordinated devices (top 5):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(', '.join(c.get('member_addresses', [])[:4]))}</code>"
+            f" | signals={escape(', '.join([str(s) for s in c.get('top_signals', [])[:3]]) or '-')}</li>"
+            for c in coordinated[:5]
+        )
+        lines.append(f"<li>Possible coordinated devices (top 5):<ul>{items}</ul></li>")
 
     if needs_review:
-      items = "".join(
-        f"<li><code>{escape(str(c.get('cluster_id', '?')))}</code> "
-        f"| follow-up: {escape(str(c.get('recommended_followup', '-')))}</li>"
-        for c in needs_review[:5]
-      )
-      lines.append(f"<li>Needs cluster review (top 5):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(str(c.get('cluster_id', '?')))}</code> "
+            f"| follow-up: {escape(str(c.get('recommended_followup', '-')))}</li>"
+            for c in needs_review[:5]
+        )
+        lines.append(f"<li>Needs cluster review (top 5):<ul>{items}</ul></li>")
 
     return f"<ul>{''.join(lines)}</ul>"
 
@@ -443,7 +482,7 @@ def render_operator_correlation_panel(summary: dict) -> str:
 def render_operator_campaign_panel(summary: dict) -> str:
     """Render compact campaign lifecycle view from tracked clusters."""
     if not summary:
-      return '<ul><li class="muted">Aucune campagne suivie disponible.</li></ul>'
+        return '<ul><li class="muted">Aucune campagne suivie disponible.</li></ul>'
 
     active = summary.get("active_campaigns", [])
     recurring = summary.get("recurring_clusters", [])
@@ -451,39 +490,39 @@ def render_operator_campaign_panel(summary: dict) -> str:
     needs_review = summary.get("needs_campaign_review", [])
 
     lines = [
-      f"<li>Active campaigns: <strong>{len(active)}</strong> | "
-      f"Recurring clusters: <strong>{len(recurring)}</strong> | "
-      f"Expanding groups: <strong>{len(expanding)}</strong> | "
-      f"Needs campaign review: <strong>{len(needs_review)}</strong></li>"
+        f"<li>Active campaigns: <strong>{len(active)}</strong> | "
+        f"Recurring clusters: <strong>{len(recurring)}</strong> | "
+        f"Expanding groups: <strong>{len(expanding)}</strong> | "
+        f"Needs campaign review: <strong>{len(needs_review)}</strong></li>"
     ]
 
     if active:
-      items = "".join(
-        f"<li><code>{escape(str(c.get('campaign_id', '?')))}</code> "
-        f"| status=<strong>{escape(str(c.get('status', 'new')).upper())}</strong> "
-        f"| risk={escape(str(c.get('risk_level', 'low')).upper())} "
-        f"| members={escape(str(c.get('member_count', 0)))} "
-        f"| trend={escape(str(c.get('activity_trend', '-')))}</li>"
-        for c in active[:5]
-      )
-      lines.append(f"<li>Active campaigns (top 5):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(str(c.get('campaign_id', '?')))}</code> "
+            f"| status=<strong>{escape(str(c.get('status', 'new')).upper())}</strong> "
+            f"| risk={escape(str(c.get('risk_level', 'low')).upper())} "
+            f"| members={escape(str(c.get('member_count', 0)))} "
+            f"| trend={escape(str(c.get('activity_trend', '-')))}</li>"
+            for c in active[:5]
+        )
+        lines.append(f"<li>Active campaigns (top 5):<ul>{items}</ul></li>")
 
     if recurring:
-      items = "".join(
-        f"<li><code>{escape(str(c.get('campaign_id', '?')))}</code> "
-        f"| last_seen={escape(str(c.get('last_seen', '-')))} "
-        f"| reason={escape(str(c.get('reason_summary', '-')))}</li>"
-        for c in recurring[:5]
-      )
-      lines.append(f"<li>Recurring clusters (top 5):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(str(c.get('campaign_id', '?')))}</code> "
+            f"| last_seen={escape(str(c.get('last_seen', '-')))} "
+            f"| reason={escape(str(c.get('reason_summary', '-')))}</li>"
+            for c in recurring[:5]
+        )
+        lines.append(f"<li>Recurring clusters (top 5):<ul>{items}</ul></li>")
 
     if expanding:
-      items = "".join(
-        f"<li><code>{escape(str(c.get('campaign_id', '?')))}</code> "
-        f"| follow-up: {escape(str(c.get('recommended_followup', '-')))}</li>"
-        for c in expanding[:5]
-      )
-      lines.append(f"<li>Expanding groups (top 5):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(str(c.get('campaign_id', '?')))}</code> "
+            f"| follow-up: {escape(str(c.get('recommended_followup', '-')))}</li>"
+            for c in expanding[:5]
+        )
+        lines.append(f"<li>Expanding groups (top 5):<ul>{items}</ul></li>")
 
     return f"<ul>{''.join(lines)}</ul>"
 
@@ -491,44 +530,44 @@ def render_operator_campaign_panel(summary: dict) -> str:
 def render_operator_evidence_panel(summary: dict) -> str:
     """Render compact evidence pack / consolidated dossier panel."""
     if not summary:
-      return '<ul><li class="muted">Aucun evidence pack disponible.</li></ul>'
+        return '<ul><li class="muted">Aucun evidence pack disponible.</li></ul>'
 
     recent = summary.get("recent_evidence_packs", [])
     review = summary.get("ready_for_review_dossiers", [])
     campaign = summary.get("campaign_evidence_summary", [])
 
     lines = [
-      f"<li>Recent evidence packs: <strong>{len(recent)}</strong> | "
-      f"Ready for review dossiers: <strong>{len(review)}</strong> | "
-      f"Campaign evidence summary: <strong>{len(campaign)}</strong></li>"
+        f"<li>Recent evidence packs: <strong>{len(recent)}</strong> | "
+        f"Ready for review dossiers: <strong>{len(review)}</strong> | "
+        f"Campaign evidence summary: <strong>{len(campaign)}</strong></li>"
     ]
 
     if recent:
-      items = "".join(
-        f"<li><code>{escape(str(p.get('pack_id', '?')))}</code> "
-        f"| scope={escape(str(p.get('scope_type', '-')))}:{escape(str(p.get('scope_id', '-')))} "
-        f"| risk={escape(str(p.get('risk_level', 'low')).upper())}</li>"
-        for p in recent[-5:]
-      )
-      lines.append(f"<li>Recent evidence packs (top 5):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(str(p.get('pack_id', '?')))}</code> "
+            f"| scope={escape(str(p.get('scope_type', '-')))}:{escape(str(p.get('scope_id', '-')))} "
+            f"| risk={escape(str(p.get('risk_level', 'low')).upper())}</li>"
+            for p in recent[-5:]
+        )
+        lines.append(f"<li>Recent evidence packs (top 5):<ul>{items}</ul></li>")
 
     if review:
-      items = "".join(
-        f"<li><code>{escape(str(p.get('scope_type', '-')))}:{escape(str(p.get('scope_id', '-')))}</code> "
-        f"| findings={escape(str(len(p.get('key_findings', []))))} "
-        f"| follow-up: {escape(str(p.get('recommended_followup', '-')))}</li>"
-        for p in review[:5]
-      )
-      lines.append(f"<li>Ready for review dossiers (top 5):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(str(p.get('scope_type', '-')))}:{escape(str(p.get('scope_id', '-')))}</code> "
+            f"| findings={escape(str(len(p.get('key_findings', []))))} "
+            f"| follow-up: {escape(str(p.get('recommended_followup', '-')))}</li>"
+            for p in review[:5]
+        )
+        lines.append(f"<li>Ready for review dossiers (top 5):<ul>{items}</ul></li>")
 
     if campaign:
-      items = "".join(
-        f"<li><code>{escape(str(p.get('scope_id', '-')))}</code> "
-        f"| alerts={escape(str(p.get('alerts_summary', '-')))} "
-        f"| summary={escape(str(p.get('summary', '-')))}</li>"
-        for p in campaign[:5]
-      )
-      lines.append(f"<li>Campaign evidence summary (top 5):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(str(p.get('scope_id', '-')))}</code> "
+            f"| alerts={escape(str(p.get('alerts_summary', '-')))} "
+            f"| summary={escape(str(p.get('summary', '-')))}</li>"
+            for p in campaign[:5]
+        )
+        lines.append(f"<li>Campaign evidence summary (top 5):<ul>{items}</ul></li>")
 
     return f"<ul>{''.join(lines)}</ul>"
 
@@ -536,7 +575,7 @@ def render_operator_evidence_panel(summary: dict) -> str:
 def render_operator_queue_panel(summary: dict) -> str:
     """Render compact operator queue / case board panel."""
     if not summary:
-      return '<ul><li class="muted">Aucune file opérateur disponible.</li></ul>'
+        return '<ul><li class="muted">Aucune file opérateur disponible.</li></ul>'
 
     queue = summary.get("operator_queue", [])
     needs_review = summary.get("needs_review", [])
@@ -545,38 +584,38 @@ def render_operator_queue_panel(summary: dict) -> str:
     resolved = summary.get("recently_resolved", [])
 
     lines = [
-      f"<li>Operator queue: <strong>{len(queue)}</strong> | "
-      f"Needs review: <strong>{len(needs_review)}</strong> | "
-      f"Blocked items: <strong>{len(blocked)}</strong> | "
-      f"Ready now: <strong>{len(ready_now)}</strong> | "
-      f"Recently resolved: <strong>{len(resolved)}</strong></li>"
+        f"<li>Operator queue: <strong>{len(queue)}</strong> | "
+        f"Needs review: <strong>{len(needs_review)}</strong> | "
+        f"Blocked items: <strong>{len(blocked)}</strong> | "
+        f"Ready now: <strong>{len(ready_now)}</strong> | "
+        f"Recently resolved: <strong>{len(resolved)}</strong></li>"
     ]
 
     if queue:
-      items = "".join(
-        f"<li><code>{escape(str(i.get('item_id', '?')))}</code> "
-        f"| {escape(str(i.get('scope_type', '-')))}:{escape(str(i.get('scope_id', '-')))} "
-        f"| state=<strong>{escape(str(i.get('queue_state', 'new')).upper())}</strong> "
-        f"| priority={escape(str(i.get('priority', 'low')).upper())}</li>"
-        for i in queue[:6]
-      )
-      lines.append(f"<li>Operator queue (top 6):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(str(i.get('item_id', '?')))}</code> "
+            f"| {escape(str(i.get('scope_type', '-')))}:{escape(str(i.get('scope_id', '-')))} "
+            f"| state=<strong>{escape(str(i.get('queue_state', 'new')).upper())}</strong> "
+            f"| priority={escape(str(i.get('priority', 'low')).upper())}</li>"
+            for i in queue[:6]
+        )
+        lines.append(f"<li>Operator queue (top 6):<ul>{items}</ul></li>")
 
     if ready_now:
-      items = "".join(
-        f"<li><code>{escape(str(i.get('item_id', '?')))}</code> "
-        f"| action: {escape(str(i.get('recommended_action', '-')))}</li>"
-        for i in ready_now[:5]
-      )
-      lines.append(f"<li>Ready now (top 5):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(str(i.get('item_id', '?')))}</code> "
+            f"| action: {escape(str(i.get('recommended_action', '-')))}</li>"
+            for i in ready_now[:5]
+        )
+        lines.append(f"<li>Ready now (top 5):<ul>{items}</ul></li>")
 
     if blocked:
-      items = "".join(
-        f"<li><code>{escape(str(i.get('item_id', '?')))}</code> "
-        f"| blockers: {escape(', '.join([str(b) for b in i.get('blocking_factors', [])]) or '-')}</li>"
-        for i in blocked[:5]
-      )
-      lines.append(f"<li>Blocked items (top 5):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(str(i.get('item_id', '?')))}</code> "
+            f"| blockers: {escape(', '.join([str(b) for b in i.get('blocking_factors', [])]) or '-')}</li>"
+            for i in blocked[:5]
+        )
+        lines.append(f"<li>Blocked items (top 5):<ul>{items}</ul></li>")
 
     return f"<ul>{''.join(lines)}</ul>"
 
@@ -584,7 +623,7 @@ def render_operator_queue_panel(summary: dict) -> str:
 def render_operator_queue_health_panel(summary: dict) -> str:
     """Render compact queue health / aging / bottleneck panel."""
     if not summary:
-      return '<ul><li class="muted">Aucun snapshot queue health disponible.</li></ul>'
+        return '<ul><li class="muted">Aucun snapshot queue health disponible.</li></ul>'
 
     health = summary.get("queue_health", {})
     aging = summary.get("aging_overview", [])
@@ -593,47 +632,51 @@ def render_operator_queue_health_panel(summary: dict) -> str:
     pressure = summary.get("operator_pressure", {})
 
     lines = [
-      f"<li>Queue health: total=<strong>{escape(str(health.get('total_items', 0)))}</strong> "
-      f"| ready={escape(str(health.get('ready_count', 0)))} "
-      f"| blocked={escape(str(health.get('blocked_count', 0)))} "
-      f"| in_review={escape(str(health.get('in_review_count', 0)))} "
-      f"| pressure=<strong>{escape(str(health.get('queue_pressure', 'low')).upper())}</strong></li>"
+        f"<li>Queue health: total=<strong>{escape(str(health.get('total_items', 0)))}</strong> "
+        f"| ready={escape(str(health.get('ready_count', 0)))} "
+        f"| blocked={escape(str(health.get('blocked_count', 0)))} "
+        f"| in_review={escape(str(health.get('in_review_count', 0)))} "
+        f"| pressure=<strong>{escape(str(health.get('queue_pressure', 'low')).upper())}</strong></li>"
     ]
 
     if aging:
-      items = "".join(
-        f"<li>{escape(str(a.get('bucket', '-')))}: <strong>{escape(str(a.get('count', 0)))}</strong></li>"
-        for a in aging
-      )
-      lines.append(f"<li>Aging overview:<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li>{escape(str(a.get('bucket', '-')))}: <strong>{escape(str(a.get('count', 0)))}</strong></li>"
+            for a in aging
+        )
+        lines.append(f"<li>Aging overview:<ul>{items}</ul></li>")
 
     if blocked:
-      items = "".join(
-        f"<li><code>{escape(str(i.get('item_id', '?')))}</code> "
-        f"| state={escape(str(i.get('queue_state', '-')))} "
-        f"| blockers={escape(', '.join([str(b) for b in i.get('blocking_factors', [])]) or '-')}</li>"
-        for i in blocked[:5]
-      )
-      lines.append(f"<li>Blocked items (top 5):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(str(i.get('item_id', '?')))}</code> "
+            f"| state={escape(str(i.get('queue_state', '-')))} "
+            f"| blockers={escape(', '.join([str(b) for b in i.get('blocking_factors', [])]) or '-')}</li>"
+            for i in blocked[:5]
+        )
+        lines.append(f"<li>Blocked items (top 5):<ul>{items}</ul></li>")
 
     if stale:
-      items = "".join(
-        f"<li><code>{escape(str(i.get('item_id', '?')))}</code> "
-        f"| age_min={escape(str(i.get('age_minutes', 0)))} "
-        f"| state={escape(str(i.get('queue_state', '-')))}</li>"
-        for i in stale[:5]
-      )
-      lines.append(f"<li>Stale items (top 5):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(str(i.get('item_id', '?')))}</code> "
+            f"| age_min={escape(str(i.get('age_minutes', 0)))} "
+            f"| state={escape(str(i.get('queue_state', '-')))}</li>"
+            for i in stale[:5]
+        )
+        lines.append(f"<li>Stale items (top 5):<ul>{items}</ul></li>")
 
     if pressure:
-      reasons = pressure.get("bottleneck_reasons", [])
-      reasons_html = ""
-      if reasons:
-        reasons_html = "<ul>" + "".join(f"<li>{escape(str(r))}</li>" for r in reasons[:5]) + "</ul>"
-      lines.append(
-        f"<li>Operator pressure: <strong>{escape(str(pressure.get('queue_pressure', 'low')).upper())}</strong> "
-        f"| follow-up: {escape(str(pressure.get('recommended_followup', '-')))}{reasons_html}</li>"
-      )
+        reasons = pressure.get("bottleneck_reasons", [])
+        reasons_html = ""
+        if reasons:
+            reasons_html = (
+                "<ul>"
+                + "".join(f"<li>{escape(str(r))}</li>" for r in reasons[:5])
+                + "</ul>"
+            )
+        lines.append(
+            f"<li>Operator pressure: <strong>{escape(str(pressure.get('queue_pressure', 'low')).upper())}</strong> "
+            f"| follow-up: {escape(str(pressure.get('recommended_followup', '-')))}{reasons_html}</li>"
+        )
 
     return f"<ul>{''.join(lines)}</ul>"
 
@@ -641,7 +684,7 @@ def render_operator_queue_health_panel(summary: dict) -> str:
 def render_operator_outcomes_panel(summary: dict) -> str:
     """Render compact operator outcomes / feedback loop panel."""
     if not summary:
-      return '<ul><li class="muted">Aucun outcome opérateur disponible.</li></ul>'
+        return '<ul><li class="muted">Aucun outcome opérateur disponible.</li></ul>'
 
     outcomes = summary.get("operator_outcomes", [])
     effective = summary.get("most_effective_actions", [])
@@ -649,55 +692,55 @@ def render_operator_outcomes_panel(summary: dict) -> str:
     weak = summary.get("weak_recommendations", [])
 
     lines = [
-      f"<li>Operator outcomes: <strong>{escape(str(len(outcomes)))}</strong> "
-      f"| reopened: <strong>{escape(str(len(reopened)))}</strong> "
-      f"| weak recommendations: <strong>{escape(str(len(weak)))}</strong></li>"
+        f"<li>Operator outcomes: <strong>{escape(str(len(outcomes)))}</strong> "
+        f"| reopened: <strong>{escape(str(len(reopened)))}</strong> "
+        f"| weak recommendations: <strong>{escape(str(len(weak)))}</strong></li>"
     ]
 
     if outcomes:
-      items = "".join(
-        f"<li><code>{escape(str(r.get('outcome_id', '?')))}</code> "
-        f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| label=<strong>{escape(str(r.get('outcome_label', '-')))}</strong> "
-        f"| eff={escape(str(r.get('effectiveness', 0)))} "
-        f"| action={escape(str(r.get('source_action', '-')))}</li>"
-        for r in outcomes[:6]
-      )
-      lines.append(f"<li>Operator outcomes (top 6):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(str(r.get('outcome_id', '?')))}</code> "
+            f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| label=<strong>{escape(str(r.get('outcome_label', '-')))}</strong> "
+            f"| eff={escape(str(r.get('effectiveness', 0)))} "
+            f"| action={escape(str(r.get('source_action', '-')))}</li>"
+            for r in outcomes[:6]
+        )
+        lines.append(f"<li>Operator outcomes (top 6):<ul>{items}</ul></li>")
 
     if effective:
-      items = "".join(
-        f"<li>{escape(str(r.get('source_action', '-')))} "
-        f"| avg_eff=<strong>{escape(str(r.get('avg_effectiveness', 0)))}</strong> "
-        f"| count={escape(str(r.get('count', 0)))}</li>"
-        for r in effective[:5]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('source_action', '-')))} "
+            f"| avg_eff=<strong>{escape(str(r.get('avg_effectiveness', 0)))}</strong> "
+            f"| count={escape(str(r.get('count', 0)))}</li>"
+            for r in effective[:5]
+        )
     else:
-      items = '<li class="muted">No effective action ranking yet.</li>'
+        items = '<li class="muted">No effective action ranking yet.</li>'
     lines.append(f"<li>Most effective actions:<ul>{items}</ul></li>")
 
     if reopened:
-      items = "".join(
-        f"<li><code>{escape(str(r.get('scope_id', '-')))}</code> "
-        f"| {escape(str(r.get('scope_type', '-')))} "
-        f"| {escape(str(r.get('outcome_label', '-')))} "
-        f"| from {escape(str(r.get('queue_state_before', '-')))} to {escape(str(r.get('queue_state_after', '-')))}</li>"
-        for r in reopened[:5]
-      )
+        items = "".join(
+            f"<li><code>{escape(str(r.get('scope_id', '-')))}</code> "
+            f"| {escape(str(r.get('scope_type', '-')))} "
+            f"| {escape(str(r.get('outcome_label', '-')))} "
+            f"| from {escape(str(r.get('queue_state_before', '-')))} to {escape(str(r.get('queue_state_after', '-')))}</li>"
+            for r in reopened[:5]
+        )
     else:
-      items = '<li class="muted">No reopened items.</li>'
+        items = '<li class="muted">No reopened items.</li>'
     lines.append(f"<li>Reopened items (top 5):<ul>{items}</ul></li>")
 
     if weak:
-      items = "".join(
-        f"<li><code>{escape(str(r.get('scope_id', '-')))}</code> "
-        f"| label={escape(str(r.get('outcome_label', '-')))} "
-        f"| eff={escape(str(r.get('effectiveness', 0)))} "
-        f"| playbook={escape(str(r.get('source_playbook', '-')) or '-')}</li>"
-        for r in weak[:5]
-      )
+        items = "".join(
+            f"<li><code>{escape(str(r.get('scope_id', '-')))}</code> "
+            f"| label={escape(str(r.get('outcome_label', '-')))} "
+            f"| eff={escape(str(r.get('effectiveness', 0)))} "
+            f"| playbook={escape(str(r.get('source_playbook', '-')) or '-')}</li>"
+            for r in weak[:5]
+        )
     else:
-      items = '<li class="muted">No weak recommendations flagged.</li>'
+        items = '<li class="muted">No weak recommendations flagged.</li>'
     lines.append(f"<li>Weak recommendations (top 5):<ul>{items}</ul></li>")
 
     return f"<ul>{''.join(lines)}</ul>"
@@ -706,7 +749,7 @@ def render_operator_outcomes_panel(summary: dict) -> str:
 def render_recommendation_tuning_panel(summary: dict) -> str:
     """Render compact recommendation tuning / operator confidence panel."""
     if not summary:
-      return '<ul><li class="muted">Aucun profil de confidence disponible.</li></ul>'
+        return '<ul><li class="muted">Aucun profil de confidence disponible.</li></ul>'
 
     confidence = summary.get("recommendation_confidence", [])
     effective = summary.get("most_effective_playbooks", [])
@@ -714,56 +757,56 @@ def render_recommendation_tuning_panel(summary: dict) -> str:
     manual = summary.get("needs_manual_review", [])
 
     lines = [
-      f"<li>Recommendation confidence: <strong>{escape(str(len(confidence)))}</strong> "
-      f"| weak recommendations: <strong>{escape(str(len(weak)))}</strong> "
-      f"| manual review: <strong>{escape(str(len(manual)))}</strong></li>"
+        f"<li>Recommendation confidence: <strong>{escape(str(len(confidence)))}</strong> "
+        f"| weak recommendations: <strong>{escape(str(len(weak)))}</strong> "
+        f"| manual review: <strong>{escape(str(len(manual)))}</strong></li>"
     ]
 
     if confidence:
-      items = "".join(
-        f"<li><code>{escape(str(r.get('recommendation_id', '?')))}</code> "
-        f"| playbook={escape(str(r.get('source_playbook', '-')))} "
-        f"| scope={escape(str(r.get('scope_type', '-')))} "
-        f"| confidence=<strong>{escape(str(r.get('confidence_level', 'uncertain')).upper())}</strong> "
-        f"| eff={escape(str(r.get('effectiveness_score', 0)))} "
-        f"| rank_adj={escape(str(r.get('recommended_rank_adjustment', 0)))}</li>"
-        for r in confidence[:6]
-      )
-      lines.append(f"<li>Recommendation confidence (top 6):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(str(r.get('recommendation_id', '?')))}</code> "
+            f"| playbook={escape(str(r.get('source_playbook', '-')))} "
+            f"| scope={escape(str(r.get('scope_type', '-')))} "
+            f"| confidence=<strong>{escape(str(r.get('confidence_level', 'uncertain')).upper())}</strong> "
+            f"| eff={escape(str(r.get('effectiveness_score', 0)))} "
+            f"| rank_adj={escape(str(r.get('recommended_rank_adjustment', 0)))}</li>"
+            for r in confidence[:6]
+        )
+        lines.append(f"<li>Recommendation confidence (top 6):<ul>{items}</ul></li>")
 
     if effective:
-      items = "".join(
-        f"<li>{escape(str(r.get('source_playbook', '-')))} "
-        f"| confidence={escape(str(r.get('confidence_level', 'uncertain')))} "
-        f"| eff=<strong>{escape(str(r.get('effectiveness_score', 0)))}</strong> "
-        f"| success={escape(str(r.get('success_count', 0)))}</li>"
-        for r in effective[:5]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('source_playbook', '-')))} "
+            f"| confidence={escape(str(r.get('confidence_level', 'uncertain')))} "
+            f"| eff=<strong>{escape(str(r.get('effectiveness_score', 0)))}</strong> "
+            f"| success={escape(str(r.get('success_count', 0)))}</li>"
+            for r in effective[:5]
+        )
     else:
-      items = '<li class="muted">No effective playbooks ranked yet.</li>'
+        items = '<li class="muted">No effective playbooks ranked yet.</li>'
     lines.append(f"<li>Most effective playbooks:<ul>{items}</ul></li>")
 
     if weak:
-      items = "".join(
-        f"<li>{escape(str(r.get('source_playbook', '-')))} "
-        f"| confidence={escape(str(r.get('confidence_level', 'uncertain')))} "
-        f"| failures={escape(str(r.get('failure_count', 0)))} "
-        f"| reopened={escape(str(r.get('reopened_count', 0)))}</li>"
-        for r in weak[:5]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('source_playbook', '-')))} "
+            f"| confidence={escape(str(r.get('confidence_level', 'uncertain')))} "
+            f"| failures={escape(str(r.get('failure_count', 0)))} "
+            f"| reopened={escape(str(r.get('reopened_count', 0)))}</li>"
+            for r in weak[:5]
+        )
     else:
-      items = '<li class="muted">No weak recommendations flagged.</li>'
+        items = '<li class="muted">No weak recommendations flagged.</li>'
     lines.append(f"<li>Weak recommendations (top 5):<ul>{items}</ul></li>")
 
     if manual:
-      items = "".join(
-        f"<li>{escape(str(r.get('source_playbook', '-')))} "
-        f"| confidence={escape(str(r.get('confidence_level', 'uncertain')))} "
-        f"| notes={escape(str(r.get('usage_notes', '-')))}</li>"
-        for r in manual[:5]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('source_playbook', '-')))} "
+            f"| confidence={escape(str(r.get('confidence_level', 'uncertain')))} "
+            f"| notes={escape(str(r.get('usage_notes', '-')))}</li>"
+            for r in manual[:5]
+        )
     else:
-      items = '<li class="muted">No manual review signals.</li>'
+        items = '<li class="muted">No manual review signals.</li>'
     lines.append(f"<li>Needs manual review (top 5):<ul>{items}</ul></li>")
 
     return f"<ul>{''.join(lines)}</ul>"
@@ -772,7 +815,7 @@ def render_recommendation_tuning_panel(summary: dict) -> str:
 def render_review_readiness_panel(summary: dict) -> str:
     """Render compact review readiness / readiness gate panel."""
     if not summary:
-      return '<ul><li class="muted">Aucun profil de review readiness disponible.</li></ul>'
+        return '<ul><li class="muted">Aucun profil de review readiness disponible.</li></ul>'
 
     readiness = summary.get("review_readiness", [])
     ready_review = summary.get("ready_for_review", [])
@@ -781,64 +824,64 @@ def render_review_readiness_panel(summary: dict) -> str:
     ready_archive = summary.get("ready_for_archive", [])
 
     lines = [
-      f"<li>Review readiness: <strong>{escape(str(len(readiness)))}</strong> "
-      f"| ready_for_review: <strong>{escape(str(len(ready_review)))}</strong> "
-      f"| needs_more_evidence: <strong>{escape(str(len(needs_evidence)))}</strong> "
-      f"| handoff: <strong>{escape(str(len(ready_handoff)))}</strong> "
-      f"| archive: <strong>{escape(str(len(ready_archive)))}</strong></li>"
+        f"<li>Review readiness: <strong>{escape(str(len(readiness)))}</strong> "
+        f"| ready_for_review: <strong>{escape(str(len(ready_review)))}</strong> "
+        f"| needs_more_evidence: <strong>{escape(str(len(needs_evidence)))}</strong> "
+        f"| handoff: <strong>{escape(str(len(ready_handoff)))}</strong> "
+        f"| archive: <strong>{escape(str(len(ready_archive)))}</strong></li>"
     ]
 
     if readiness:
-      items = "".join(
-        f"<li><code>{escape(str(r.get('review_id', '?')))}</code> "
-        f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| state=<strong>{escape(str(r.get('readiness_state', 'not_ready')).upper())}</strong> "
-        f"| score={escape(str(r.get('readiness_score', 0)))} "
-        f"| disposition={escape(str(r.get('recommended_disposition', '-')))}</li>"
-        for r in readiness[:6]
-      )
-      lines.append(f"<li>Review readiness (top 6):<ul>{items}</ul></li>")
+        items = "".join(
+            f"<li><code>{escape(str(r.get('review_id', '?')))}</code> "
+            f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| state=<strong>{escape(str(r.get('readiness_state', 'not_ready')).upper())}</strong> "
+            f"| score={escape(str(r.get('readiness_score', 0)))} "
+            f"| disposition={escape(str(r.get('recommended_disposition', '-')))}</li>"
+            for r in readiness[:6]
+        )
+        lines.append(f"<li>Review readiness (top 6):<ul>{items}</ul></li>")
 
     if ready_review:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| score={escape(str(r.get('readiness_score', 0)))} "
-        f"| notes={escape(str(r.get('review_notes', '-')))}</li>"
-        for r in ready_review[:5]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| score={escape(str(r.get('readiness_score', 0)))} "
+            f"| notes={escape(str(r.get('review_notes', '-')))}</li>"
+            for r in ready_review[:5]
+        )
     else:
-      items = '<li class="muted">No scopes ready for review yet.</li>'
+        items = '<li class="muted">No scopes ready for review yet.</li>'
     lines.append(f"<li>Ready for review (top 5):<ul>{items}</ul></li>")
 
     if needs_evidence:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| missing={escape(', '.join([str(x) for x in r.get('missing_elements', [])]) or '-')}</li>"
-        for r in needs_evidence[:5]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| missing={escape(', '.join([str(x) for x in r.get('missing_elements', [])]) or '-')}</li>"
+            for r in needs_evidence[:5]
+        )
     else:
-      items = '<li class="muted">No additional evidence needed.</li>'
+        items = '<li class="muted">No additional evidence needed.</li>'
     lines.append(f"<li>Needs more evidence (top 5):<ul>{items}</ul></li>")
 
     if ready_handoff:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| strengths={escape(', '.join([str(x) for x in r.get('strengths', [])]) or '-')}</li>"
-        for r in ready_handoff[:5]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| strengths={escape(', '.join([str(x) for x in r.get('strengths', [])]) or '-')}</li>"
+            for r in ready_handoff[:5]
+        )
     else:
-      items = '<li class="muted">No scopes ready for handoff.</li>'
+        items = '<li class="muted">No scopes ready for handoff.</li>'
     lines.append(f"<li>Ready for handoff (top 5):<ul>{items}</ul></li>")
 
     if ready_archive:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| disposition={escape(str(r.get('recommended_disposition', '-')))} "
-        f"| score={escape(str(r.get('readiness_score', 0)))}</li>"
-        for r in ready_archive[:5]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| disposition={escape(str(r.get('recommended_disposition', '-')))} "
+            f"| score={escape(str(r.get('readiness_score', 0)))}</li>"
+            for r in ready_archive[:5]
+        )
     else:
-      items = '<li class="muted">No scopes ready for archive.</li>'
+        items = '<li class="muted">No scopes ready for archive.</li>'
     lines.append(f"<li>Ready for archive (top 5):<ul>{items}</ul></li>")
 
     return f"<ul>{''.join(lines)}</ul>"
@@ -847,7 +890,7 @@ def render_review_readiness_panel(summary: dict) -> str:
 def render_operator_session_journal_panel(summary: dict) -> str:
     """Render compact operator session journal / shift continuity panel."""
     if not summary:
-      return '<ul><li class="muted">Aucun journal de session opérateur disponible.</li></ul>'
+        return '<ul><li class="muted">Aucun journal de session opérateur disponible.</li></ul>'
 
     journal = summary.get("current_session_journal", {})
     activity = summary.get("shift_activity", {})
@@ -856,45 +899,45 @@ def render_operator_session_journal_panel(summary: dict) -> str:
     handoffs = summary.get("recent_handoffs", [])
 
     lines = [
-      f"<li>Current session journal: <code>{escape(str(journal.get('session_id', '-')))}</code> "
-      f"| started={escape(str(journal.get('started_at', '-')))} "
-      f"| ended={escape(str(journal.get('ended_at', '-')))}</li>"
+        f"<li>Current session journal: <code>{escape(str(journal.get('session_id', '-')))}</code> "
+        f"| started={escape(str(journal.get('started_at', '-')))} "
+        f"| ended={escape(str(journal.get('ended_at', '-')))}</li>"
     ]
 
     lines.append(
-      f"<li>Shift activity: items_touched=<strong>{escape(str(activity.get('items_touched', 0)))}</strong> "
-      f"| campaigns_updated={escape(str(activity.get('campaigns_updated', 0)))} "
-      f"| alerts_reviewed={escape(str(activity.get('alerts_reviewed', 0)))} "
-      f"| outcomes_recorded={escape(str(activity.get('outcomes_recorded', 0)))} "
-      f"| readiness_changes={escape(str(activity.get('readiness_changes', 0)))}"
-      f"</li>"
+        f"<li>Shift activity: items_touched=<strong>{escape(str(activity.get('items_touched', 0)))}</strong> "
+        f"| campaigns_updated={escape(str(activity.get('campaigns_updated', 0)))} "
+        f"| alerts_reviewed={escape(str(activity.get('alerts_reviewed', 0)))} "
+        f"| outcomes_recorded={escape(str(activity.get('outcomes_recorded', 0)))} "
+        f"| readiness_changes={escape(str(activity.get('readiness_changes', 0)))}"
+        f"</li>"
     )
 
     if carry_over:
-      items = "".join(
-        f"<li><code>{escape(str(r.get('item_id', '?')))}</code> "
-        f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| state={escape(str(r.get('queue_state', '-')))}</li>"
-        for r in carry_over[:6]
-      )
+        items = "".join(
+            f"<li><code>{escape(str(r.get('item_id', '?')))}</code> "
+            f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| state={escape(str(r.get('queue_state', '-')))}</li>"
+            for r in carry_over[:6]
+        )
     else:
-      items = '<li class="muted">No carry-over items.</li>'
+        items = '<li class="muted">No carry-over items.</li>'
     lines.append(f"<li>Carry over items (top 6):<ul>{items}</ul></li>")
 
     if priorities:
-      items = "".join(f"<li>{escape(str(x))}</li>" for x in priorities[:6])
+        items = "".join(f"<li>{escape(str(x))}</li>" for x in priorities[:6])
     else:
-      items = '<li class="muted">No next-shift priorities.</li>'
+        items = '<li class="muted">No next-shift priorities.</li>'
     lines.append(f"<li>Next shift priorities:<ul>{items}</ul></li>")
 
     if handoffs:
-      items = "".join(
-        f"<li>{escape(str(h.get('scope_type', '-')))}:{escape(str(h.get('scope_id', '-')))} "
-        f"| reason={escape(str(h.get('reason', '-')))}</li>"
-        for h in handoffs[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(h.get('scope_type', '-')))}:{escape(str(h.get('scope_id', '-')))} "
+            f"| reason={escape(str(h.get('reason', '-')))}</li>"
+            for h in handoffs[:6]
+        )
     else:
-      items = '<li class="muted">No recent handoffs.</li>'
+        items = '<li class="muted">No recent handoffs.</li>'
     lines.append(f"<li>Recent handoffs (top 6):<ul>{items}</ul></li>")
 
     return f"<ul>{''.join(lines)}</ul>"
@@ -903,7 +946,9 @@ def render_operator_session_journal_panel(summary: dict) -> str:
 def render_operator_pattern_library_panel(summary: dict) -> str:
     """Render compact operator pattern library / recurring case memory panel."""
     if not summary:
-      return '<ul><li class="muted">Aucune librairie de patterns disponible.</li></ul>'
+        return (
+            '<ul><li class="muted">Aucune librairie de patterns disponible.</li></ul>'
+        )
 
     known = summary.get("known_patterns", [])
     recurring = summary.get("recurring_case_types", [])
@@ -911,51 +956,51 @@ def render_operator_pattern_library_panel(summary: dict) -> str:
     guidance = summary.get("pattern_based_guidance", [])
 
     lines = [
-      f"<li>Known patterns: <strong>{escape(str(len(known)))}</strong> | "
-      f"Recurring case types: <strong>{escape(str(len(recurring)))}</strong> | "
-      f"Likely matches: <strong>{escape(str(len(matches)))}</strong></li>"
+        f"<li>Known patterns: <strong>{escape(str(len(known)))}</strong> | "
+        f"Recurring case types: <strong>{escape(str(len(recurring)))}</strong> | "
+        f"Likely matches: <strong>{escape(str(len(matches)))}</strong></li>"
     ]
 
     if known:
-      items = "".join(
-        f"<li><code>{escape(str(p.get('pattern_id', '?')))}</code> "
-        f"| type={escape(str(p.get('pattern_type', '-')))} "
-        f"| risk={escape(str(p.get('risk_profile', '-')))} "
-        f"| confidence={escape(str(p.get('confidence_level', '-')))} "
-        f"| title={escape(str(p.get('title', '-')))}</li>"
-        for p in known[:6]
-      )
+        items = "".join(
+            f"<li><code>{escape(str(p.get('pattern_id', '?')))}</code> "
+            f"| type={escape(str(p.get('pattern_type', '-')))} "
+            f"| risk={escape(str(p.get('risk_profile', '-')))} "
+            f"| confidence={escape(str(p.get('confidence_level', '-')))} "
+            f"| title={escape(str(p.get('title', '-')))}</li>"
+            for p in known[:6]
+        )
     else:
-      items = '<li class="muted">No known patterns yet.</li>'
+        items = '<li class="muted">No known patterns yet.</li>'
     lines.append(f"<li>Known patterns (top 6):<ul>{items}</ul></li>")
 
     if recurring:
-      items = "".join(
-        f"<li>{escape(str(r.get('pattern_type', '-')))} "
-        f"| {escape(str(r.get('title', '-')))} "
-        f"| risk={escape(str(r.get('risk_profile', '-')))}</li>"
-        for r in recurring[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('pattern_type', '-')))} "
+            f"| {escape(str(r.get('title', '-')))} "
+            f"| risk={escape(str(r.get('risk_profile', '-')))}</li>"
+            for r in recurring[:6]
+        )
     else:
-      items = '<li class="muted">No recurring case types detected.</li>'
+        items = '<li class="muted">No recurring case types detected.</li>'
     lines.append(f"<li>Recurring case types (top 6):<ul>{items}</ul></li>")
 
     if matches:
-      items = "".join(
-        f"<li>{escape(str(m.get('scope_type', '-')))}:{escape(str(m.get('scope_id', '-')))} "
-        f"| pattern=<code>{escape(str(m.get('pattern_id', '-')))}</code> "
-        f"| score={escape(str(m.get('match_score', 0.0)))} "
-        f"| confidence={escape(str(m.get('confidence_level', '-')))}</li>"
-        for m in matches[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(m.get('scope_type', '-')))}:{escape(str(m.get('scope_id', '-')))} "
+            f"| pattern=<code>{escape(str(m.get('pattern_id', '-')))}</code> "
+            f"| score={escape(str(m.get('match_score', 0.0)))} "
+            f"| confidence={escape(str(m.get('confidence_level', '-')))}</li>"
+            for m in matches[:6]
+        )
     else:
-      items = '<li class="muted">No likely matches for current scopes.</li>'
+        items = '<li class="muted">No likely matches for current scopes.</li>'
     lines.append(f"<li>Likely matches (top 6):<ul>{items}</ul></li>")
 
     if guidance:
-      items = "".join(f"<li>{escape(str(g))}</li>" for g in guidance[:6])
+        items = "".join(f"<li>{escape(str(g))}</li>" for g in guidance[:6])
     else:
-      items = '<li class="muted">No pattern-based guidance yet.</li>'
+        items = '<li class="muted">No pattern-based guidance yet.</li>'
     lines.append(f"<li>Pattern-based guidance:<ul>{items}</ul></li>")
 
     return f"<ul>{''.join(lines)}</ul>"
@@ -964,7 +1009,7 @@ def render_operator_pattern_library_panel(summary: dict) -> str:
 def render_operator_escalation_package_panel(summary: dict) -> str:
     """Render compact escalation package / transmission panel."""
     if not summary:
-      return '<ul><li class="muted">Aucun package d\'escalade disponible.</li></ul>'
+        return '<ul><li class="muted">Aucun package d\'escalade disponible.</li></ul>'
 
     packages = summary.get("escalation_packages", [])
     ready = summary.get("ready_to_escalate", [])
@@ -973,56 +1018,56 @@ def render_operator_escalation_package_panel(summary: dict) -> str:
     recent = summary.get("recent_escalations", [])
 
     lines = [
-      f"<li>Escalation packages: <strong>{escape(str(len(packages)))}</strong> "
-      f"| ready to escalate: <strong>{escape(str(len(ready)))}</strong> "
-      f"| specialist review needed: <strong>{escape(str(len(specialist)))}</strong> "
-      f"| high-risk open items: <strong>{escape(str(len(high_risk)))}</strong></li>"
+        f"<li>Escalation packages: <strong>{escape(str(len(packages)))}</strong> "
+        f"| ready to escalate: <strong>{escape(str(len(ready)))}</strong> "
+        f"| specialist review needed: <strong>{escape(str(len(specialist)))}</strong> "
+        f"| high-risk open items: <strong>{escape(str(len(high_risk)))}</strong></li>"
     ]
 
     if packages:
-      items = "".join(
-        f"<li><code>{escape(str(p.get('escalation_id', '?')))}</code> "
-        f"| {escape(str(p.get('scope_type', '-')))}:{escape(str(p.get('scope_id', '-')))} "
-        f"| reason=<strong>{escape(str(p.get('escalation_reason', '-')))}</strong> "
-        f"| priority={escape(str(p.get('priority', '-')))} "
-        f"| owner={escape(str(p.get('recommended_next_owner', '-')))}</li>"
-        for p in packages[:6]
-      )
+        items = "".join(
+            f"<li><code>{escape(str(p.get('escalation_id', '?')))}</code> "
+            f"| {escape(str(p.get('scope_type', '-')))}:{escape(str(p.get('scope_id', '-')))} "
+            f"| reason=<strong>{escape(str(p.get('escalation_reason', '-')))}</strong> "
+            f"| priority={escape(str(p.get('priority', '-')))} "
+            f"| owner={escape(str(p.get('recommended_next_owner', '-')))}</li>"
+            for p in packages[:6]
+        )
     else:
-      items = '<li class="muted">No escalation packages.</li>'
+        items = '<li class="muted">No escalation packages.</li>'
     lines.append(f"<li>Escalation packages (top 6):<ul>{items}</ul></li>")
 
     if specialist:
-      items = "".join(
-        f"<li>{escape(str(p.get('scope_type', '-')))}:{escape(str(p.get('scope_id', '-')))} "
-        f"| owner={escape(str(p.get('recommended_next_owner', '-')))} "
-        f"| reason={escape(str(p.get('escalation_reason', '-')))}</li>"
-        for p in specialist[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(p.get('scope_type', '-')))}:{escape(str(p.get('scope_id', '-')))} "
+            f"| owner={escape(str(p.get('recommended_next_owner', '-')))} "
+            f"| reason={escape(str(p.get('escalation_reason', '-')))}</li>"
+            for p in specialist[:6]
+        )
     else:
-      items = '<li class="muted">No specialist review needed.</li>'
+        items = '<li class="muted">No specialist review needed.</li>'
     lines.append(f"<li>Specialist review needed (top 6):<ul>{items}</ul></li>")
 
     if high_risk:
-      items = "".join(
-        f"<li>{escape(str(p.get('scope_type', '-')))}:{escape(str(p.get('scope_id', '-')))} "
-        f"| priority={escape(str(p.get('priority', '-')))} "
-        f"| open_risks={escape(', '.join([str(x) for x in p.get('open_risks', [])]) or '-')}</li>"
-        for p in high_risk[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(p.get('scope_type', '-')))}:{escape(str(p.get('scope_id', '-')))} "
+            f"| priority={escape(str(p.get('priority', '-')))} "
+            f"| open_risks={escape(', '.join([str(x) for x in p.get('open_risks', [])]) or '-')}</li>"
+            for p in high_risk[:6]
+        )
     else:
-      items = '<li class="muted">No high-risk open items.</li>'
+        items = '<li class="muted">No high-risk open items.</li>'
     lines.append(f"<li>High-risk open items (top 6):<ul>{items}</ul></li>")
 
     if recent:
-      items = "".join(
-        f"<li><code>{escape(str(p.get('escalation_id', '?')))}</code> "
-        f"| created={escape(str(p.get('created_at', '-')))} "
-        f"| reason={escape(str(p.get('escalation_reason', '-')))}</li>"
-        for p in recent[:6]
-      )
+        items = "".join(
+            f"<li><code>{escape(str(p.get('escalation_id', '?')))}</code> "
+            f"| created={escape(str(p.get('created_at', '-')))} "
+            f"| reason={escape(str(p.get('escalation_reason', '-')))}</li>"
+            for p in recent[:6]
+        )
     else:
-      items = '<li class="muted">No recent escalations.</li>'
+        items = '<li class="muted">No recent escalations.</li>'
     lines.append(f"<li>Recent escalations (top 6):<ul>{items}</ul></li>")
 
     return f"<ul>{''.join(lines)}</ul>"
@@ -1031,7 +1076,7 @@ def render_operator_escalation_package_panel(summary: dict) -> str:
 def render_operator_escalation_feedback_panel(summary: dict) -> str:
     """Render compact escalation feedback / specialist return panel."""
     if not summary:
-      return '<ul><li class="muted">Aucun feedback d\'escalade disponible.</li></ul>'
+        return '<ul><li class="muted">Aucun feedback d\'escalade disponible.</li></ul>'
 
     feedback = summary.get("escalation_feedback", [])
     followup = summary.get("returned_for_followup", [])
@@ -1040,64 +1085,64 @@ def render_operator_escalation_feedback_panel(summary: dict) -> str:
     needs_data = summary.get("needs_more_data", [])
 
     lines = [
-      f"<li>Escalation feedback: <strong>{escape(str(len(feedback)))}</strong> "
-      f"| returned for follow-up: <strong>{escape(str(len(followup)))}</strong> "
-      f"| ready to close: <strong>{escape(str(len(ready_close)))}</strong> "
-      f"| needs more data: <strong>{escape(str(len(needs_data)))}</strong></li>"
+        f"<li>Escalation feedback: <strong>{escape(str(len(feedback)))}</strong> "
+        f"| returned for follow-up: <strong>{escape(str(len(followup)))}</strong> "
+        f"| ready to close: <strong>{escape(str(len(ready_close)))}</strong> "
+        f"| needs more data: <strong>{escape(str(len(needs_data)))}</strong></li>"
     ]
 
     if feedback:
-      items = "".join(
-        f"<li><code>{escape(str(r.get('feedback_id', '?')))}</code> "
-        f"| esc=<code>{escape(str(r.get('escalation_id', '-')))}</code> "
-        f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| result=<strong>{escape(str(r.get('review_result', '-')))}</strong></li>"
-        for r in feedback[:6]
-      )
+        items = "".join(
+            f"<li><code>{escape(str(r.get('feedback_id', '?')))}</code> "
+            f"| esc=<code>{escape(str(r.get('escalation_id', '-')))}</code> "
+            f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| result=<strong>{escape(str(r.get('review_result', '-')))}</strong></li>"
+            for r in feedback[:6]
+        )
     else:
-      items = '<li class="muted">No escalation feedback available.</li>'
+        items = '<li class="muted">No escalation feedback available.</li>'
     lines.append(f"<li>Escalation feedback (top 6):<ul>{items}</ul></li>")
 
     if decisions:
-      items = "".join(
-        f"<li>{escape(str(d.get('scope_type', '-')))}:{escape(str(d.get('scope_id', '-')))} "
-        f"| result={escape(str(d.get('review_result', '-')))} "
-        f"| {escape(str(d.get('decision_summary', '-')))}</li>"
-        for d in decisions[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(d.get('scope_type', '-')))}:{escape(str(d.get('scope_id', '-')))} "
+            f"| result={escape(str(d.get('review_result', '-')))} "
+            f"| {escape(str(d.get('decision_summary', '-')))}</li>"
+            for d in decisions[:6]
+        )
     else:
-      items = '<li class="muted">No specialist decisions.</li>'
+        items = '<li class="muted">No specialist decisions.</li>'
     lines.append(f"<li>Specialist decisions (top 6):<ul>{items}</ul></li>")
 
     if followup:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| return_state={escape(str(r.get('return_queue_state', '-')))} "
-        f"| followup={escape(', '.join([str(x) for x in r.get('requested_followup', [])]) or '-')}</li>"
-        for r in followup[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| return_state={escape(str(r.get('return_queue_state', '-')))} "
+            f"| followup={escape(', '.join([str(x) for x in r.get('requested_followup', [])]) or '-')}</li>"
+            for r in followup[:6]
+        )
     else:
-      items = '<li class="muted">No returned-for-follow-up entries.</li>'
+        items = '<li class="muted">No returned-for-follow-up entries.</li>'
     lines.append(f"<li>Returned for follow-up (top 6):<ul>{items}</ul></li>")
 
     if ready_close:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| recommendation={escape(str(r.get('closure_recommendation', '-')))}</li>"
-        for r in ready_close[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| recommendation={escape(str(r.get('closure_recommendation', '-')))}</li>"
+            for r in ready_close[:6]
+        )
     else:
-      items = '<li class="muted">No items ready to close.</li>'
+        items = '<li class="muted">No items ready to close.</li>'
     lines.append(f"<li>Ready to close (top 6):<ul>{items}</ul></li>")
 
     if needs_data:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| notes={escape(str(r.get('specialist_notes', '-')))}</li>"
-        for r in needs_data[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| notes={escape(str(r.get('specialist_notes', '-')))}</li>"
+            for r in needs_data[:6]
+        )
     else:
-      items = '<li class="muted">No items requiring more data.</li>'
+        items = '<li class="muted">No items requiring more data.</li>'
     lines.append(f"<li>Needs more data (top 6):<ul>{items}</ul></li>")
 
     return f"<ul>{''.join(lines)}</ul>"
@@ -1106,7 +1151,7 @@ def render_operator_escalation_feedback_panel(summary: dict) -> str:
 def render_operator_closure_package_panel(summary: dict) -> str:
     """Render compact operator closure package / final resolution panel."""
     if not summary:
-      return '<ul><li class="muted">Aucun package de clôture disponible.</li></ul>'
+        return '<ul><li class="muted">Aucun package de clôture disponible.</li></ul>'
 
     packages = summary.get("closure_packages", [])
     recently_closed = summary.get("recently_closed", [])
@@ -1115,60 +1160,60 @@ def render_operator_closure_package_panel(summary: dict) -> str:
     followup = summary.get("followup_still_needed", [])
 
     lines = [
-      f"<li>Closure packages: <strong>{escape(str(len(packages)))}</strong> "
-      f"| recently closed: <strong>{escape(str(len(recently_closed)))}</strong> "
-      f"| closed after escalation: <strong>{escape(str(len(closed_after_esc)))}</strong></li>"
+        f"<li>Closure packages: <strong>{escape(str(len(packages)))}</strong> "
+        f"| recently closed: <strong>{escape(str(len(recently_closed)))}</strong> "
+        f"| closed after escalation: <strong>{escape(str(len(closed_after_esc)))}</strong></li>"
     ]
 
     if packages:
-      items = "".join(
-        f"<li><code>{escape(str(r.get('closure_id', '?')))}</code> "
-        f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| disposition=<strong>{escape(str(r.get('final_disposition', '-')))}</strong> "
-        f"| risk={escape(str(r.get('final_risk_level', '-')))} "
-        f"| followup={escape(str(r.get('followup_mode', '-')))}</li>"
-        for r in packages[:6]
-      )
+        items = "".join(
+            f"<li><code>{escape(str(r.get('closure_id', '?')))}</code> "
+            f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| disposition=<strong>{escape(str(r.get('final_disposition', '-')))}</strong> "
+            f"| risk={escape(str(r.get('final_risk_level', '-')))} "
+            f"| followup={escape(str(r.get('followup_mode', '-')))}</li>"
+            for r in packages[:6]
+        )
     else:
-      items = '<li class="muted">No closure packages.</li>'
+        items = '<li class="muted">No closure packages.</li>'
     lines.append(f"<li>Closure packages (top 6):<ul>{items}</ul></li>")
 
     if recently_closed:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| closed_at={escape(str(r.get('closed_at', '-')))} "
-        f"| archive={escape(str(r.get('archive_recommendation', '-')))}</li>"
-        for r in recently_closed[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| closed_at={escape(str(r.get('closed_at', '-')))} "
+            f"| archive={escape(str(r.get('archive_recommendation', '-')))}</li>"
+            for r in recently_closed[:6]
+        )
     else:
-      items = '<li class="muted">No recently closed scopes.</li>'
+        items = '<li class="muted">No recently closed scopes.</li>'
     lines.append(f"<li>Recently closed (top 6):<ul>{items}</ul></li>")
 
     lines.append(
-      f"<li>Resolved vs false positive: "
-      f"resolved=<strong>{escape(str(resolved_fp.get('resolved', 0)))}</strong> "
-      f"| false_positive=<strong>{escape(str(resolved_fp.get('false_positive', 0)))}</strong></li>"
+        f"<li>Resolved vs false positive: "
+        f"resolved=<strong>{escape(str(resolved_fp.get('resolved', 0)))}</strong> "
+        f"| false_positive=<strong>{escape(str(resolved_fp.get('false_positive', 0)))}</strong></li>"
     )
 
     if closed_after_esc:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| summary={escape(str(r.get('resolution_summary', '-')))}</li>"
-        for r in closed_after_esc[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| summary={escape(str(r.get('resolution_summary', '-')))}</li>"
+            for r in closed_after_esc[:6]
+        )
     else:
-      items = '<li class="muted">No closures after escalation.</li>'
+        items = '<li class="muted">No closures after escalation.</li>'
     lines.append(f"<li>Closed after escalation (top 6):<ul>{items}</ul></li>")
 
     if followup:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| followup={escape(str(r.get('followup_mode', '-')))} "
-        f"| risk={escape(str(r.get('final_risk_level', '-')))}</li>"
-        for r in followup[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| followup={escape(str(r.get('followup_mode', '-')))} "
+            f"| risk={escape(str(r.get('final_risk_level', '-')))}</li>"
+            for r in followup[:6]
+        )
     else:
-      items = '<li class="muted">No follow-up still needed.</li>'
+        items = '<li class="muted">No follow-up still needed.</li>'
     lines.append(f"<li>Follow-up still needed (top 6):<ul>{items}</ul></li>")
 
     return f"<ul>{''.join(lines)}</ul>"
@@ -1177,7 +1222,7 @@ def render_operator_closure_package_panel(summary: dict) -> str:
 def render_operator_post_closure_monitoring_policy_panel(summary: dict) -> str:
     """Render compact operator post-closure monitoring policy / recurrence watch panel."""
     if not summary:
-      return '<ul><li class="muted">Aucune politique de monitoring post-clôture disponible.</li></ul>'
+        return '<ul><li class="muted">Aucune politique de monitoring post-clôture disponible.</li></ul>'
 
     policies = summary.get("monitoring_policies", [])
     watch_recurrence = summary.get("watch_for_recurrence", [])
@@ -1186,65 +1231,65 @@ def render_operator_post_closure_monitoring_policy_panel(summary: dict) -> str:
     reopen_triggers = summary.get("recent_reopen_triggers", [])
 
     lines = [
-      f"<li>Monitoring policies: <strong>{escape(str(len(policies)))}</strong> "
-      f"| watch_for_recurrence: <strong>{escape(str(len(watch_recurrence)))}</strong> "
-      f"| scheduled_rechecks: <strong>{escape(str(len(scheduled)))}</strong></li>"
+        f"<li>Monitoring policies: <strong>{escape(str(len(policies)))}</strong> "
+        f"| watch_for_recurrence: <strong>{escape(str(len(watch_recurrence)))}</strong> "
+        f"| scheduled_rechecks: <strong>{escape(str(len(scheduled)))}</strong></li>"
     ]
 
     if policies:
-      items = "".join(
-        f"<li><code>{escape(str(r.get('policy_id', '?')))}</code> "
-        f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| mode=<strong>{escape(str(r.get('monitoring_mode', '-')))}</strong> "
-        f"| review_window={escape(str(r.get('review_window', '-')))} "
-        f"| priority={escape(str(r.get('priority_after_closure', '-')))}</li>"
-        for r in policies[:6]
-      )
+        items = "".join(
+            f"<li><code>{escape(str(r.get('policy_id', '?')))}</code> "
+            f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| mode=<strong>{escape(str(r.get('monitoring_mode', '-')))}</strong> "
+            f"| review_window={escape(str(r.get('review_window', '-')))} "
+            f"| priority={escape(str(r.get('priority_after_closure', '-')))}</li>"
+            for r in policies[:6]
+        )
     else:
-      items = '<li class="muted">No monitoring policies.</li>'
+        items = '<li class="muted">No monitoring policies.</li>'
     lines.append(f"<li>Post-closure monitoring (top 6):<ul>{items}</ul></li>")
 
     if watch_recurrence:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| reason={escape(str(r.get('monitoring_reason', '-')[:40]))} "
-        f"| watch_signals={escape(str(len(r.get('watch_signals', []))))}</li>"
-        for r in watch_recurrence[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| reason={escape(str(r.get('monitoring_reason', '-')[:40]))} "
+            f"| watch_signals={escape(str(len(r.get('watch_signals', []))))}</li>"
+            for r in watch_recurrence[:6]
+        )
     else:
-      items = '<li class="muted">No watch_for_recurrence policies.</li>'
+        items = '<li class="muted">No watch_for_recurrence policies.</li>'
     lines.append(f"<li>Watch for recurrence (top 6):<ul>{items}</ul></li>")
 
     if scheduled:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| window={escape(str(r.get('review_window', '-')))} "
-        f"| priority={escape(str(r.get('priority_after_closure', '-')))}</li>"
-        for r in scheduled[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| window={escape(str(r.get('review_window', '-')))} "
+            f"| priority={escape(str(r.get('priority_after_closure', '-')))}</li>"
+            for r in scheduled[:6]
+        )
     else:
-      items = '<li class="muted">No scheduled rechecks.</li>'
+        items = '<li class="muted">No scheduled rechecks.</li>'
     lines.append(f"<li>Scheduled rechecks (top 6):<ul>{items}</ul></li>")
 
     if high_attention:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| reason={escape(str(r.get('monitoring_reason', '-')[:40]))} "
-        f"| triggers={escape(str(len(r.get('reopen_triggers', []))))}</li>"
-        for r in high_attention[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| reason={escape(str(r.get('monitoring_reason', '-')[:40]))} "
+            f"| triggers={escape(str(len(r.get('reopen_triggers', []))))}</li>"
+            for r in high_attention[:6]
+        )
     else:
-      items = '<li class="muted">No high attention policies.</li>'
+        items = '<li class="muted">No high attention policies.</li>'
     lines.append(f"<li>High attention after closure (top 6):<ul>{items}</ul></li>")
 
     if reopen_triggers:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| triggers={escape(str('|'.join(r.get('reopen_triggers', [])[:3])))}</li>"
-        for r in reopen_triggers[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| triggers={escape(str('|'.join(r.get('reopen_triggers', [])[:3])))}</li>"
+            for r in reopen_triggers[:6]
+        )
     else:
-      items = '<li class="muted">No recent reopen triggers.</li>'
+        items = '<li class="muted">No recent reopen triggers.</li>'
     lines.append(f"<li>Recent reopen triggers (top 6):<ul>{items}</ul></li>")
 
     return f"<ul>{''.join(lines)}</ul>"
@@ -1253,7 +1298,9 @@ def render_operator_post_closure_monitoring_policy_panel(summary: dict) -> str:
 def render_operator_reopen_policy_panel(summary: dict) -> str:
     """Render compact operator controlled reopen policy panel."""
     if not summary:
-      return '<ul><li class="muted">Aucune réouverture contrôlée disponible.</li></ul>'
+        return (
+            '<ul><li class="muted">Aucune réouverture contrôlée disponible.</li></ul>'
+        )
 
     records = summary.get("reopen_records", [])
     reopened_cases = summary.get("reopened_cases", [])
@@ -1263,73 +1310,73 @@ def render_operator_reopen_policy_panel(summary: dict) -> str:
     high_priority = summary.get("high_priority_reopens", [])
 
     lines = [
-      f"<li>Reopen records: <strong>{escape(str(len(records)))}</strong> "
-      f"| reopened cases: <strong>{escape(str(len(reopened_cases)))}</strong> "
-      f"| returned to queue: <strong>{escape(str(len(returned_to_queue)))}</strong></li>"
+        f"<li>Reopen records: <strong>{escape(str(len(records)))}</strong> "
+        f"| reopened cases: <strong>{escape(str(len(reopened_cases)))}</strong> "
+        f"| returned to queue: <strong>{escape(str(len(returned_to_queue)))}</strong></li>"
     ]
 
     if records:
-      items = "".join(
-        f"<li><code>{escape(str(r.get('reopen_id', '?')))}</code> "
-        f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| trigger=<strong>{escape(str(r.get('trigger_type', '-')))}</strong> "
-        f"| priority={escape(str(r.get('reopen_priority', '-')))} "
-        f"| queue={escape(str(r.get('target_queue_state', '-')))}</li>"
-        for r in records[:6]
-      )
+        items = "".join(
+            f"<li><code>{escape(str(r.get('reopen_id', '?')))}</code> "
+            f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| trigger=<strong>{escape(str(r.get('trigger_type', '-')))}</strong> "
+            f"| priority={escape(str(r.get('reopen_priority', '-')))} "
+            f"| queue={escape(str(r.get('target_queue_state', '-')))}</li>"
+            for r in records[:6]
+        )
     else:
-      items = '<li class="muted">No reopen records.</li>'
+        items = '<li class="muted">No reopen records.</li>'
     lines.append(f"<li>Reopen records (top 6):<ul>{items}</ul></li>")
 
     if reopened_cases:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| reason={escape(str(r.get('reopen_reason', '-')[:64]))}</li>"
-        for r in reopened_cases[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| reason={escape(str(r.get('reopen_reason', '-')[:64]))}</li>"
+            for r in reopened_cases[:6]
+        )
     else:
-      items = '<li class="muted">No reopened cases.</li>'
+        items = '<li class="muted">No reopened cases.</li>'
     lines.append(f"<li>Reopened cases (top 6):<ul>{items}</ul></li>")
 
     if recent_triggers:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| {escape(str(r.get('trigger_type', '-')))} "
-        f"| {escape(str(r.get('trigger_summary', '-')[:80]))}</li>"
-        for r in recent_triggers[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| {escape(str(r.get('trigger_type', '-')))} "
+            f"| {escape(str(r.get('trigger_summary', '-')[:80]))}</li>"
+            for r in recent_triggers[:6]
+        )
     else:
-      items = '<li class="muted">No recent reopen triggers.</li>'
+        items = '<li class="muted">No recent reopen triggers.</li>'
     lines.append(f"<li>Recent reopen triggers (top 6):<ul>{items}</ul></li>")
 
     if returned_to_queue:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| target={escape(str(r.get('target_queue_state', '-')))}</li>"
-        for r in returned_to_queue[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| target={escape(str(r.get('target_queue_state', '-')))}</li>"
+            for r in returned_to_queue[:6]
+        )
     else:
-      items = '<li class="muted">No return-to-queue actions.</li>'
+        items = '<li class="muted">No return-to-queue actions.</li>'
     lines.append(f"<li>Returned to queue (top 6):<ul>{items}</ul></li>")
 
     if repeated_reopeners:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| reopen_count={escape(str(r.get('reopen_count', 1)))}</li>"
-        for r in repeated_reopeners[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| reopen_count={escape(str(r.get('reopen_count', 1)))}</li>"
+            for r in repeated_reopeners[:6]
+        )
     else:
-      items = '<li class="muted">No repeated reopeners.</li>'
+        items = '<li class="muted">No repeated reopeners.</li>'
     lines.append(f"<li>Repeated reopeners (top 6):<ul>{items}</ul></li>")
 
     if high_priority:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| priority=<strong>{escape(str(r.get('reopen_priority', '-')).upper())}</strong></li>"
-        for r in high_priority[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| priority=<strong>{escape(str(r.get('reopen_priority', '-')).upper())}</strong></li>"
+            for r in high_priority[:6]
+        )
     else:
-      items = '<li class="muted">No high priority reopens.</li>'
+        items = '<li class="muted">No high priority reopens.</li>'
     lines.append(f"<li>High priority reopens (top 6):<ul>{items}</ul></li>")
 
     return f"<ul>{''.join(lines)}</ul>"
@@ -1338,7 +1385,9 @@ def render_operator_reopen_policy_panel(summary: dict) -> str:
 def render_operator_lifecycle_lineage_panel(summary: dict) -> str:
     """Render compact lifecycle lineage / multi-cycle history panel."""
     if not summary:
-      return '<ul><li class="muted">Aucune lignée de cycle de vie disponible.</li></ul>'
+        return (
+            '<ul><li class="muted">Aucune lignée de cycle de vie disponible.</li></ul>'
+        )
 
     lineage = summary.get("lifecycle_lineage", [])
     repeated = summary.get("repeated_reopeners", [])
@@ -1347,70 +1396,70 @@ def render_operator_lifecycle_lineage_panel(summary: dict) -> str:
     stabilized = summary.get("stabilized_after_reopen", [])
 
     lines = [
-      f"<li>Lifecycle lineage: <strong>{escape(str(len(lineage)))}</strong> "
-      f"| repeated reopeners: <strong>{escape(str(len(repeated)))}</strong> "
-      f"| recurring triggers: <strong>{escape(str(len(triggers)))}</strong> "
-      f"| multi-cycle cases: <strong>{escape(str(len(multi_cycle)))}</strong> "
-      f"| stabilized after reopen: <strong>{escape(str(len(stabilized)))}</strong></li>"
+        f"<li>Lifecycle lineage: <strong>{escape(str(len(lineage)))}</strong> "
+        f"| repeated reopeners: <strong>{escape(str(len(repeated)))}</strong> "
+        f"| recurring triggers: <strong>{escape(str(len(triggers)))}</strong> "
+        f"| multi-cycle cases: <strong>{escape(str(len(multi_cycle)))}</strong> "
+        f"| stabilized after reopen: <strong>{escape(str(len(stabilized)))}</strong></li>"
     ]
 
     if lineage:
-      items = "".join(
-        f"<li><code>{escape(str(r.get('lineage_id', '?')))}</code> "
-        f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| cycles=<strong>{escape(str(r.get('cycle_count', 1)))}</strong> "
-        f"| opened={escape(str(r.get('opened_count', 0)))} "
-        f"| reopened={escape(str(r.get('reopened_count', 0)))} "
-        f"| closures={escape(str(r.get('closure_count', 0)))} "
-        f"| escalations={escape(str(r.get('escalation_count', 0)))}</li>"
-        for r in lineage[:6]
-      )
+        items = "".join(
+            f"<li><code>{escape(str(r.get('lineage_id', '?')))}</code> "
+            f"| {escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| cycles=<strong>{escape(str(r.get('cycle_count', 1)))}</strong> "
+            f"| opened={escape(str(r.get('opened_count', 0)))} "
+            f"| reopened={escape(str(r.get('reopened_count', 0)))} "
+            f"| closures={escape(str(r.get('closure_count', 0)))} "
+            f"| escalations={escape(str(r.get('escalation_count', 0)))}</li>"
+            for r in lineage[:6]
+        )
     else:
-      items = '<li class="muted">No lifecycle lineage records.</li>'
+        items = '<li class="muted">No lifecycle lineage records.</li>'
     lines.append(f"<li>Lifecycle lineage (top 6):<ul>{items}</ul></li>")
 
     if repeated:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| reopened={escape(str(r.get('reopened_count', 0)))} "
-        f"| last_trigger={escape(str(r.get('last_trigger_type', 'none')))}</li>"
-        for r in repeated[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| reopened={escape(str(r.get('reopened_count', 0)))} "
+            f"| last_trigger={escape(str(r.get('last_trigger_type', 'none')))}</li>"
+            for r in repeated[:6]
+        )
     else:
-      items = '<li class="muted">No repeated reopeners.</li>'
+        items = '<li class="muted">No repeated reopeners.</li>'
     lines.append(f"<li>Repeated reopeners (top 6):<ul>{items}</ul></li>")
 
     if triggers:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| trigger={escape(str(r.get('last_trigger_type', 'none')))} "
-        f"| reopened={escape(str(r.get('reopened_count', 0)))}</li>"
-        for r in triggers[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| trigger={escape(str(r.get('last_trigger_type', 'none')))} "
+            f"| reopened={escape(str(r.get('reopened_count', 0)))}</li>"
+            for r in triggers[:6]
+        )
     else:
-      items = '<li class="muted">No recurring triggers.</li>'
+        items = '<li class="muted">No recurring triggers.</li>'
     lines.append(f"<li>Recurring triggers (top 6):<ul>{items}</ul></li>")
 
     if multi_cycle:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| cycles={escape(str(r.get('cycle_count', 1)))} "
-        f"| timeline={escape(str(r.get('timeline_summary', '-')))}</li>"
-        for r in multi_cycle[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| cycles={escape(str(r.get('cycle_count', 1)))} "
+            f"| timeline={escape(str(r.get('timeline_summary', '-')))}</li>"
+            for r in multi_cycle[:6]
+        )
     else:
-      items = '<li class="muted">No multi-cycle cases.</li>'
+        items = '<li class="muted">No multi-cycle cases.</li>'
     lines.append(f"<li>Multi-cycle cases (top 6):<ul>{items}</ul></li>")
 
     if stabilized:
-      items = "".join(
-        f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
-        f"| state={escape(str(r.get('current_lifecycle_state', '-')))} "
-        f"| updated={escape(str(r.get('updated_at', '-')))}</li>"
-        for r in stabilized[:6]
-      )
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| state={escape(str(r.get('current_lifecycle_state', '-')))} "
+            f"| updated={escape(str(r.get('updated_at', '-')))}</li>"
+            for r in stabilized[:6]
+        )
     else:
-      items = '<li class="muted">No scopes stabilized after reopen.</li>'
+        items = '<li class="muted">No scopes stabilized after reopen.</li>'
     lines.append(f"<li>Stabilized after reopen (top 6):<ul>{items}</ul></li>")
 
     return f"<ul>{''.join(lines)}</ul>"
@@ -1777,6 +1826,12 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     elif guidance == "investigate":
         review_burden = "high"
 
+    documentation_mode = "standard"
+    if guidance == "keep":
+        documentation_mode = "compact"
+    elif guidance == "investigate":
+        documentation_mode = "expanded"
+
     lines = [
         f"<li>Learned patterns: <strong>{escape(str(len(learning)))}</strong> | "
         f"high-value=<strong>{escape(str(len(high_value)))}</strong> | "
@@ -1800,6 +1855,7 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
         f"<li>Trace mode: <strong>{escape(trace_mode)}</strong></li>",
         f"<li>Audit readiness: <strong>{escape(audit_readiness)}</strong></li>",
         f"<li>Review burden: <strong>{escape(review_burden)}</strong></li>",
+        f"<li>Documentation mode: <strong>{escape(documentation_mode)}</strong></li>",
         f"<li>Latest pattern: {latest_scope} | pattern={latest_pattern} | "
         f"confidence={latest_conf} | reuse={latest_reuse}</li>",
     ]
@@ -1821,7 +1877,9 @@ def render_watch_cases_panel(watch_cases: dict) -> str:
     if not watch_cases:
         return '<ul><li class="muted">Aucun cas enregistré (history/cases.json vide).</li></ul>'
 
-    rows = sorted(watch_cases.values(), key=lambda r: r.get("updated_at", ""), reverse=True)[:10]
+    rows = sorted(
+        watch_cases.values(), key=lambda r: r.get("updated_at", ""), reverse=True
+    )[:10]
     items = "".join(
         f"<li><code>{escape(str(r.get('address', '?')))}</code> | "
         f"status=<strong>{escape(str(r.get('status', 'watch')))}</strong> | "
@@ -1846,7 +1904,7 @@ def render_session_movement_panel(movement: dict) -> str:
     new_devs = movement.get("new", [])[:5]
     if new_devs:
         items = "".join(
-            f"<li class=\"new-device\">{escape(str(d.get('name', 'Inconnu')))} "
+            f'<li class="new-device">{escape(str(d.get("name", "Inconnu")))} '
             f"| <code>{escape(str(d.get('address', '?')).upper())}</code></li>"
             for d in new_devs
         )
@@ -1855,7 +1913,7 @@ def render_session_movement_panel(movement: dict) -> str:
     gone_devs = movement.get("disappeared", [])[:5]
     if gone_devs:
         items = "".join(
-            f"<li class=\"muted\">{escape(str(d.get('name', 'Inconnu')))} "
+            f'<li class="muted">{escape(str(d.get("name", "Inconnu")))} '
             f"| <code>{escape(str(d.get('address', '?')).upper())}</code></li>"
             for d in gone_devs
         )
@@ -1866,13 +1924,19 @@ def render_session_movement_panel(movement: dict) -> str:
         items = "".join(
             f"<li>{escape(str(sc['name']))} | <code>{escape(sc['address'])}</code> "
             f"| score {sc['prev_score']} → {sc['curr_score']} "
-            f"({'<span style=\"color:var(--green)\">+' + str(sc['delta']) + '</span>' if sc['delta'] > 0 else '<span style=\"color:var(--red)\">' + str(sc['delta']) + '</span>'})</li>"
+            f"({'<span style="color:var(--green)">+' + str(sc['delta']) + '</span>' if sc['delta'] > 0 else '<span style="color:var(--red)">' + str(sc['delta']) + '</span>'})</li>"
             for sc in score_changes
         )
         lines.append(f"<li>Score changes (top 5) : <ul>{items}</ul></li>")
 
-    if not any([new_devs, gone_devs, score_changes]) and counts.get("new", 0) == 0 and counts.get("disappeared", 0) == 0:
-        lines.append('<li class="muted">Aucun mouvement détecté vs scan précédent.</li>')
+    if (
+        not any([new_devs, gone_devs, score_changes])
+        and counts.get("new", 0) == 0
+        and counts.get("disappeared", 0) == 0
+    ):
+        lines.append(
+            '<li class="muted">Aucun mouvement détecté vs scan précédent.</li>'
+        )
 
     return f"<ul>{''.join(lines)}</ul>"
 
@@ -1909,9 +1973,9 @@ def render_dashboard_html(devices, stamp: str) -> str:
     )
     focus_address = ""
     if triage_results:
-      focus_address = str(triage_results[0].get("address", "")).strip().upper()
+        focus_address = str(triage_results[0].get("address", "")).strip().upper()
     elif devices:
-      focus_address = str(devices[0].get("address", "")).strip().upper()
+        focus_address = str(devices[0].get("address", "")).strip().upper()
 
     investigation_profile = None
     if focus_address:
@@ -1931,656 +1995,692 @@ def render_dashboard_html(devices, stamp: str) -> str:
     operator_timeline = {"events": []}
     recent_operator_events = []
     if focus_address:
-      try:
-        operator_timeline = build_operator_timeline(
-          focus_address,
-          registry=registry,
-          movement=movement,
-          triage_results=triage_results,
-        )
-        recent_operator_events = recent_timeline_events(operator_timeline, limit=8)
-      except Exception:
-        operator_timeline = {"events": []}
-        recent_operator_events = []
+        try:
+            operator_timeline = build_operator_timeline(
+                focus_address,
+                registry=registry,
+                movement=movement,
+                triage_results=triage_results,
+            )
+            recent_operator_events = recent_timeline_events(operator_timeline, limit=8)
+        except Exception:
+            operator_timeline = {"events": []}
+            recent_operator_events = []
 
     operator_playbook_recommendations = []
     if focus_address:
-      triage_row = None
-      for row in triage_results:
-        if str(row.get("address", "")).strip().upper() == focus_address:
-          triage_row = row
-          break
-      try:
-        focus_rec = recommend_operator_playbook(
-          focus_address,
-          triage_row=triage_row,
-          investigation_profile=investigation_profile,
-          case_record=watch_cases.get(focus_address, {}),
-          timeline_events=operator_timeline.get("events", []),
-        )
-        operator_playbook_recommendations.append({
-          "address": focus_address,
-          **focus_rec,
-        })
-      except Exception:
-        pass
+        triage_row = None
+        for row in triage_results:
+            if str(row.get("address", "")).strip().upper() == focus_address:
+                triage_row = row
+                break
+        try:
+            focus_rec = recommend_operator_playbook(
+                focus_address,
+                triage_row=triage_row,
+                investigation_profile=investigation_profile,
+                case_record=watch_cases.get(focus_address, {}),
+                timeline_events=operator_timeline.get("events", []),
+            )
+            operator_playbook_recommendations.append(
+                {
+                    "address": focus_address,
+                    **focus_rec,
+                }
+            )
+        except Exception:
+            pass
 
     for row in triage_results[:5]:
-      addr = str(row.get("address", "")).strip().upper()
-      if not addr or addr == focus_address:
-        continue
-      try:
-        rec = recommend_operator_playbook(
-          addr,
-          triage_row=row,
-          case_record=watch_cases.get(addr, {}),
-        )
-        operator_playbook_recommendations.append({
-          "address": addr,
-          **rec,
-        })
-      except Exception:
-        continue
+        addr = str(row.get("address", "")).strip().upper()
+        if not addr or addr == focus_address:
+            continue
+        try:
+            rec = recommend_operator_playbook(
+                addr,
+                triage_row=row,
+                case_record=watch_cases.get(addr, {}),
+            )
+            operator_playbook_recommendations.append(
+                {
+                    "address": addr,
+                    **rec,
+                }
+            )
+        except Exception:
+            continue
 
     playbook_by_address = {
-      str(r.get("address", "")).strip().upper(): r
-      for r in operator_playbook_recommendations
-      if isinstance(r, dict)
+        str(r.get("address", "")).strip().upper(): r
+        for r in operator_playbook_recommendations
+        if isinstance(r, dict)
     }
 
     operator_rule_results = []
 
     if focus_address:
-      triage_row = next(
-        (r for r in triage_results if str(r.get("address", "")).strip().upper() == focus_address),
-        None,
-      )
-      try:
-        rows = evaluate_operator_rules(
-          focus_address,
-          playbook_recommendation=playbook_by_address.get(focus_address),
-          case_record=watch_cases.get(focus_address, {}),
-          timeline_events=operator_timeline.get("events", []),
-          triage_row=triage_row,
-          investigation_profile=investigation_profile,
-          apply_auto=True,
-          persist_log=False,
+        triage_row = next(
+            (
+                r
+                for r in triage_results
+                if str(r.get("address", "")).strip().upper() == focus_address
+            ),
+            None,
         )
-        operator_rule_results.extend([{"address": focus_address, **r} for r in rows])
-      except Exception:
-        pass
+        try:
+            rows = evaluate_operator_rules(
+                focus_address,
+                playbook_recommendation=playbook_by_address.get(focus_address),
+                case_record=watch_cases.get(focus_address, {}),
+                timeline_events=operator_timeline.get("events", []),
+                triage_row=triage_row,
+                investigation_profile=investigation_profile,
+                apply_auto=True,
+                persist_log=False,
+            )
+            operator_rule_results.extend(
+                [{"address": focus_address, **r} for r in rows]
+            )
+        except Exception:
+            pass
 
     for row in triage_results[:5]:
-      addr = str(row.get("address", "")).strip().upper()
-      if not addr or addr == focus_address:
-        continue
-      try:
-        rows = evaluate_operator_rules(
-          addr,
-          playbook_recommendation=playbook_by_address.get(addr),
-          case_record=watch_cases.get(addr, {}),
-          triage_row=row,
-          apply_auto=True,
-          persist_log=False,
-        )
-        operator_rule_results.extend([{"address": addr, **r} for r in rows])
-      except Exception:
-        continue
+        addr = str(row.get("address", "")).strip().upper()
+        if not addr or addr == focus_address:
+            continue
+        try:
+            rows = evaluate_operator_rules(
+                addr,
+                playbook_recommendation=playbook_by_address.get(addr),
+                case_record=watch_cases.get(addr, {}),
+                triage_row=row,
+                apply_auto=True,
+                persist_log=False,
+            )
+            operator_rule_results.extend([{"address": addr, **r} for r in rows])
+        except Exception:
+            continue
 
     operator_rule_summary = summarize_rule_results(operator_rule_results)
     try:
-      recent_rule_log_events = load_automation_events(limit=8)
+        recent_rule_log_events = load_automation_events(limit=8)
     except Exception:
-      recent_rule_log_events = []
+        recent_rule_log_events = []
 
     operator_briefing = build_operator_briefing(
-      triage_results=triage_results,
-      investigation_profile=investigation_profile,
-      workflow_summary=workflow_summary,
-      timeline_events=recent_operator_events,
-      playbook_recommendations=operator_playbook_recommendations,
-      rule_summary=operator_rule_summary,
-      rule_log_events=recent_rule_log_events,
+        triage_results=triage_results,
+        investigation_profile=investigation_profile,
+        workflow_summary=workflow_summary,
+        timeline_events=recent_operator_events,
+        playbook_recommendations=operator_playbook_recommendations,
+        rule_summary=operator_rule_summary,
+        rule_log_events=recent_rule_log_events,
     )
 
     pending_by_address = {}
     for row in operator_rule_summary.get("pending_confirmations", []):
-      addr = str(row.get("address", "")).strip().upper()
-      if not addr:
-        continue
-      pending_by_address[addr] = pending_by_address.get(addr, 0) + 1
+        addr = str(row.get("address", "")).strip().upper()
+        if not addr:
+            continue
+        pending_by_address[addr] = pending_by_address.get(addr, 0) + 1
 
     operator_alerts = []
     alert_addresses = []
     if focus_address:
-      alert_addresses.append(focus_address)
+        alert_addresses.append(focus_address)
     for row in triage_results[:5]:
-      addr = str(row.get("address", "")).strip().upper()
-      if addr and addr not in alert_addresses:
-        alert_addresses.append(addr)
+        addr = str(row.get("address", "")).strip().upper()
+        if addr and addr not in alert_addresses:
+            alert_addresses.append(addr)
 
     for addr in alert_addresses:
-      triage_row = next(
-        (r for r in triage_results if str(r.get("address", "")).strip().upper() == addr),
-        None,
-      )
-      rule_rows = [r for r in operator_rule_results if str(r.get("address", "")).strip().upper() == addr]
-      timeline_rows = recent_operator_events if addr == focus_address else []
-      inv_profile = investigation_profile if addr == focus_address else None
-
-      try:
-        rows = build_operator_alerts(
-          addr,
-          triage_row=triage_row,
-          investigation_profile=inv_profile,
-          case_record=watch_cases.get(addr, {}),
-          timeline_events=timeline_rows,
-          playbook_recommendation=playbook_by_address.get(addr),
-          rule_results=rule_rows,
-          pending_confirmations_count=pending_by_address.get(addr, 0),
-          persist_log=False,
+        triage_row = next(
+            (
+                r
+                for r in triage_results
+                if str(r.get("address", "")).strip().upper() == addr
+            ),
+            None,
         )
-        operator_alerts.extend(rows)
-      except Exception:
-        continue
+        rule_rows = [
+            r
+            for r in operator_rule_results
+            if str(r.get("address", "")).strip().upper() == addr
+        ]
+        timeline_rows = recent_operator_events if addr == focus_address else []
+        inv_profile = investigation_profile if addr == focus_address else None
+
+        try:
+            rows = build_operator_alerts(
+                addr,
+                triage_row=triage_row,
+                investigation_profile=inv_profile,
+                case_record=watch_cases.get(addr, {}),
+                timeline_events=timeline_rows,
+                playbook_recommendation=playbook_by_address.get(addr),
+                rule_results=rule_rows,
+                pending_confirmations_count=pending_by_address.get(addr, 0),
+                persist_log=False,
+            )
+            operator_alerts.extend(rows)
+        except Exception:
+            continue
 
     try:
-      recent_alert_log_events = load_alert_log(limit=12)
+        recent_alert_log_events = load_alert_log(limit=12)
     except Exception:
-      recent_alert_log_events = []
+        recent_alert_log_events = []
 
     operator_alert_summary = summarize_alerts(
-      operator_alerts,
-      recent_log_events=recent_alert_log_events,
+        operator_alerts,
+        recent_log_events=recent_alert_log_events,
     )
 
     correlation_timeline_by_address = {}
     if focus_address and operator_timeline.get("events"):
-      correlation_timeline_by_address[focus_address] = operator_timeline.get("events", [])
+        correlation_timeline_by_address[focus_address] = operator_timeline.get(
+            "events", []
+        )
 
     investigation_profiles = {}
     if focus_address and investigation_profile:
-      investigation_profiles[focus_address] = investigation_profile
+        investigation_profiles[focus_address] = investigation_profile
 
     correlation_clusters = build_correlation_clusters(
-      devices,
-      movement=movement,
-      triage_results=triage_results,
-      investigation_profiles=investigation_profiles,
-      watch_cases=watch_cases,
-      workflow_summary=workflow_summary,
-      timeline_by_address=correlation_timeline_by_address,
-      playbook_recommendations=operator_playbook_recommendations,
-      alerts=operator_alerts,
+        devices,
+        movement=movement,
+        triage_results=triage_results,
+        investigation_profiles=investigation_profiles,
+        watch_cases=watch_cases,
+        workflow_summary=workflow_summary,
+        timeline_by_address=correlation_timeline_by_address,
+        playbook_recommendations=operator_playbook_recommendations,
+        alerts=operator_alerts,
     )
     correlation_summary = summarize_clusters(correlation_clusters)
 
     try:
-      previous_campaigns = load_campaign_records()
+        previous_campaigns = load_campaign_records()
     except Exception:
-      previous_campaigns = []
+        previous_campaigns = []
 
     campaign_rows = build_campaign_lifecycle(
-      correlation_clusters,
-      previous_campaigns=previous_campaigns,
-      stamp=stamp,
-      persist=False,
+        correlation_clusters,
+        previous_campaigns=previous_campaigns,
+        stamp=stamp,
+        persist=False,
     )
     campaign_summary = summarize_campaigns(campaign_rows)
 
     artifact_index = build_artifact_index()
 
     evidence_packs = build_evidence_packs(
-      focus_address=focus_address,
-      watch_cases=watch_cases,
-      investigation_profile=investigation_profile,
-      workflow_summary=workflow_summary,
-      timeline_events=recent_operator_events,
-      playbook_recommendations=operator_playbook_recommendations,
-      rule_summary=operator_rule_summary,
-      briefing=operator_briefing,
-      alerts=operator_alerts,
-      clusters=correlation_clusters,
-      campaigns=campaign_rows,
-      artifact_index=artifact_index,
-      generated_at=stamp,
-      persist=False,
+        focus_address=focus_address,
+        watch_cases=watch_cases,
+        investigation_profile=investigation_profile,
+        workflow_summary=workflow_summary,
+        timeline_events=recent_operator_events,
+        playbook_recommendations=operator_playbook_recommendations,
+        rule_summary=operator_rule_summary,
+        briefing=operator_briefing,
+        alerts=operator_alerts,
+        clusters=correlation_clusters,
+        campaigns=campaign_rows,
+        artifact_index=artifact_index,
+        generated_at=stamp,
+        persist=False,
     )
     try:
-      persisted_evidence_packs = load_evidence_packs(limit=12)
+        persisted_evidence_packs = load_evidence_packs(limit=12)
     except Exception:
-      persisted_evidence_packs = []
+        persisted_evidence_packs = []
     evidence_summary = summarize_evidence_packs(
-      evidence_packs,
-      persisted_packs=persisted_evidence_packs,
+        evidence_packs,
+        persisted_packs=persisted_evidence_packs,
     )
 
     operator_queue_items = build_operator_queue(
-      triage_results=triage_results,
-      workflow_summary=workflow_summary,
-      pending_confirmations=operator_rule_summary.get("pending_confirmations", []),
-      alerts=operator_alerts,
-      briefing=operator_briefing,
-      clusters=correlation_clusters,
-      campaigns=campaign_rows,
-      evidence_packs=evidence_packs,
-      watch_cases=watch_cases,
-      stamp=stamp,
+        triage_results=triage_results,
+        workflow_summary=workflow_summary,
+        pending_confirmations=operator_rule_summary.get("pending_confirmations", []),
+        alerts=operator_alerts,
+        briefing=operator_briefing,
+        clusters=correlation_clusters,
+        campaigns=campaign_rows,
+        evidence_packs=evidence_packs,
+        watch_cases=watch_cases,
+        stamp=stamp,
     )
     operator_queue_summary = summarize_operator_queue(operator_queue_items)
 
     queue_health_snapshot = build_queue_health_snapshot(
-      operator_queue_items,
-      workflow_summary=workflow_summary,
-      pending_confirmations=operator_rule_summary.get("pending_confirmations", []),
-      alerts=operator_alerts,
-      campaigns=campaign_rows,
-      evidence_packs=evidence_packs,
-      generated_at=stamp,
+        operator_queue_items,
+        workflow_summary=workflow_summary,
+        pending_confirmations=operator_rule_summary.get("pending_confirmations", []),
+        alerts=operator_alerts,
+        campaigns=campaign_rows,
+        evidence_packs=evidence_packs,
+        generated_at=stamp,
     )
     queue_health_summary = summarize_queue_health(
-      queue_health_snapshot,
-      operator_queue_items,
+        queue_health_snapshot,
+        operator_queue_items,
     )
 
     operator_outcomes = build_operator_outcomes(
-      operator_queue_items,
-      workflow_summary=workflow_summary,
-      playbook_recommendations=operator_playbook_recommendations,
-      rule_results=operator_rule_results,
-      alerts=operator_alerts,
-      campaigns=campaign_rows,
-      evidence_packs=evidence_packs,
-      queue_health_snapshot=queue_health_snapshot,
-      generated_at=stamp,
+        operator_queue_items,
+        workflow_summary=workflow_summary,
+        playbook_recommendations=operator_playbook_recommendations,
+        rule_results=operator_rule_results,
+        alerts=operator_alerts,
+        campaigns=campaign_rows,
+        evidence_packs=evidence_packs,
+        queue_health_snapshot=queue_health_snapshot,
+        generated_at=stamp,
     )
     operator_outcomes_summary = summarize_operator_outcomes(operator_outcomes)
 
     recommendation_profiles = build_recommendation_tuning_profiles(
-      operator_outcomes,
-      playbook_recommendations=operator_playbook_recommendations,
-      rule_results=operator_rule_results,
-      alerts=operator_alerts,
-      queue_items=operator_queue_items,
-      campaigns=campaign_rows,
-      evidence_packs=evidence_packs,
-      generated_at=stamp,
+        operator_outcomes,
+        playbook_recommendations=operator_playbook_recommendations,
+        rule_results=operator_rule_results,
+        alerts=operator_alerts,
+        queue_items=operator_queue_items,
+        campaigns=campaign_rows,
+        evidence_packs=evidence_packs,
+        generated_at=stamp,
     )
-    recommendation_tuning_summary = summarize_recommendation_tuning_profiles(recommendation_profiles)
+    recommendation_tuning_summary = summarize_recommendation_tuning_profiles(
+        recommendation_profiles
+    )
 
     review_readiness_profiles = build_review_readiness_profiles(
-      operator_queue_items,
-      evidence_packs=evidence_packs,
-      queue_health_snapshot=queue_health_snapshot,
-      outcomes=operator_outcomes,
-      alerts=operator_alerts,
-      timeline_events=recent_operator_events,
-      campaigns=campaign_rows,
-      workflow_summary=workflow_summary,
-      investigation_profile=investigation_profile,
-      generated_at=stamp,
+        operator_queue_items,
+        evidence_packs=evidence_packs,
+        queue_health_snapshot=queue_health_snapshot,
+        outcomes=operator_outcomes,
+        alerts=operator_alerts,
+        timeline_events=recent_operator_events,
+        campaigns=campaign_rows,
+        workflow_summary=workflow_summary,
+        investigation_profile=investigation_profile,
+        generated_at=stamp,
     )
     review_readiness_summary = summarize_review_readiness(review_readiness_profiles)
 
     operator_session_journal = build_operator_session_journal(
-      queue_items=operator_queue_items,
-      campaigns=campaign_rows,
-      alerts=operator_alerts,
-      outcomes=operator_outcomes,
-      readiness_profiles=review_readiness_profiles,
-      evidence_packs=evidence_packs,
-      queue_health_snapshot=queue_health_snapshot,
-      generated_at=stamp,
+        queue_items=operator_queue_items,
+        campaigns=campaign_rows,
+        alerts=operator_alerts,
+        outcomes=operator_outcomes,
+        readiness_profiles=review_readiness_profiles,
+        evidence_packs=evidence_packs,
+        queue_health_snapshot=queue_health_snapshot,
+        generated_at=stamp,
     )
     operator_session_journal_summary = summarize_operator_session_journal(
-      operator_session_journal,
-      queue_items=operator_queue_items,
-      outcomes=operator_outcomes,
-      readiness_profiles=review_readiness_profiles,
+        operator_session_journal,
+        queue_items=operator_queue_items,
+        outcomes=operator_outcomes,
+        readiness_profiles=review_readiness_profiles,
     )
 
     operator_patterns = build_operator_pattern_records(
-      outcomes=operator_outcomes,
-      recommendation_profiles=recommendation_profiles,
-      alerts=operator_alerts,
-      campaigns=campaign_rows,
-      clusters=correlation_clusters,
-      queue_items=operator_queue_items,
-      readiness_profiles=review_readiness_profiles,
-      session_journal=operator_session_journal,
-      generated_at=stamp,
+        outcomes=operator_outcomes,
+        recommendation_profiles=recommendation_profiles,
+        alerts=operator_alerts,
+        campaigns=campaign_rows,
+        clusters=correlation_clusters,
+        queue_items=operator_queue_items,
+        readiness_profiles=review_readiness_profiles,
+        session_journal=operator_session_journal,
+        generated_at=stamp,
     )
 
     current_pattern_scopes = []
     for row in operator_queue_items:
-      current_pattern_scopes.append(
-        {
-          "scope_type": str(row.get("scope_type", "device")),
-          "scope_id": str(row.get("scope_id", "-")),
-          "queue_state": str(row.get("queue_state", "new")),
-        }
-      )
-      current_pattern_scopes.append(
-        {
-          "scope_type": "queue_item",
-          "scope_id": str(row.get("item_id", "-")),
-          "queue_state": str(row.get("queue_state", "new")),
-        }
-      )
+        current_pattern_scopes.append(
+            {
+                "scope_type": str(row.get("scope_type", "device")),
+                "scope_id": str(row.get("scope_id", "-")),
+                "queue_state": str(row.get("queue_state", "new")),
+            }
+        )
+        current_pattern_scopes.append(
+            {
+                "scope_type": "queue_item",
+                "scope_id": str(row.get("item_id", "-")),
+                "queue_state": str(row.get("queue_state", "new")),
+            }
+        )
 
     for row in campaign_rows:
-      current_pattern_scopes.append(
-        {
-          "scope_type": "campaign",
-          "scope_id": str(row.get("campaign_id", "-")),
-          "status": str(row.get("status", "new")),
-        }
-      )
+        current_pattern_scopes.append(
+            {
+                "scope_type": "campaign",
+                "scope_id": str(row.get("campaign_id", "-")),
+                "status": str(row.get("status", "new")),
+            }
+        )
 
     for row in correlation_clusters:
-      current_pattern_scopes.append(
-        {
-          "scope_type": "cluster",
-          "scope_id": str(row.get("cluster_id", row.get("id", "-"))),
-          "status": str(row.get("status", "active")),
-        }
-      )
+        current_pattern_scopes.append(
+            {
+                "scope_type": "cluster",
+                "scope_id": str(row.get("cluster_id", row.get("id", "-"))),
+                "status": str(row.get("status", "active")),
+            }
+        )
 
     for row in evidence_packs:
-      current_pattern_scopes.append(
-        {
-          "scope_type": "evidence_pack",
-          "scope_id": str(row.get("pack_id", row.get("scope_id", "-"))),
-          "status": str(row.get("pack_state", "ready")),
-        }
-      )
+        current_pattern_scopes.append(
+            {
+                "scope_type": "evidence_pack",
+                "scope_id": str(row.get("pack_id", row.get("scope_id", "-"))),
+                "status": str(row.get("pack_state", "ready")),
+            }
+        )
 
     for row in review_readiness_profiles[:10]:
-      current_pattern_scopes.append(
-        {
-          "scope_type": str(row.get("scope_type", "device")),
-          "scope_id": str(row.get("scope_id", "-")),
-          "readiness_state": str(row.get("readiness_state", "not_ready")),
-        }
-      )
+        current_pattern_scopes.append(
+            {
+                "scope_type": str(row.get("scope_type", "device")),
+                "scope_id": str(row.get("scope_id", "-")),
+                "readiness_state": str(row.get("readiness_state", "not_ready")),
+            }
+        )
 
-    operator_pattern_matches = match_scopes_to_patterns(current_pattern_scopes, operator_patterns)
+    operator_pattern_matches = match_scopes_to_patterns(
+        current_pattern_scopes, operator_patterns
+    )
     operator_pattern_summary = summarize_operator_pattern_library(
-      operator_patterns,
-      matches=operator_pattern_matches,
+        operator_patterns,
+        matches=operator_pattern_matches,
     )
 
     current_escalation_scopes = []
     for row in operator_queue_items:
-      current_escalation_scopes.append(
-        {
-          "scope_type": str(row.get("scope_type", "device")),
-          "scope_id": str(row.get("scope_id", "-")),
-          "queue_state": str(row.get("queue_state", "new")),
-        }
-      )
-      current_escalation_scopes.append(
-        {
-          "scope_type": "queue_item",
-          "scope_id": str(row.get("item_id", "-")),
-          "queue_state": str(row.get("queue_state", "new")),
-        }
-      )
+        current_escalation_scopes.append(
+            {
+                "scope_type": str(row.get("scope_type", "device")),
+                "scope_id": str(row.get("scope_id", "-")),
+                "queue_state": str(row.get("queue_state", "new")),
+            }
+        )
+        current_escalation_scopes.append(
+            {
+                "scope_type": "queue_item",
+                "scope_id": str(row.get("item_id", "-")),
+                "queue_state": str(row.get("queue_state", "new")),
+            }
+        )
 
     for row in campaign_rows:
-      current_escalation_scopes.append(
-        {
-          "scope_type": "campaign",
-          "scope_id": str(row.get("campaign_id", "-")),
-          "status": str(row.get("status", "new")),
-        }
-      )
+        current_escalation_scopes.append(
+            {
+                "scope_type": "campaign",
+                "scope_id": str(row.get("campaign_id", "-")),
+                "status": str(row.get("status", "new")),
+            }
+        )
 
     for row in correlation_clusters:
-      current_escalation_scopes.append(
-        {
-          "scope_type": "cluster",
-          "scope_id": str(row.get("cluster_id", row.get("id", "-"))),
-          "status": str(row.get("status", "active")),
-        }
-      )
+        current_escalation_scopes.append(
+            {
+                "scope_type": "cluster",
+                "scope_id": str(row.get("cluster_id", row.get("id", "-"))),
+                "status": str(row.get("status", "active")),
+            }
+        )
 
     for row in evidence_packs:
-      current_escalation_scopes.append(
-        {
-          "scope_type": "evidence_pack",
-          "scope_id": str(row.get("pack_id", row.get("scope_id", "-"))),
-          "status": str(row.get("pack_state", "ready")),
-        }
-      )
+        current_escalation_scopes.append(
+            {
+                "scope_type": "evidence_pack",
+                "scope_id": str(row.get("pack_id", row.get("scope_id", "-"))),
+                "status": str(row.get("pack_state", "ready")),
+            }
+        )
 
     for row in review_readiness_profiles[:10]:
-      current_escalation_scopes.append(
-        {
-          "scope_type": str(row.get("scope_type", "device")),
-          "scope_id": str(row.get("scope_id", "-")),
-          "readiness_state": str(row.get("readiness_state", "not_ready")),
-        }
-      )
+        current_escalation_scopes.append(
+            {
+                "scope_type": str(row.get("scope_type", "device")),
+                "scope_id": str(row.get("scope_id", "-")),
+                "readiness_state": str(row.get("readiness_state", "not_ready")),
+            }
+        )
 
     operator_escalation_packages = build_operator_escalation_packages(
-      current_escalation_scopes,
-      alerts=operator_alerts,
-      outcomes=operator_outcomes,
-      recommendation_profiles=recommendation_profiles,
-      queue_items=operator_queue_items,
-      queue_health_snapshot=queue_health_snapshot,
-      readiness_profiles=review_readiness_profiles,
-      evidence_packs=evidence_packs,
-      campaigns=campaign_rows,
-      pattern_matches=operator_pattern_matches,
-      session_journal=operator_session_journal,
-      generated_at=stamp,
+        current_escalation_scopes,
+        alerts=operator_alerts,
+        outcomes=operator_outcomes,
+        recommendation_profiles=recommendation_profiles,
+        queue_items=operator_queue_items,
+        queue_health_snapshot=queue_health_snapshot,
+        readiness_profiles=review_readiness_profiles,
+        evidence_packs=evidence_packs,
+        campaigns=campaign_rows,
+        pattern_matches=operator_pattern_matches,
+        session_journal=operator_session_journal,
+        generated_at=stamp,
     )
-    operator_escalation_summary = summarize_operator_escalation_packages(operator_escalation_packages)
+    operator_escalation_summary = summarize_operator_escalation_packages(
+        operator_escalation_packages
+    )
 
     operator_escalation_feedback = build_operator_escalation_feedback_records(
-      operator_escalation_packages,
-      readiness_profiles=review_readiness_profiles,
-      outcomes=operator_outcomes,
-      recommendation_profiles=recommendation_profiles,
-      queue_items=operator_queue_items,
-      queue_health_snapshot=queue_health_snapshot,
-      evidence_packs=evidence_packs,
-      session_journal=operator_session_journal,
-      pattern_matches=operator_pattern_matches,
-      generated_at=stamp,
+        operator_escalation_packages,
+        readiness_profiles=review_readiness_profiles,
+        outcomes=operator_outcomes,
+        recommendation_profiles=recommendation_profiles,
+        queue_items=operator_queue_items,
+        queue_health_snapshot=queue_health_snapshot,
+        evidence_packs=evidence_packs,
+        session_journal=operator_session_journal,
+        pattern_matches=operator_pattern_matches,
+        generated_at=stamp,
     )
-    operator_escalation_feedback_summary = summarize_operator_escalation_feedback(operator_escalation_feedback)
+    operator_escalation_feedback_summary = summarize_operator_escalation_feedback(
+        operator_escalation_feedback
+    )
 
     current_closure_scopes = []
     for row in operator_queue_items:
-      current_closure_scopes.append(
-        {
-          "scope_type": str(row.get("scope_type", "device")),
-          "scope_id": str(row.get("scope_id", "-")),
-          "queue_state": str(row.get("queue_state", "new")),
-        }
-      )
-      current_closure_scopes.append(
-        {
-          "scope_type": "queue_item",
-          "scope_id": str(row.get("item_id", "-")),
-          "queue_state": str(row.get("queue_state", "new")),
-        }
-      )
+        current_closure_scopes.append(
+            {
+                "scope_type": str(row.get("scope_type", "device")),
+                "scope_id": str(row.get("scope_id", "-")),
+                "queue_state": str(row.get("queue_state", "new")),
+            }
+        )
+        current_closure_scopes.append(
+            {
+                "scope_type": "queue_item",
+                "scope_id": str(row.get("item_id", "-")),
+                "queue_state": str(row.get("queue_state", "new")),
+            }
+        )
 
     for row in campaign_rows:
-      current_closure_scopes.append(
-        {
-          "scope_type": "campaign",
-          "scope_id": str(row.get("campaign_id", "-")),
-          "status": str(row.get("status", "new")),
-        }
-      )
+        current_closure_scopes.append(
+            {
+                "scope_type": "campaign",
+                "scope_id": str(row.get("campaign_id", "-")),
+                "status": str(row.get("status", "new")),
+            }
+        )
 
     for row in correlation_clusters:
-      current_closure_scopes.append(
-        {
-          "scope_type": "cluster",
-          "scope_id": str(row.get("cluster_id", row.get("id", "-"))),
-          "status": str(row.get("status", "active")),
-        }
-      )
+        current_closure_scopes.append(
+            {
+                "scope_type": "cluster",
+                "scope_id": str(row.get("cluster_id", row.get("id", "-"))),
+                "status": str(row.get("status", "active")),
+            }
+        )
 
     for row in evidence_packs:
-      current_closure_scopes.append(
-        {
-          "scope_type": "evidence_pack",
-          "scope_id": str(row.get("pack_id", row.get("scope_id", "-"))),
-          "status": str(row.get("pack_state", "ready")),
-        }
-      )
+        current_closure_scopes.append(
+            {
+                "scope_type": "evidence_pack",
+                "scope_id": str(row.get("pack_id", row.get("scope_id", "-"))),
+                "status": str(row.get("pack_state", "ready")),
+            }
+        )
 
     for row in review_readiness_profiles[:10]:
-      current_closure_scopes.append(
-        {
-          "scope_type": str(row.get("scope_type", "device")),
-          "scope_id": str(row.get("scope_id", "-")),
-          "readiness_state": str(row.get("readiness_state", "not_ready")),
-        }
-      )
+        current_closure_scopes.append(
+            {
+                "scope_type": str(row.get("scope_type", "device")),
+                "scope_id": str(row.get("scope_id", "-")),
+                "readiness_state": str(row.get("readiness_state", "not_ready")),
+            }
+        )
 
     operator_closure_packages = build_operator_closure_packages(
-      current_closure_scopes,
-      escalation_feedback=operator_escalation_feedback,
-      escalation_packages=operator_escalation_packages,
-      readiness_profiles=review_readiness_profiles,
-      outcomes=operator_outcomes,
-      recommendation_profiles=recommendation_profiles,
-      queue_items=operator_queue_items,
-      queue_health_snapshot=queue_health_snapshot,
-      evidence_packs=evidence_packs,
-      pattern_matches=operator_pattern_matches,
-      session_journal=operator_session_journal,
-      generated_at=stamp,
+        current_closure_scopes,
+        escalation_feedback=operator_escalation_feedback,
+        escalation_packages=operator_escalation_packages,
+        readiness_profiles=review_readiness_profiles,
+        outcomes=operator_outcomes,
+        recommendation_profiles=recommendation_profiles,
+        queue_items=operator_queue_items,
+        queue_health_snapshot=queue_health_snapshot,
+        evidence_packs=evidence_packs,
+        pattern_matches=operator_pattern_matches,
+        session_journal=operator_session_journal,
+        generated_at=stamp,
     )
-    operator_closure_summary = summarize_operator_closure_packages(operator_closure_packages)
+    operator_closure_summary = summarize_operator_closure_packages(
+        operator_closure_packages
+    )
 
     current_monitoring_scopes = []
     for row in operator_queue_items:
-      current_monitoring_scopes.append(
-        {
-          "scope_type": str(row.get("scope_type", "device")),
-          "scope_id": str(row.get("scope_id", "-")),
-          "queue_state": str(row.get("queue_state", "new")),
-        }
-      )
-      current_monitoring_scopes.append(
-        {
-          "scope_type": "queue_item",
-          "scope_id": str(row.get("item_id", "-")),
-          "queue_state": str(row.get("queue_state", "new")),
-        }
-      )
+        current_monitoring_scopes.append(
+            {
+                "scope_type": str(row.get("scope_type", "device")),
+                "scope_id": str(row.get("scope_id", "-")),
+                "queue_state": str(row.get("queue_state", "new")),
+            }
+        )
+        current_monitoring_scopes.append(
+            {
+                "scope_type": "queue_item",
+                "scope_id": str(row.get("item_id", "-")),
+                "queue_state": str(row.get("queue_state", "new")),
+            }
+        )
 
     for row in campaign_rows:
-      current_monitoring_scopes.append(
-        {
-          "scope_type": "campaign",
-          "scope_id": str(row.get("campaign_id", "-")),
-          "status": str(row.get("status", "new")),
-        }
-      )
+        current_monitoring_scopes.append(
+            {
+                "scope_type": "campaign",
+                "scope_id": str(row.get("campaign_id", "-")),
+                "status": str(row.get("status", "new")),
+            }
+        )
 
     for row in correlation_clusters:
-      current_monitoring_scopes.append(
-        {
-          "scope_type": "cluster",
-          "scope_id": str(row.get("cluster_id", row.get("id", "-"))),
-          "status": str(row.get("status", "active")),
-        }
-      )
+        current_monitoring_scopes.append(
+            {
+                "scope_type": "cluster",
+                "scope_id": str(row.get("cluster_id", row.get("id", "-"))),
+                "status": str(row.get("status", "active")),
+            }
+        )
 
     for row in evidence_packs:
-      current_monitoring_scopes.append(
-        {
-          "scope_type": "evidence_pack",
-          "scope_id": str(row.get("pack_id", row.get("scope_id", "-"))),
-          "status": str(row.get("pack_state", "ready")),
-        }
-      )
+        current_monitoring_scopes.append(
+            {
+                "scope_type": "evidence_pack",
+                "scope_id": str(row.get("pack_id", row.get("scope_id", "-"))),
+                "status": str(row.get("pack_state", "ready")),
+            }
+        )
 
     for row in review_readiness_profiles[:10]:
-      current_monitoring_scopes.append(
-        {
-          "scope_type": str(row.get("scope_type", "device")),
-          "scope_id": str(row.get("scope_id", "-")),
-          "readiness_state": str(row.get("readiness_state", "not_ready")),
-        }
-      )
+        current_monitoring_scopes.append(
+            {
+                "scope_type": str(row.get("scope_type", "device")),
+                "scope_id": str(row.get("scope_id", "-")),
+                "readiness_state": str(row.get("readiness_state", "not_ready")),
+            }
+        )
 
     operator_monitoring_policies = build_operator_post_closure_monitoring_policies(
-      current_monitoring_scopes,
-      closure_packages=operator_closure_packages,
-      escalation_feedback=operator_escalation_feedback,
-      outcomes=operator_outcomes,
-      recommendation_profiles=recommendation_profiles,
-      pattern_matches=operator_pattern_matches,
-      campaign_records=campaign_rows,
-      queue_health_snapshot=queue_health_snapshot,
-      alerts_history=operator_alerts,
-      review_readiness=review_readiness_profiles,
-      session_journal=operator_session_journal,
-      generated_at=stamp,
+        current_monitoring_scopes,
+        closure_packages=operator_closure_packages,
+        escalation_feedback=operator_escalation_feedback,
+        outcomes=operator_outcomes,
+        recommendation_profiles=recommendation_profiles,
+        pattern_matches=operator_pattern_matches,
+        campaign_records=campaign_rows,
+        queue_health_snapshot=queue_health_snapshot,
+        alerts_history=operator_alerts,
+        review_readiness=review_readiness_profiles,
+        session_journal=operator_session_journal,
+        generated_at=stamp,
     )
-    operator_monitoring_summary = summarize_operator_post_closure_monitoring_policies(operator_monitoring_policies)
+    operator_monitoring_summary = summarize_operator_post_closure_monitoring_policies(
+        operator_monitoring_policies
+    )
 
     operator_reopen_records = build_operator_reopen_records(
-      current_monitoring_scopes,
-      closure_packages=operator_closure_packages,
-      post_closure_monitoring_policies=operator_monitoring_policies,
-      escalation_feedback=operator_escalation_feedback,
-      outcomes=operator_outcomes,
-      pattern_library=operator_patterns,
-      queue_health_snapshot=queue_health_snapshot,
-      alerts_history=operator_alerts,
-      campaign_tracking=campaign_rows,
-      evidence_packs=evidence_packs,
-      session_journal=operator_session_journal,
-      generated_at=stamp,
+        current_monitoring_scopes,
+        closure_packages=operator_closure_packages,
+        post_closure_monitoring_policies=operator_monitoring_policies,
+        escalation_feedback=operator_escalation_feedback,
+        outcomes=operator_outcomes,
+        pattern_library=operator_patterns,
+        queue_health_snapshot=queue_health_snapshot,
+        alerts_history=operator_alerts,
+        campaign_tracking=campaign_rows,
+        evidence_packs=evidence_packs,
+        session_journal=operator_session_journal,
+        generated_at=stamp,
     )
     operator_reopen_summary = summarize_operator_reopen_records(operator_reopen_records)
 
     operator_lineage_records = build_operator_lifecycle_lineage_records(
-      current_monitoring_scopes,
-      outcomes=operator_outcomes,
-      closure_packages=operator_closure_packages,
-      post_closure_monitoring_policies=operator_monitoring_policies,
-      reopen_policy_records=operator_reopen_records,
-      escalation_packages=operator_escalation_packages,
-      escalation_feedback=operator_escalation_feedback,
-      session_journal=operator_session_journal,
-      pattern_library=operator_patterns,
-      pattern_matches=operator_pattern_matches,
-      operator_queue_context=operator_queue_items,
-      campaign_tracking=campaign_rows,
-      evidence_packs=evidence_packs,
-      generated_at=stamp,
+        current_monitoring_scopes,
+        outcomes=operator_outcomes,
+        closure_packages=operator_closure_packages,
+        post_closure_monitoring_policies=operator_monitoring_policies,
+        reopen_policy_records=operator_reopen_records,
+        escalation_packages=operator_escalation_packages,
+        escalation_feedback=operator_escalation_feedback,
+        session_journal=operator_session_journal,
+        pattern_library=operator_patterns,
+        pattern_matches=operator_pattern_matches,
+        operator_queue_context=operator_queue_items,
+        campaign_tracking=campaign_rows,
+        evidence_packs=evidence_packs,
+        generated_at=stamp,
     )
-    operator_lineage_summary = summarize_operator_lifecycle_lineage(operator_lineage_records)
+    operator_lineage_summary = summarize_operator_lifecycle_lineage(
+        operator_lineage_records
+    )
 
     operator_quality_records = build_operator_resolution_quality_records(
-      current_monitoring_scopes,
-      lineage_records=operator_lineage_records,
-      closure_packages=operator_closure_packages,
-      reopen_policy_records=operator_reopen_records,
-      post_closure_monitoring_policies=operator_monitoring_policies,
-      operator_outcomes=operator_outcomes,
-      escalation_feedback=operator_escalation_feedback,
-      recommendation_tuning=recommendation_profiles,
-      pattern_library=operator_patterns,
-      pattern_matches=operator_pattern_matches,
-      operator_queue_context=operator_queue_items,
-      session_journal=operator_session_journal,
-      generated_at=stamp,
+        current_monitoring_scopes,
+        lineage_records=operator_lineage_records,
+        closure_packages=operator_closure_packages,
+        reopen_policy_records=operator_reopen_records,
+        post_closure_monitoring_policies=operator_monitoring_policies,
+        operator_outcomes=operator_outcomes,
+        escalation_feedback=operator_escalation_feedback,
+        recommendation_tuning=recommendation_profiles,
+        pattern_library=operator_patterns,
+        pattern_matches=operator_pattern_matches,
+        operator_queue_context=operator_queue_items,
+        session_journal=operator_session_journal,
+        generated_at=stamp,
     )
-    operator_quality_summary = summarize_operator_resolution_quality(operator_quality_records)
+    operator_quality_summary = summarize_operator_resolution_quality(
+        operator_quality_records
+    )
 
     history = load_scan_history()[-8:]
     operator_plan_records = build_operator_improvement_plan_records(
@@ -2600,20 +2700,22 @@ def render_dashboard_html(devices, stamp: str) -> str:
     operator_plan_summary = summarize_operator_improvement_plans(operator_plan_records)
 
     operator_learning_records = build_operator_outcome_learning_records(
-      current_monitoring_scopes,
-      resolution_quality_records=operator_quality_records,
-      improvement_plans=operator_plan_records,
-      lifecycle_lineage=operator_lineage_records,
-      operator_outcomes=operator_outcomes,
-      closure_packages=operator_closure_packages,
-      reopen_policy_records=operator_reopen_records,
-      post_closure_monitoring_policies=operator_monitoring_policies,
-      escalation_feedback=operator_escalation_feedback,
-      recommendation_tuning=recommendation_profiles,
-      pattern_library=operator_patterns,
-      generated_at=stamp,
+        current_monitoring_scopes,
+        resolution_quality_records=operator_quality_records,
+        improvement_plans=operator_plan_records,
+        lifecycle_lineage=operator_lineage_records,
+        operator_outcomes=operator_outcomes,
+        closure_packages=operator_closure_packages,
+        reopen_policy_records=operator_reopen_records,
+        post_closure_monitoring_policies=operator_monitoring_policies,
+        escalation_feedback=operator_escalation_feedback,
+        recommendation_tuning=recommendation_profiles,
+        pattern_library=operator_patterns,
+        generated_at=stamp,
     )
-    operator_learning_summary = summarize_operator_outcome_learning(operator_learning_records)
+    operator_learning_summary = summarize_operator_outcome_learning(
+        operator_learning_records
+    )
     previous = history[-1] if history else None
 
     critical = [d for d in devices if d.get("alert_level") == "critique"]
@@ -2654,7 +2756,9 @@ def render_dashboard_html(devices, stamp: str) -> str:
 
     vendor_options = ['<option value="">Tous les vendors</option>']
     for name, _ in vendor_counts:
-        vendor_options.append(f'<option value="{escape(str(name))}">{escape(str(name))}</option>')
+        vendor_options.append(
+            f'<option value="{escape(str(name))}">{escape(str(name))}</option>'
+        )
 
     hot_list = []
     for d in top_hot:
@@ -2764,13 +2868,21 @@ def render_dashboard_html(devices, stamp: str) -> str:
 
         flags = d.get("flags", [])
         explanation = explain_device(d)["summary"]
-        is_tracker = "true" if (d.get("possible_suivi") or d.get("watch_hit") or "tracker" in str(d.get("profile", "")).lower()) else "false"
+        is_tracker = (
+            "true"
+            if (
+                d.get("possible_suivi")
+                or d.get("watch_hit")
+                or "tracker" in str(d.get("profile", "")).lower()
+            )
+            else "false"
+        )
         is_watch = "true" if d.get("watch_hit") else "false"
 
         rows.append(
             f"""
-        <tr class="{css}" data-alert="{escape(str(d.get('alert_level', 'faible')))}"
-            data-vendor="{escape(str(d.get('vendor', 'Unknown')))}"
+        <tr class="{css}" data-alert="{escape(str(d.get("alert_level", "faible")))}"
+            data-vendor="{escape(str(d.get("vendor", "Unknown")))}"
             data-watch="{is_watch}"
             data-tracker="{is_tracker}">
             <td>{escape(str(d.get("name", "Inconnu")))}</td>
@@ -2855,12 +2967,12 @@ ul {{ margin:0; padding-left:18px; }}
   <div class="grid2">
     <div class="panel">
       <h2>Résumé comparatif</h2>
-      <ul>{''.join(comparison_lines)}</ul>
+      <ul>{"".join(comparison_lines)}</ul>
       <div class="muted">Horodatage : {escape(stamp)}</div>
     </div>
     <div class="panel">
       <h2>Incidents visibles</h2>
-      <ul>{''.join(incident_lines)}</ul>
+      <ul>{"".join(incident_lines)}</ul>
       <div class="muted">Vue rapide des signaux prioritaires du scan courant.</div>
     </div>
   </div>
@@ -2868,51 +2980,51 @@ ul {{ margin:0; padding-left:18px; }}
   <div class="grid2">
     <div class="panel">
       <h2>Cas d'investigation récents</h2>
-      <ul>{''.join(case_list) if case_list else '<li class="muted">Aucun cas récent</li>'}</ul>
+      <ul>{"".join(case_list) if case_list else '<li class="muted">Aucun cas récent</li>'}</ul>
     </div>
     <div class="panel">
       <h2>Top appareils chauds</h2>
-      <ul>{''.join(hot_list) if hot_list else '<li class="muted">Aucun</li>'}</ul>
+      <ul>{"".join(hot_list) if hot_list else '<li class="muted">Aucun</li>'}</ul>
     </div>
   </div>
 
   <div class="grid2">
     <div class="panel">
       <h2>Top trackers probables</h2>
-      <ul>{''.join(tracker_list) if tracker_list else '<li class="muted">Aucun</li>'}</ul>
+      <ul>{"".join(tracker_list) if tracker_list else '<li class="muted">Aucun</li>'}</ul>
     </div>
     <div class="panel">
       <h2>Répartition vendors</h2>
-      {''.join(vendor_bars) if vendor_bars else '<div class="muted">Aucune donnée</div>'}
+      {"".join(vendor_bars) if vendor_bars else '<div class="muted">Aucune donnée</div>'}
     </div>
   </div>
 
   <div class="panel" style="margin-bottom:18px;">
     <h2>Session diff récent</h2>
-    <ul>{''.join(diff_lines)}</ul>
+    <ul>{"".join(diff_lines)}</ul>
     <div class="muted">Résumé du dernier manifest comparé au précédent.</div>
   </div>
 
   <div class="panel" style="margin-bottom:18px;">
     <h2>Artifact index</h2>
-    <ul>{''.join(artifact_lines)}</ul>
+    <ul>{"".join(artifact_lines)}</ul>
     <div class="muted">Vue rapide des artefacts locaux générés.</div>
   </div>
 
   <div class="grid2">
     <div class="panel">
       <h2>Latest session overview</h2>
-      <ul>{''.join(latest_session_lines)}</ul>
+      <ul>{"".join(latest_session_lines)}</ul>
     </div>
     <div class="panel">
       <h2>Sessions récentes</h2>
-      <ul>{''.join(recent_session_lines) if recent_session_lines else '<li class="muted">Aucune session récente</li>'}</ul>
+      <ul>{"".join(recent_session_lines) if recent_session_lines else '<li class="muted">Aucune session récente</li>'}</ul>
     </div>
   </div>
 
   <div class="panel" style="margin-bottom:18px;">
     <h2>Device registry snapshot</h2>
-    <ul>{''.join(registry_lines) if registry_lines else '<li class="muted">Aucune donnée registry disponible</li>'}</ul>
+    <ul>{"".join(registry_lines) if registry_lines else '<li class="muted">Aucune donnée registry disponible</li>'}</ul>
     <div class="muted">Aperçu local des appareils du scan courant (top 10).</div>
   </div>
 
@@ -3101,7 +3213,7 @@ ul {{ margin:0; padding-left:18px; }}
       <h2>Filtres rapides</h2>
       <input id="searchBox" placeholder="Recherche nom / adresse / vendor">
       <select id="vendorSelect">
-        {''.join(vendor_options)}
+        {"".join(vendor_options)}
       </select>
       <div>
         <button onclick="setMode('all')">Tout</button>
@@ -3119,7 +3231,7 @@ ul {{ margin:0; padding-left:18px; }}
           <tr><th>Scan</th><th>Total</th><th>Critiques</th><th>Élevés</th><th>Moyens</th></tr>
         </thead>
         <tbody>
-          {''.join(trend_rows) if trend_rows else '<tr><td colspan="5" class="muted">Aucun historique</td></tr>'}
+          {"".join(trend_rows) if trend_rows else '<tr><td colspan="5" class="muted">Aucun historique</td></tr>'}
         </tbody>
       </table>
     </div>
@@ -3151,7 +3263,7 @@ ul {{ margin:0; padding-left:18px; }}
         </tr>
       </thead>
       <tbody>
-        {''.join(rows)}
+        {"".join(rows)}
       </tbody>
     </table>
   </div>
@@ -3198,7 +3310,9 @@ vendorSelect.addEventListener('change', applyFilters);
 """
 
 
-def render_bluehood_summary(devices, registry=None, session_id="dashboard-session", seen_at="now"):
+def render_bluehood_summary(
+    devices, registry=None, session_id="dashboard-session", seen_at="now"
+):
     try:
         enriched = enrich_devices_for_session(
             devices=devices or [],
@@ -3228,9 +3342,13 @@ def render_bluehood_summary(devices, registry=None, session_id="dashboard-sessio
 
         pair = item.get("correlated_pair") or item.get("correlated_with")
         if pair:
-            correlated_pairs.append(f"<li>{address} ↔ {escape(str(pair))} (score: {item.get("score", 0)})</li>")
+            correlated_pairs.append(
+                f"<li>{address} ↔ {escape(str(pair))} (score: {item.get('score', 0)})</li>"
+            )
         else:
-            correlated_pairs.append(f"<li>{name} ({address}) — score: {item.get('score', 0)}</li>")
+            correlated_pairs.append(
+                f"<li>{name} ({address}) — score: {item.get('score', 0)}</li>"
+            )
 
         watch_hits.append(f"<li>{name} ({address})</li>")
 
@@ -3251,4 +3369,3 @@ def render_bluehood_summary(devices, registry=None, session_id="dashboard-sessio
   </ul>
 </section>
 """
-
