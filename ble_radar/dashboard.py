@@ -39,6 +39,10 @@ from ble_radar.history.operator_improvement_plan import (
   build_operator_improvement_plan_records,
   summarize_operator_improvement_plans,
 )
+from ble_radar.history.operator_outcome_learning import (
+  build_operator_outcome_learning_records,
+  summarize_operator_outcome_learning,
+)
 from ble_radar.history.operator_correlation import build_correlation_clusters, summarize_clusters
 from ble_radar.history.operator_evidence_pack import build_evidence_packs, load_evidence_packs, summarize_evidence_packs
 from ble_radar.history.operator_escalation_feedback import (
@@ -1564,6 +1568,68 @@ def render_operator_improvement_plan_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_outcome_learning_panel(summary: dict) -> str:
+    """Render compact operator outcome learning panel."""
+    if not summary:
+        return '<ul><li class="muted">No outcome learning available.</li></ul>'
+
+    learning = summary.get("outcome_learning", [])
+    high_value = summary.get("high_value_action_patterns", [])
+    reopen_reduction = summary.get("reopen_reduction_signals", [])
+    mixed = summary.get("mixed_result_patterns", [])
+    reuse = summary.get("recommended_reuse", [])
+
+    lines = [
+        f"<li>Outcome learning records: <strong>{escape(str(len(learning)))}</strong></li>"
+    ]
+
+    if high_value:
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| pattern={escape(str(r.get('action_pattern', '-')))} "
+            f"| confidence={escape(str(r.get('confidence_level', '-')))}</li>"
+            for r in high_value[:6]
+        )
+    else:
+        items = '<li class="muted">No high value action patterns.</li>'
+    lines.append(f"<li>High value action patterns (top 6):<ul>{items}</ul></li>")
+
+    if reopen_reduction:
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| reopen_delta={escape(str(r.get('reopen_delta', 0)))} "
+            f"| stability_delta={escape(str(r.get('stability_delta', 0)))}</li>"
+            for r in reopen_reduction[:6]
+        )
+    else:
+        items = '<li class="muted">No reopen reduction signals.</li>'
+    lines.append(f"<li>Reopen reduction signals (top 6):<ul>{items}</ul></li>")
+
+    if mixed:
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| outcome={escape(str(r.get('observed_outcome', '-')))} "
+            f"| caution={escape(', '.join(r.get('caution_flags', [])[:2]))}</li>"
+            for r in mixed[:6]
+        )
+    else:
+        items = '<li class="muted">No mixed result patterns.</li>'
+    lines.append(f"<li>Mixed result patterns (top 6):<ul>{items}</ul></li>")
+
+    if reuse:
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| action={escape(str(r.get('action_pattern', '-')))} "
+            f"| reuse={escape(str(r.get('recommended_reuse', '-')))}</li>"
+            for r in reuse[:6]
+        )
+    else:
+        items = '<li class="muted">No recommended reuse yet.</li>'
+    lines.append(f"<li>Recommended reuse (top 6):<ul>{items}</ul></li>")
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -2346,6 +2412,22 @@ def render_dashboard_html(devices, stamp: str) -> str:
         generated_at=stamp,
     )
     operator_plan_summary = summarize_operator_improvement_plans(operator_plan_records)
+
+    operator_learning_records = build_operator_outcome_learning_records(
+      current_monitoring_scopes,
+      resolution_quality_records=operator_quality_records,
+      improvement_plans=operator_plan_records,
+      lifecycle_lineage=operator_lineage_records,
+      operator_outcomes=operator_outcomes,
+      closure_packages=operator_closure_packages,
+      reopen_policy_records=operator_reopen_records,
+      post_closure_monitoring_policies=operator_monitoring_policies,
+      escalation_feedback=operator_escalation_feedback,
+      recommendation_tuning=recommendation_profiles,
+      pattern_library=operator_patterns,
+      generated_at=stamp,
+    )
+    operator_learning_summary = summarize_operator_outcome_learning(operator_learning_records)
     previous = history[-1] if history else None
 
     critical = [d for d in devices if d.get("alert_level") == "critique"]
@@ -2814,6 +2896,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Resolution Improvement Plans / Corrective Guidance</h2>
     {render_operator_improvement_plan_panel(operator_plan_summary)}
     <div class="muted">Plans d'amélioration compacts, actions recommandées, lacunes bloquantes et modes de suivi.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Outcome Learning / Historical Effectiveness Feedback</h2>
+    {render_operator_outcome_learning_panel(operator_learning_summary)}
+    <div class="muted">Apprentissage compact des patterns d'action, efficacité historique, signaux de réduction des réouvertures et recommandations de réutilisation.</div>
   </div>
 
   <div class="grid2">
