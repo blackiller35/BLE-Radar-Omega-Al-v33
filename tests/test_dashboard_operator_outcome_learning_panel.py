@@ -100,6 +100,7 @@ def test_render_operator_learning_snapshot_section_with_data():
     assert "Attention band: <strong>low-touch</strong>" in html
     assert "Response posture: <strong>steady</strong>" in html
     assert "Reuse gate: <strong>open</strong>" in html
+    assert "Approval mode: <strong>default</strong>" in html
     assert "Latest pattern" in html
     assert "Recommended reuse" in html
 
@@ -170,6 +171,7 @@ def test_render_operator_learning_snapshot_section_investigate_guidance():
     assert "Attention band: <strong>hands-on</strong>" in html
     assert "Response posture: <strong>active review</strong>" in html
     assert "Reuse gate: <strong>blocked pending review</strong>" in html
+    assert "Approval mode: <strong>hold</strong>" in html
 
 
 def test_dashboard_contains_learning_snapshot_section(monkeypatch):
@@ -338,5 +340,6 @@ def test_render_operator_learning_snapshot_section_watch_guidance():
     assert "Attention band: <strong>monitor</strong>" in html
     assert "Response posture: <strong>cautious</strong>" in html
     assert "Reuse gate: <strong>guarded</strong>" in html
+    assert "Approval mode: <strong>confirm</strong>" in html
     assert "mixed signals require monitored reuse" in html
 
