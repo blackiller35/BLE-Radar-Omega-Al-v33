@@ -1,6 +1,24 @@
 from pathlib import Path
+import pytest
 
 from ble_radar import investigation
+from ble_radar.security import SecurityContext
+
+
+@pytest.fixture(autouse=True)
+def _operator_mode_by_default(monkeypatch):
+    monkeypatch.setattr(
+        investigation,
+        "build_security_context",
+        lambda: SecurityContext(
+            mode="operator",
+            yubikey_present=True,
+            key_name="primary",
+            key_label="YubiKey-1",
+            sensitive_enabled=True,
+            secrets_unlocked=True,
+        ),
+    )
 
 
 def test_create_case_creates_json_file(monkeypatch, tmp_path):
@@ -8,7 +26,7 @@ def test_create_case_creates_json_file(monkeypatch, tmp_path):
 
     case = investigation.create_case("Tracker suspect")
 
-    path = (tmp_path / "cases" / f"{case['id']}.json")
+    path = tmp_path / "cases" / f"{case['id']}.json"
     assert path.exists()
     assert case["title"] == "Tracker suspect"
     assert case["status"] == "open"
@@ -76,3 +94,42 @@ def test_summarize_case_contains_expected_lines(monkeypatch, tmp_path):
     assert "Device: Tracker-Two | AA:BB:CC" in joined
     assert "Notes: 1" in joined
     assert "Last note: Signal récurrent près du poste" in joined
+
+
+def test_create_case_demo_mode_raises_permission_error(monkeypatch, tmp_path):
+    monkeypatch.setattr(investigation, "CASES_DIR", tmp_path / "cases")
+    monkeypatch.setattr(
+        investigation,
+        "build_security_context",
+        lambda: SecurityContext(
+            mode="demo",
+            yubikey_present=False,
+            key_name=None,
+            key_label=None,
+            sensitive_enabled=False,
+            secrets_unlocked=False,
+        ),
+    )
+
+    with pytest.raises(PermissionError):
+        investigation.create_case("Blocked in demo mode")
+
+
+def test_create_case_operator_mode_allows_write(monkeypatch, tmp_path):
+    monkeypatch.setattr(investigation, "CASES_DIR", tmp_path / "cases")
+    monkeypatch.setattr(
+        investigation,
+        "build_security_context",
+        lambda: SecurityContext(
+            mode="operator",
+            yubikey_present=True,
+            key_name="primary",
+            key_label="YubiKey-1",
+            sensitive_enabled=True,
+            secrets_unlocked=True,
+        ),
+    )
+
+    case = investigation.create_case("Allowed in operator mode")
+    path = tmp_path / "cases" / f"{case['id']}.json"
+    assert path.exists()

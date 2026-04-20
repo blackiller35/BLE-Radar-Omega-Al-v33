@@ -4,6 +4,8 @@ from datetime import datetime
 from typing import Any, Dict, Iterable
 
 from ble_radar.config import HISTORY_DIR
+from ble_radar.security import build_security_context
+from ble_radar.security.policy import require_operator
 from ble_radar.state import load_json, save_json
 
 DEVICE_REGISTRY_FILE = HISTORY_DIR / "device_registry.json"
@@ -73,6 +75,8 @@ def load_registry() -> Dict[str, Dict[str, Any]]:
 
 
 def save_registry(registry: Dict[str, Dict[str, Any]]) -> None:
+    security_context = build_security_context()
+    require_operator(security_context)
     DEVICE_REGISTRY_FILE.parent.mkdir(parents=True, exist_ok=True)
     save_json(DEVICE_REGISTRY_FILE, _normalize_registry(registry))
 

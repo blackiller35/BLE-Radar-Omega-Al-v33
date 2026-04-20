@@ -1,4 +1,25 @@
+import pytest
+
 from ble_radar import incident_pack, investigation
+from ble_radar.security import SecurityContext
+
+
+def _operator_security_context():
+    return SecurityContext(
+        mode="operator",
+        yubikey_present=True,
+        key_name="primary",
+        key_label="YubiKey-1",
+        sensitive_enabled=True,
+        secrets_unlocked=True,
+    )
+
+
+@pytest.fixture(autouse=True)
+def _operator_mode_autouse(monkeypatch):
+    monkeypatch.setattr(
+        investigation, "build_security_context", _operator_security_context
+    )
 
 
 def _latest_session():
@@ -42,11 +63,21 @@ def _recent_sessions():
 
 def test_incident_pack_manifest_contains_session_catalog_context(monkeypatch, tmp_path):
     monkeypatch.setattr(investigation, "CASES_DIR", tmp_path / "cases")
-    monkeypatch.setattr(incident_pack, "INCIDENT_PACKS_DIR", tmp_path / "incident_packs")
-    monkeypatch.setattr(incident_pack, "latest_session_diff", lambda: {"has_diff": False})
+    monkeypatch.setattr(
+        incident_pack, "INCIDENT_PACKS_DIR", tmp_path / "incident_packs"
+    )
+    monkeypatch.setattr(
+        incident_pack, "latest_session_diff", lambda: {"has_diff": False}
+    )
     monkeypatch.setattr(incident_pack, "latest_session_overview", _latest_session)
-    monkeypatch.setattr(incident_pack, "build_session_catalog", lambda limit=3: _recent_sessions())
-    monkeypatch.setattr(incident_pack, "diff_summary_lines", lambda diff: ["BLE Radar Omega AI - Session Diff"])
+    monkeypatch.setattr(
+        incident_pack, "build_session_catalog", lambda limit=3: _recent_sessions()
+    )
+    monkeypatch.setattr(
+        incident_pack,
+        "diff_summary_lines",
+        lambda diff: ["BLE Radar Omega AI - Session Diff"],
+    )
 
     case = investigation.create_case("Tracker suspect")
     result = incident_pack.build_incident_pack(case["id"])
@@ -58,11 +89,21 @@ def test_incident_pack_manifest_contains_session_catalog_context(monkeypatch, tm
 
 def test_incident_summary_mentions_latest_session_overview(monkeypatch, tmp_path):
     monkeypatch.setattr(investigation, "CASES_DIR", tmp_path / "cases")
-    monkeypatch.setattr(incident_pack, "INCIDENT_PACKS_DIR", tmp_path / "incident_packs")
-    monkeypatch.setattr(incident_pack, "latest_session_diff", lambda: {"has_diff": False})
+    monkeypatch.setattr(
+        incident_pack, "INCIDENT_PACKS_DIR", tmp_path / "incident_packs"
+    )
+    monkeypatch.setattr(
+        incident_pack, "latest_session_diff", lambda: {"has_diff": False}
+    )
     monkeypatch.setattr(incident_pack, "latest_session_overview", _latest_session)
-    monkeypatch.setattr(incident_pack, "build_session_catalog", lambda limit=3: _recent_sessions())
-    monkeypatch.setattr(incident_pack, "diff_summary_lines", lambda diff: ["BLE Radar Omega AI - Session Diff"])
+    monkeypatch.setattr(
+        incident_pack, "build_session_catalog", lambda limit=3: _recent_sessions()
+    )
+    monkeypatch.setattr(
+        incident_pack,
+        "diff_summary_lines",
+        lambda diff: ["BLE Radar Omega AI - Session Diff"],
+    )
 
     case = investigation.create_case("Beacon check")
     result = incident_pack.build_incident_pack(case["id"])
@@ -76,11 +117,21 @@ def test_incident_summary_mentions_latest_session_overview(monkeypatch, tmp_path
 
 def test_incident_summary_mentions_recent_sessions(monkeypatch, tmp_path):
     monkeypatch.setattr(investigation, "CASES_DIR", tmp_path / "cases")
-    monkeypatch.setattr(incident_pack, "INCIDENT_PACKS_DIR", tmp_path / "incident_packs")
-    monkeypatch.setattr(incident_pack, "latest_session_diff", lambda: {"has_diff": False})
+    monkeypatch.setattr(
+        incident_pack, "INCIDENT_PACKS_DIR", tmp_path / "incident_packs"
+    )
+    monkeypatch.setattr(
+        incident_pack, "latest_session_diff", lambda: {"has_diff": False}
+    )
     monkeypatch.setattr(incident_pack, "latest_session_overview", _latest_session)
-    monkeypatch.setattr(incident_pack, "build_session_catalog", lambda limit=3: _recent_sessions())
-    monkeypatch.setattr(incident_pack, "diff_summary_lines", lambda diff: ["BLE Radar Omega AI - Session Diff"])
+    monkeypatch.setattr(
+        incident_pack, "build_session_catalog", lambda limit=3: _recent_sessions()
+    )
+    monkeypatch.setattr(
+        incident_pack,
+        "diff_summary_lines",
+        lambda diff: ["BLE Radar Omega AI - Session Diff"],
+    )
 
     case = investigation.create_case("Session context")
     result = incident_pack.build_incident_pack(case["id"])

@@ -1,4 +1,5 @@
 from ble_radar.history import device_registry as dr
+from ble_radar.security import SecurityContext
 
 
 def test_update_registry_tracks_seen_and_session_counts():
@@ -42,6 +43,18 @@ def test_update_registry_tracks_seen_and_session_counts():
 def test_load_and_save_registry_roundtrip(tmp_path, monkeypatch):
     path = tmp_path / "device_registry.json"
     monkeypatch.setattr(dr, "DEVICE_REGISTRY_FILE", path)
+    monkeypatch.setattr(
+        dr,
+        "build_security_context",
+        lambda: SecurityContext(
+            mode="operator",
+            yubikey_present=True,
+            key_name="primary",
+            key_label="YubiKey-1",
+            sensitive_enabled=True,
+            secrets_unlocked=True,
+        ),
+    )
 
     assert dr.load_registry() == {}
 
@@ -60,3 +73,45 @@ def test_load_and_save_registry_roundtrip(tmp_path, monkeypatch):
     assert "AA:BB" in loaded
     assert loaded["AA:BB"]["seen_count"] == 3
     assert loaded["AA:BB"]["session_count"] == 2
+
+
+def test_save_registry_demo_mode_raises_permission_error(monkeypatch):
+    monkeypatch.setattr(
+        dr,
+        "build_security_context",
+        lambda: SecurityContext(
+            mode="demo",
+            yubikey_present=False,
+            key_name=None,
+            key_label=None,
+            sensitive_enabled=False,
+            secrets_unlocked=False,
+        ),
+    )
+
+    try:
+        dr.save_registry({"AA:BB": {"address": "AA:BB"}})
+        assert False, "Expected PermissionError in demo mode"
+    except PermissionError:
+        pass
+
+
+def test_save_registry_operator_mode_allows_write(tmp_path, monkeypatch):
+    path = tmp_path / "device_registry.json"
+    monkeypatch.setattr(dr, "DEVICE_REGISTRY_FILE", path)
+    monkeypatch.setattr(
+        dr,
+        "build_security_context",
+        lambda: SecurityContext(
+            mode="operator",
+            yubikey_present=True,
+            key_name="primary",
+            key_label="YubiKey-1",
+            sensitive_enabled=True,
+            secrets_unlocked=True,
+        ),
+    )
+
+    dr.save_registry({"AA:BB": {"address": "AA:BB"}})
+
+    assert path.exists()
