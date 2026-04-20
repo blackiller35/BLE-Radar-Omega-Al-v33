@@ -7,6 +7,7 @@ from typing import Optional
 
 from .registry import get_enabled_tokens, get_policy
 from .yubikey_guard import detect_registered_yubikey
+from ble_radar.eventlog import log_event
 
 
 OPERATOR_SESSION_UNLOCK_FILE = Path("runtime/operator_session.unlock")
@@ -23,6 +24,16 @@ def is_operator_session_unlocked() -> bool:
             OPERATOR_SESSION_TIMEOUT_SECONDS > 0
             and age_seconds > OPERATOR_SESSION_TIMEOUT_SECONDS
         ):
+            log_event(
+                "security.operator_session.auto_locked",
+                "warning",
+                "Operator session auto-locked by timeout",
+                {
+                    "reason": "timeout",
+                    "timeout_seconds": OPERATOR_SESSION_TIMEOUT_SECONDS,
+                    "age_seconds": int(age_seconds),
+                },
+            )
             lock_operator_session()
             return False
 
@@ -37,12 +48,24 @@ def is_operator_session_unlocked() -> bool:
 def unlock_operator_session() -> None:
     OPERATOR_SESSION_UNLOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
     OPERATOR_SESSION_UNLOCK_FILE.write_text("unlocked", encoding="utf-8")
+    log_event(
+        "security.operator_session.unlocked",
+        "info",
+        "Operator session unlocked",
+        {"unlock_file": str(OPERATOR_SESSION_UNLOCK_FILE)},
+    )
 
 
 def lock_operator_session() -> None:
     try:
         if OPERATOR_SESSION_UNLOCK_FILE.exists():
             OPERATOR_SESSION_UNLOCK_FILE.unlink()
+        log_event(
+            "security.operator_session.locked",
+            "info",
+            "Operator session locked",
+            {"unlock_file": str(OPERATOR_SESSION_UNLOCK_FILE)},
+        )
     except Exception:
         return
 
