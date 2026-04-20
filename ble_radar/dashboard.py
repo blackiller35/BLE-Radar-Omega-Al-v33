@@ -1753,6 +1753,12 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     elif guidance == "investigate":
         escalation_path = "prepare now"
 
+    operator_checkpoint = "advised"
+    if guidance == "keep":
+        operator_checkpoint = "optional"
+    elif guidance == "investigate":
+        operator_checkpoint = "required"
+
     lines = [
         f"<li>Learned patterns: <strong>{escape(str(len(learning)))}</strong> | "
         f"high-value=<strong>{escape(str(len(high_value)))}</strong> | "
@@ -1772,6 +1778,7 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
         f"<li>Oversight level: <strong>{escape(oversight_level)}</strong></li>",
         f"<li>Verification mode: <strong>{escape(verification_mode)}</strong></li>",
         f"<li>Escalation path: <strong>{escape(escalation_path)}</strong></li>",
+        f"<li>Operator checkpoint: <strong>{escape(operator_checkpoint)}</strong></li>",
         f"<li>Latest pattern: {latest_scope} | pattern={latest_pattern} | "
         f"confidence={latest_conf} | reuse={latest_reuse}</li>",
     ]
