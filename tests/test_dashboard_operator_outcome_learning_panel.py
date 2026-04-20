@@ -89,6 +89,7 @@ def test_render_operator_learning_snapshot_section_with_data():
     assert "Learned patterns" in html
     assert "Operator guidance" in html
     assert "keep" in html
+    assert "priority=<strong>low</strong>" in html
     assert "Latest pattern" in html
     assert "Recommended reuse" in html
 
@@ -148,6 +149,7 @@ def test_render_operator_learning_snapshot_section_investigate_guidance():
     html = dashboard.render_operator_learning_snapshot_section(summary)
     assert "Operator guidance" in html
     assert "investigate" in html
+    assert "priority=<strong>high</strong>" in html
 
 
 def test_dashboard_contains_learning_snapshot_section(monkeypatch):
@@ -301,5 +303,6 @@ def test_render_operator_learning_snapshot_section_watch_guidance():
 
     assert "Operator guidance" in html
     assert "watch" in html
+    assert "priority=<strong>medium</strong>" in html
     assert "mixed signals require monitored reuse" in html
 
