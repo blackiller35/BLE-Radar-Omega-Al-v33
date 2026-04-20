@@ -1741,6 +1741,12 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     elif guidance == "investigate":
         oversight_level = "strict"
 
+    verification_mode = "confirm"
+    if guidance == "keep":
+        verification_mode = "spot-check"
+    elif guidance == "investigate":
+        verification_mode = "full review"
+
     lines = [
         f"<li>Learned patterns: <strong>{escape(str(len(learning)))}</strong> | "
         f"high-value=<strong>{escape(str(len(high_value)))}</strong> | "
@@ -1758,6 +1764,7 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
         f"<li>Approval mode: <strong>{escape(approval_mode)}</strong></li>",
         f"<li>Intervention level: <strong>{escape(intervention_level)}</strong></li>",
         f"<li>Oversight level: <strong>{escape(oversight_level)}</strong></li>",
+        f"<li>Verification mode: <strong>{escape(verification_mode)}</strong></li>",
         f"<li>Latest pattern: {latest_scope} | pattern={latest_pattern} | "
         f"confidence={latest_conf} | reuse={latest_reuse}</li>",
     ]
