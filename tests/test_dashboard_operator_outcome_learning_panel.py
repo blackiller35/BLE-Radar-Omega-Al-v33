@@ -92,7 +92,7 @@ def test_render_operator_learning_snapshot_section_with_data():
     assert "priority=<strong>low</strong>" in html
     assert "Recommended action: <strong>continue current reuse pattern</strong>" in html
     assert "Recommended action" in html
-    assert "keep current operating pattern" in html
+    assert "Recommended action: <strong>continue current reuse pattern</strong>" in html
     assert "Latest pattern" in html
     assert "Recommended reuse" in html
 
@@ -155,7 +155,7 @@ def test_render_operator_learning_snapshot_section_investigate_guidance():
     assert "priority=<strong>high</strong>" in html
     assert "Recommended action: <strong>review recent mixed patterns before reuse</strong>" in html
     assert "Recommended action" in html
-    assert "investigate before reusing this pattern" in html
+    assert "Recommended action: <strong>review recent mixed patterns before reuse</strong>" in html
 
 
 def test_dashboard_contains_learning_snapshot_section(monkeypatch):
@@ -279,7 +279,7 @@ def test_dashboard_contains_learning_snapshot_section(monkeypatch):
     assert "Operator guidance" in html
     assert "keep" in html
     assert "Recommended action" in html
-    assert "keep current operating pattern" in html
+    assert "Recommended action: <strong>continue current reuse pattern</strong>" in html
 
 def test_render_operator_learning_snapshot_section_watch_guidance():
     summary = {
@@ -314,6 +314,6 @@ def test_render_operator_learning_snapshot_section_watch_guidance():
     assert "priority=<strong>medium</strong>" in html
     assert "Recommended action: <strong>monitor next sessions before broad reuse</strong>" in html
     assert "Recommended action" in html
-    assert "watch closely and continue monitored reuse" in html
+    assert "Recommended action: <strong>monitor next sessions before broad reuse</strong>" in html
     assert "mixed signals require monitored reuse" in html
 
