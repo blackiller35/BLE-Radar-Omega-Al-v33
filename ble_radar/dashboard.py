@@ -1679,6 +1679,91 @@ def render_operator_outcome_learning_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+_LEARNING_SNAPSHOT_PRIORITY_BY_GUIDANCE = {
+    "keep": "low",
+    "watch": "medium",
+    "investigate": "high",
+}
+
+_LEARNING_SNAPSHOT_GUIDANCE_PROFILE = {
+    "keep": {
+        "recommended_action": "continue current reuse pattern",
+        "operator_note": "safe to continue under current pattern",
+        "review_trigger": "no immediate review needed",
+        "confidence_hint": "stable reuse signal",
+        "followup_tempo": "routine",
+        "attention_band": "low-touch",
+        "response_posture": "steady",
+        "reuse_gate": "open",
+        "approval_mode": "default",
+        "intervention_level": "minimal",
+        "oversight_level": "light",
+        "verification_mode": "spot-check",
+        "escalation_path": "none",
+        "operator_checkpoint": "optional",
+        "trace_mode": "light trace",
+        "audit_readiness": "background",
+        "review_burden": "low",
+        "documentation_mode": "compact",
+        "handoff_readiness": "standby",
+        "resolution_posture": "stable track",
+        "closure_readiness": "eligible",
+        "exit_path": "normal close",
+        "reopen_risk": "low",
+    },
+    "watch": {
+        "recommended_action": "monitor next sessions before broad reuse",
+        "operator_note": "wait for one more stable learning cycle",
+        "review_trigger": "recheck after next stable cycle",
+        "confidence_hint": "moderate reuse confidence",
+        "followup_tempo": "next cycle",
+        "attention_band": "monitor",
+        "response_posture": "cautious",
+        "reuse_gate": "guarded",
+        "approval_mode": "confirm",
+        "intervention_level": "selective",
+        "oversight_level": "active",
+        "verification_mode": "confirm",
+        "escalation_path": "ready if needed",
+        "operator_checkpoint": "advised",
+        "trace_mode": "tracked",
+        "audit_readiness": "prepared",
+        "review_burden": "moderate",
+        "documentation_mode": "standard",
+        "handoff_readiness": "ready",
+        "resolution_posture": "watch and reassess",
+        "closure_readiness": "pending check",
+        "exit_path": "delay close",
+        "reopen_risk": "moderate",
+    },
+    "investigate": {
+        "recommended_action": "review recent mixed patterns before reuse",
+        "operator_note": "review recent caution signals first",
+        "review_trigger": "review before next reuse",
+        "confidence_hint": "low reuse confidence",
+        "followup_tempo": "before reuse",
+        "attention_band": "hands-on",
+        "response_posture": "active review",
+        "reuse_gate": "blocked pending review",
+        "approval_mode": "hold",
+        "intervention_level": "direct",
+        "oversight_level": "strict",
+        "verification_mode": "full review",
+        "escalation_path": "prepare now",
+        "operator_checkpoint": "required",
+        "trace_mode": "full trace",
+        "audit_readiness": "immediate",
+        "review_burden": "high",
+        "documentation_mode": "expanded",
+        "handoff_readiness": "immediate handoff",
+        "resolution_posture": "active resolution",
+        "closure_readiness": "blocked",
+        "exit_path": "keep open",
+        "reopen_risk": "high",
+    },
+}
+
+
 def render_operator_learning_snapshot_section(summary: dict) -> str:
     """Render compact read-only learning snapshot from existing outcome learning summary."""
     if not summary:
@@ -1704,163 +1789,51 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
 
     recent = learning[:6]
     caution_flags = [
-        str(flag)
-        for row in recent
-        for flag in list(row.get("caution_flags", []) or [])
+        str(flag) for row in recent for flag in list(row.get("caution_flags", []) or [])
     ]
 
     guidance = "watch"
     guidance_reason = "mixed signals require monitored reuse"
-    if latest_conf == "low" or "reopen_pressure_increasing" in caution_flags or len(mixed) > len(high_value):
+    if (
+        latest_conf == "low"
+        or "reopen_pressure_increasing" in caution_flags
+        or len(mixed) > len(high_value)
+    ):
         guidance = "investigate"
         guidance_reason = "fragility/reopen pressure detected in recent learning"
-    elif (high_value or reopen_reduction) and len(mixed) == 0 and latest_conf in {"high", "medium"}:
+    elif (
+        (high_value or reopen_reduction)
+        and len(mixed) == 0
+        and latest_conf in {"high", "medium"}
+    ):
         guidance = "keep"
         guidance_reason = "consistent positive learning signals"
 
-    priority = "medium"
-    if guidance == "keep":
-        priority = "low"
-    elif guidance == "investigate":
-        priority = "high"
-
-    recommended_action = "monitor next sessions before broad reuse"
-    if guidance == "keep":
-        recommended_action = "continue current reuse pattern"
-    elif guidance == "investigate":
-        recommended_action = "review recent mixed patterns before reuse"
-
-    operator_note = "wait for one more stable learning cycle"
-    if guidance == "keep":
-        operator_note = "safe to continue under current pattern"
-    elif guidance == "investigate":
-        operator_note = "review recent caution signals first"
-
-    review_trigger = "recheck after next stable cycle"
-    if guidance == "keep":
-        review_trigger = "no immediate review needed"
-    elif guidance == "investigate":
-        review_trigger = "review before next reuse"
-
-    confidence_hint = "moderate reuse confidence"
-    if guidance == "keep":
-        confidence_hint = "stable reuse signal"
-    elif guidance == "investigate":
-        confidence_hint = "low reuse confidence"
-
-    followup_tempo = "next cycle"
-    if guidance == "keep":
-        followup_tempo = "routine"
-    elif guidance == "investigate":
-        followup_tempo = "before reuse"
-
-    attention_band = "monitor"
-    if guidance == "keep":
-        attention_band = "low-touch"
-    elif guidance == "investigate":
-        attention_band = "hands-on"
-
-    response_posture = "cautious"
-    if guidance == "keep":
-        response_posture = "steady"
-    elif guidance == "investigate":
-        response_posture = "active review"
-
-    reuse_gate = "guarded"
-    if guidance == "keep":
-        reuse_gate = "open"
-    elif guidance == "investigate":
-        reuse_gate = "blocked pending review"
-
-    approval_mode = "confirm"
-    if guidance == "keep":
-        approval_mode = "default"
-    elif guidance == "investigate":
-        approval_mode = "hold"
-
-    intervention_level = "selective"
-    if guidance == "keep":
-        intervention_level = "minimal"
-    elif guidance == "investigate":
-        intervention_level = "direct"
-
-    oversight_level = "active"
-    if guidance == "keep":
-        oversight_level = "light"
-    elif guidance == "investigate":
-        oversight_level = "strict"
-
-    verification_mode = "confirm"
-    if guidance == "keep":
-        verification_mode = "spot-check"
-    elif guidance == "investigate":
-        verification_mode = "full review"
-
-    escalation_path = "ready if needed"
-    if guidance == "keep":
-        escalation_path = "none"
-    elif guidance == "investigate":
-        escalation_path = "prepare now"
-
-    operator_checkpoint = "advised"
-    if guidance == "keep":
-        operator_checkpoint = "optional"
-    elif guidance == "investigate":
-        operator_checkpoint = "required"
-
-    trace_mode = "tracked"
-    if guidance == "keep":
-        trace_mode = "light trace"
-    elif guidance == "investigate":
-        trace_mode = "full trace"
-
-    audit_readiness = "prepared"
-    if guidance == "keep":
-        audit_readiness = "background"
-    elif guidance == "investigate":
-        audit_readiness = "immediate"
-
-    review_burden = "moderate"
-    if guidance == "keep":
-        review_burden = "low"
-    elif guidance == "investigate":
-        review_burden = "high"
-
-    documentation_mode = "standard"
-    if guidance == "keep":
-        documentation_mode = "compact"
-    elif guidance == "investigate":
-        documentation_mode = "expanded"
-
-    handoff_readiness = "ready"
-    if guidance == "keep":
-        handoff_readiness = "standby"
-    elif guidance == "investigate":
-        handoff_readiness = "immediate handoff"
-
-    resolution_posture = "watch and reassess"
-    if guidance == "keep":
-        resolution_posture = "stable track"
-    elif guidance == "investigate":
-        resolution_posture = "active resolution"
-
-    closure_readiness = "pending check"
-    if guidance == "keep":
-        closure_readiness = "eligible"
-    elif guidance == "investigate":
-        closure_readiness = "blocked"
-
-    exit_path = "delay close"
-    if guidance == "keep":
-        exit_path = "normal close"
-    elif guidance == "investigate":
-        exit_path = "keep open"
-
-    reopen_risk = "moderate"
-    if guidance == "keep":
-        reopen_risk = "low"
-    elif guidance == "investigate":
-        reopen_risk = "high"
+    profile = _LEARNING_SNAPSHOT_GUIDANCE_PROFILE[guidance]
+    priority = _LEARNING_SNAPSHOT_PRIORITY_BY_GUIDANCE[guidance]
+    recommended_action = profile["recommended_action"]
+    operator_note = profile["operator_note"]
+    review_trigger = profile["review_trigger"]
+    confidence_hint = profile["confidence_hint"]
+    followup_tempo = profile["followup_tempo"]
+    attention_band = profile["attention_band"]
+    response_posture = profile["response_posture"]
+    reuse_gate = profile["reuse_gate"]
+    approval_mode = profile["approval_mode"]
+    intervention_level = profile["intervention_level"]
+    oversight_level = profile["oversight_level"]
+    verification_mode = profile["verification_mode"]
+    escalation_path = profile["escalation_path"]
+    operator_checkpoint = profile["operator_checkpoint"]
+    trace_mode = profile["trace_mode"]
+    audit_readiness = profile["audit_readiness"]
+    review_burden = profile["review_burden"]
+    documentation_mode = profile["documentation_mode"]
+    handoff_readiness = profile["handoff_readiness"]
+    resolution_posture = profile["resolution_posture"]
+    closure_readiness = profile["closure_readiness"]
+    exit_path = profile["exit_path"]
+    reopen_risk = profile["reopen_risk"]
 
     lines = [
         f"<li>Learned patterns: <strong>{escape(str(len(learning)))}</strong> | "
@@ -1906,6 +1879,7 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
         lines.append('<li class="muted">No recommended reuse candidates yet.</li>')
 
     return f"<ul>{''.join(lines)}</ul>"
+
 
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
