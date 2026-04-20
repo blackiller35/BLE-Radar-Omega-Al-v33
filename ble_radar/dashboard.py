@@ -1668,12 +1668,17 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     elif (high_value or reopen_reduction) and len(mixed) == 0 and latest_conf in {"high", "medium"}:
         guidance = "keep"
         guidance_reason = "consistent positive learning signals"
-
     priority = "medium"
     if guidance == "keep":
-        priority = "low"
+      priority = "low"
     elif guidance == "investigate":
-        priority = "high"
+      priority = "high"
+
+    recommended_action = "monitor next sessions before broad reuse"
+    if guidance == "keep":
+      recommended_action = "continue current reuse pattern"
+    elif guidance == "investigate":
+      recommended_action = "review recent mixed patterns before reuse"
 
     action_map = {
         ("keep", "low"): "keep current operating pattern",
