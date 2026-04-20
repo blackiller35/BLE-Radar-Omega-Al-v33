@@ -1759,6 +1759,12 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     elif guidance == "investigate":
         operator_checkpoint = "required"
 
+    trace_mode = "tracked"
+    if guidance == "keep":
+        trace_mode = "light trace"
+    elif guidance == "investigate":
+        trace_mode = "full trace"
+
     lines = [
         f"<li>Learned patterns: <strong>{escape(str(len(learning)))}</strong> | "
         f"high-value=<strong>{escape(str(len(high_value)))}</strong> | "
@@ -1779,6 +1785,7 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
         f"<li>Verification mode: <strong>{escape(verification_mode)}</strong></li>",
         f"<li>Escalation path: <strong>{escape(escalation_path)}</strong></li>",
         f"<li>Operator checkpoint: <strong>{escape(operator_checkpoint)}</strong></li>",
+        f"<li>Trace mode: <strong>{escape(trace_mode)}</strong></li>",
         f"<li>Latest pattern: {latest_scope} | pattern={latest_pattern} | "
         f"confidence={latest_conf} | reuse={latest_reuse}</li>",
     ]

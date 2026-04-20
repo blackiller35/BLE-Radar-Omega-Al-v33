@@ -106,6 +106,7 @@ def test_render_operator_learning_snapshot_section_with_data():
     assert "Verification mode: <strong>spot-check</strong>" in html
     assert "Escalation path: <strong>none</strong>" in html
     assert "Operator checkpoint: <strong>optional</strong>" in html
+    assert "Trace mode: <strong>light trace</strong>" in html
     assert "Latest pattern" in html
     assert "Recommended reuse" in html
 
@@ -182,6 +183,7 @@ def test_render_operator_learning_snapshot_section_investigate_guidance():
     assert "Verification mode: <strong>full review</strong>" in html
     assert "Escalation path: <strong>prepare now</strong>" in html
     assert "Operator checkpoint: <strong>required</strong>" in html
+    assert "Trace mode: <strong>full trace</strong>" in html
 
 
 def test_dashboard_contains_learning_snapshot_section(monkeypatch):
@@ -356,5 +358,6 @@ def test_render_operator_learning_snapshot_section_watch_guidance():
     assert "Verification mode: <strong>confirm</strong>" in html
     assert "Escalation path: <strong>ready if needed</strong>" in html
     assert "Operator checkpoint: <strong>advised</strong>" in html
+    assert "Trace mode: <strong>tracked</strong>" in html
     assert "mixed signals require monitored reuse" in html
 
