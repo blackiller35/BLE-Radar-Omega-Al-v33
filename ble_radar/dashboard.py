@@ -1717,6 +1717,12 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     elif guidance == "investigate":
         response_posture = "active review"
 
+    reuse_gate = "guarded"
+    if guidance == "keep":
+        reuse_gate = "open"
+    elif guidance == "investigate":
+        reuse_gate = "blocked pending review"
+
     lines = [
         f"<li>Learned patterns: <strong>{escape(str(len(learning)))}</strong> | "
         f"high-value=<strong>{escape(str(len(high_value)))}</strong> | "
@@ -1730,6 +1736,7 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
         f"<li>Follow-up tempo: <strong>{escape(followup_tempo)}</strong></li>",
         f"<li>Attention band: <strong>{escape(attention_band)}</strong></li>",
         f"<li>Response posture: <strong>{escape(response_posture)}</strong></li>",
+        f"<li>Reuse gate: <strong>{escape(reuse_gate)}</strong></li>",
         f"<li>Latest pattern: {latest_scope} | pattern={latest_pattern} | "
         f"confidence={latest_conf} | reuse={latest_reuse}</li>",
     ]
