@@ -1,4 +1,6 @@
 from ble_radar.security import mode
+import os
+import time
 
 
 def test_no_key_returns_demo_locked(monkeypatch, tmp_path):
@@ -50,3 +52,47 @@ def test_explicit_unlock_enables_operator_secrets(monkeypatch, tmp_path):
     assert security.yubikey_present is True
     assert security.secrets_unlocked is True
     assert security.sensitive_enabled is True
+
+
+def test_lock_action_relocks_operator_session(monkeypatch, tmp_path):
+    unlock_path = tmp_path / "operator.unlock"
+    monkeypatch.setattr(mode, "OPERATOR_SESSION_UNLOCK_FILE", unlock_path)
+    monkeypatch.setattr(
+        mode,
+        "detect_registered_yubikey",
+        lambda allowed_tokens: {"name": "primary", "label": "YubiKey 5C NFC"},
+    )
+
+    mode.unlock_operator_session()
+    unlocked = mode.build_security_context()
+    assert unlocked.mode == "operator"
+    assert unlocked.secrets_unlocked is True
+    assert unlocked.sensitive_enabled is True
+
+    mode.lock_operator_session()
+    relocked = mode.build_security_context()
+    assert relocked.mode == "operator"
+    assert relocked.secrets_unlocked is False
+    assert relocked.sensitive_enabled is False
+
+
+def test_expired_operator_session_treated_as_locked(monkeypatch, tmp_path):
+    unlock_path = tmp_path / "operator.unlock"
+    monkeypatch.setattr(mode, "OPERATOR_SESSION_UNLOCK_FILE", unlock_path)
+    monkeypatch.setattr(mode, "OPERATOR_SESSION_TIMEOUT_SECONDS", 1)
+    monkeypatch.setattr(
+        mode,
+        "detect_registered_yubikey",
+        lambda allowed_tokens: {"name": "primary", "label": "YubiKey 5C NFC"},
+    )
+
+    mode.unlock_operator_session()
+    stale = time.time() - 10
+    os.utime(unlock_path, (stale, stale))
+
+    security = mode.build_security_context()
+
+    assert security.mode == "operator"
+    assert security.secrets_unlocked is False
+    assert security.sensitive_enabled is False
+    assert unlock_path.exists() is False

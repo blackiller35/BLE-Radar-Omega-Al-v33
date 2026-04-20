@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import time
 from typing import Optional
 
 from .registry import get_enabled_tokens, get_policy
@@ -9,12 +10,22 @@ from .yubikey_guard import detect_registered_yubikey
 
 
 OPERATOR_SESSION_UNLOCK_FILE = Path("runtime/operator_session.unlock")
+OPERATOR_SESSION_TIMEOUT_SECONDS = 900
 
 
 def is_operator_session_unlocked() -> bool:
     try:
         if not OPERATOR_SESSION_UNLOCK_FILE.exists():
             return False
+
+        age_seconds = time.time() - OPERATOR_SESSION_UNLOCK_FILE.stat().st_mtime
+        if (
+            OPERATOR_SESSION_TIMEOUT_SECONDS > 0
+            and age_seconds > OPERATOR_SESSION_TIMEOUT_SECONDS
+        ):
+            lock_operator_session()
+            return False
+
         value = OPERATOR_SESSION_UNLOCK_FILE.read_text(
             encoding="utf-8", errors="ignore"
         ).strip()
