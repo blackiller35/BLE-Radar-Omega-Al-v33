@@ -20,6 +20,9 @@ def _operator_mode_autouse(monkeypatch):
     monkeypatch.setattr(
         investigation, "build_security_context", _operator_security_context
     )
+    monkeypatch.setattr(
+        incident_pack, "build_security_context", _operator_security_context
+    )
 
 
 def test_build_incident_pack_creates_manifest_and_summary(monkeypatch, tmp_path):
@@ -119,3 +122,45 @@ def test_list_incident_packs_returns_created_pack_dirs(monkeypatch, tmp_path):
     packs = incident_pack.list_incident_packs()
 
     assert result["pack_dir"] in packs
+
+
+def test_build_incident_pack_demo_mode_raises_permission_error(monkeypatch, tmp_path):
+    monkeypatch.setattr(investigation, "CASES_DIR", tmp_path / "cases")
+    monkeypatch.setattr(
+        incident_pack, "INCIDENT_PACKS_DIR", tmp_path / "incident_packs"
+    )
+
+    case = investigation.create_case("Demo guard case")
+
+    monkeypatch.setattr(
+        incident_pack,
+        "build_security_context",
+        lambda: SecurityContext(
+            mode="demo",
+            yubikey_present=False,
+            key_name=None,
+            key_label=None,
+            sensitive_enabled=False,
+            secrets_unlocked=False,
+        ),
+    )
+
+    with pytest.raises(PermissionError):
+        incident_pack.build_incident_pack(case["id"])
+
+
+def test_build_incident_pack_operator_mode_allows_path(monkeypatch, tmp_path):
+    monkeypatch.setattr(investigation, "CASES_DIR", tmp_path / "cases")
+    monkeypatch.setattr(
+        incident_pack, "INCIDENT_PACKS_DIR", tmp_path / "incident_packs"
+    )
+    monkeypatch.setattr(
+        incident_pack, "build_security_context", _operator_security_context
+    )
+
+    case = investigation.create_case("Operator guard case")
+    result = incident_pack.build_incident_pack(case["id"])
+
+    assert result["pack_dir"].exists()
+    assert result["manifest_path"].exists()
+    assert result["summary_path"].exists()
