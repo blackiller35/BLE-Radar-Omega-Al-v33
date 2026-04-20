@@ -39,6 +39,8 @@ def test_render_security_status_panel_with_context():
     assert "Key source: <strong>primary</strong>" in html
     assert "Sensitive features: <strong>true</strong>" in html
     assert "Secrets unlocked: <strong>true</strong>" in html
+    assert "Operator session: <strong>unlocked</strong>" in html
+    assert "Elevated sensitive access: <strong>enabled</strong>" in html
     assert "Operator-only actions:" in html
     assert "export context" in html
     assert "incident pack creation" in html
@@ -60,11 +62,31 @@ def test_render_security_status_panel_demo_mode_locked_actions():
     html = dashboard.render_security_status_panel(context)
 
     assert "Mode: <strong>demo</strong>" in html
+    assert "Operator session: <strong>locked</strong>" in html
     assert "Operator-only actions:" in html
     assert "export context" in html
     assert "incident pack creation" in html
     assert "case writes" in html
     assert "registry writes" in html
+    assert "Operator unlock required" in html
+    assert "text-decoration:line-through;" in html
+
+
+def test_render_security_status_panel_operator_mode_session_locked():
+    context = SecurityContext(
+        mode="operator",
+        yubikey_present=True,
+        key_name="primary",
+        key_label="YubiKey-1",
+        sensitive_enabled=False,
+        secrets_unlocked=False,
+    )
+
+    html = dashboard.render_security_status_panel(context)
+
+    assert "Mode: <strong>operator</strong>" in html
+    assert "Operator session: <strong>locked</strong>" in html
+    assert "Sensitive secrets remain locked until operator session unlock." in html
     assert "Operator unlock required" in html
     assert "text-decoration:line-through;" in html
 
@@ -102,6 +124,8 @@ def test_dashboard_html_contains_security_status_panel(monkeypatch):
     assert "Key source: <strong>primary</strong>" in html
     assert "Sensitive features: <strong>true</strong>" in html
     assert "Secrets unlocked: <strong>true</strong>" in html
+    assert "Operator session: <strong>unlocked</strong>" in html
+    assert "Elevated sensitive access: <strong>enabled</strong>" in html
     assert "Operator-only actions:" in html
     assert "Operator enabled" in html
 
