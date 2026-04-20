@@ -95,7 +95,7 @@ def test_render_operator_learning_snapshot_section_with_data():
     assert "Recommended action" in html
     assert "Recommended action: <strong>continue current reuse pattern</strong>" in html
     assert "Operator note: <strong>safe to continue under current pattern</strong>" in html
-    assert "Review trigger: <strong>proceed as-is</strong>" in html
+    assert "Review trigger: <strong>no immediate review needed</strong>" in html
     assert "Latest pattern" in html
     assert "Recommended reuse" in html
 
@@ -161,7 +161,7 @@ def test_render_operator_learning_snapshot_section_investigate_guidance():
     assert "Recommended action" in html
     assert "Recommended action: <strong>review recent mixed patterns before reuse</strong>" in html
     assert "Operator note: <strong>review recent caution signals first</strong>" in html
-    assert "Review trigger: <strong>schedule review</strong>" in html
+    assert "Review trigger: <strong>review before next reuse</strong>" in html
 
 
 def test_dashboard_contains_learning_snapshot_section(monkeypatch):
@@ -287,7 +287,7 @@ def test_dashboard_contains_learning_snapshot_section(monkeypatch):
     assert "Recommended action" in html
     assert "Recommended action: <strong>continue current reuse pattern</strong>" in html
     assert "Operator note: <strong>safe to continue under current pattern</strong>" in html
-    assert "Review trigger: <strong>proceed as-is</strong>" in html
+    assert "Review trigger: <strong>no immediate review needed</strong>" in html
 
 def test_render_operator_learning_snapshot_section_watch_guidance():
     summary = {
@@ -325,6 +325,6 @@ def test_render_operator_learning_snapshot_section_watch_guidance():
     assert "Recommended action" in html
     assert "Recommended action: <strong>monitor next sessions before broad reuse</strong>" in html
     assert "Operator note: <strong>wait for one more stable learning cycle</strong>" in html
-    assert "Review trigger: <strong>check next outcomes</strong>" in html
+    assert "Review trigger: <strong>recheck after next stable cycle</strong>" in html
     assert "mixed signals require monitored reuse" in html
 
