@@ -118,6 +118,7 @@ def test_render_operator_learning_snapshot_section_with_data():
     assert "Resolution posture: <strong>stable track</strong>" in html
     assert "Closure readiness: <strong>eligible</strong>" in html
     assert "Exit path: <strong>normal close</strong>" in html
+    assert "Reopen risk: <strong>low</strong>" in html
     assert "Latest pattern" in html
     assert "Recommended reuse" in html
 
@@ -208,6 +209,7 @@ def test_render_operator_learning_snapshot_section_investigate_guidance():
     assert "Resolution posture: <strong>active resolution</strong>" in html
     assert "Closure readiness: <strong>blocked</strong>" in html
     assert "Exit path: <strong>keep open</strong>" in html
+    assert "Reopen risk: <strong>high</strong>" in html
 
 
 def test_dashboard_contains_learning_snapshot_section(monkeypatch):
@@ -515,4 +517,5 @@ def test_render_operator_learning_snapshot_section_watch_guidance():
     assert "Resolution posture: <strong>watch and reassess</strong>" in html
     assert "Closure readiness: <strong>pending check</strong>" in html
     assert "Exit path: <strong>delay close</strong>" in html
+    assert "Reopen risk: <strong>moderate</strong>" in html
     assert "mixed signals require monitored reuse" in html
