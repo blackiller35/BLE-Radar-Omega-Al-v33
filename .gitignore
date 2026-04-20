@@ -9,3 +9,6 @@ backups_old/
 reports/
 snapshots/
 ble_radar/config.json
+config/security.local.json
+config/secrets.local.json
+runtime/yubikey.token
