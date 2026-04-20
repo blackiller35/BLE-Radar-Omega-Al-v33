@@ -174,12 +174,11 @@ def render_investigation_profile_panel(profile: dict | None) -> str:
     case = profile.get("case", {})
     movement = profile.get("movement", {})
     refs = profile.get("incident_refs", {})
-
     lines = [
         f"<li><strong>Focus</strong>: {escape(str(identity.get('name', 'Inconnu')))} | <code>{escape(str(profile.get('address', '?')))}</code></li>",
         f"<li>Vendor={escape(str(identity.get('vendor', 'Unknown')))} | profile={escape(str(identity.get('profile', '-')))} | alert={escape(str(identity.get('alert_level', '-')))} | watch_hit={escape(str(identity.get('watch_hit', False)))}</li>",
         f"<li>Registry: seen={escape(str(registry.get('seen_count', 0)))} | sessions={escape(str(registry.get('session_count', 0)))} | score={escape(str(registry.get('registry_score', 0)))}</li>",
-        f"<li>Triage: <strong>{escape(str(triage.get('triage_bucket', 'normal')).upper())}</strong> | score={escape(str(triage.get('triage_score', 0)))} | reason={escape(str(triage.get('short_reason', 'no signals')))}</li>",
+        f"<li>Triage: bucket={escape(str(triage.get('triage_bucket', '-')))} | score={escape(str(triage.get('triage_score', 0)))} | reason={escape(str(triage.get('short_reason', '-')))}</li>",
         f"<li>Case: status={escape(str(case.get('status', 'none')))} | reason={escape(str(case.get('reason', '-')))} | updated={escape(str(case.get('updated_at', '-')))}</li>",
         f"<li>Movement: status={escape(str(movement.get('status', 'unknown')))}"
         + (
@@ -1897,17 +1896,47 @@ def render_security_status_panel(security_context) -> str:
     ]
 
     mode = str(getattr(security_context, "mode", "unknown")).strip().lower()
-    if mode == "demo":
+    session_unlocked = bool(getattr(security_context, "secrets_unlocked", False))
+    lines.append(
+        f"<li>Operator session: <strong>{'unlocked' if session_unlocked else 'locked'}</strong></li>"
+    )
+    if mode == "operator" and not session_unlocked:
         lines.append(
-            "<li>Locked in demo mode:<ul>"
-            "<li>export context</li>"
-            "<li>incident pack creation</li>"
-            "<li>case writes</li>"
-            "<li>registry writes</li>"
-            "</ul></li>"
+            '<li class="muted">Sensitive secrets remain locked until operator session unlock.</li>'
         )
-    elif mode == "operator":
-        lines.append("<li>Operator-only actions: <strong>enabled</strong></li>")
+    elif mode == "operator" and session_unlocked:
+        lines.append("<li>Elevated sensitive access: <strong>enabled</strong></li>")
+
+    if mode in {"demo", "operator"}:
+        action_enabled = mode == "operator" and session_unlocked
+        badge_text = (
+            "Operator enabled" if action_enabled else "Operator unlock required"
+        )
+        badge_style = (
+            "display:inline-block;padding:1px 6px;border-radius:999px;"
+            "font-size:11px;font-weight:600;"
+            + (
+                "background:rgba(255,123,123,.16);border:1px solid rgba(255,123,123,.35);color:var(--red);"
+                if not action_enabled
+                else "background:rgba(125,245,163,.16);border:1px solid rgba(125,245,163,.35);color:var(--green);"
+            )
+        )
+        disabled_attr = (
+            ' style="opacity:.6;text-decoration:line-through;"'
+            if not action_enabled
+            else ""
+        )
+        action_items = [
+            "export context",
+            "incident pack creation",
+            "case writes",
+            "registry writes",
+        ]
+        items = "".join(
+            f'<li{disabled_attr}>{escape(action)} <span style="{badge_style}">{escape(badge_text)}</span></li>'
+            for action in action_items
+        )
+        lines.append(f"<li>Operator-only actions:<ul>{items}</ul></li>")
 
     return f"<ul>{''.join(lines)}</ul>"
 
