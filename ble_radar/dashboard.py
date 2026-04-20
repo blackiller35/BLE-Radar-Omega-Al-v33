@@ -1856,6 +1856,12 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     elif guidance == "investigate":
         exit_path = "keep open"
 
+    reopen_risk = "moderate"
+    if guidance == "keep":
+        reopen_risk = "low"
+    elif guidance == "investigate":
+        reopen_risk = "high"
+
     lines = [
         f"<li>Learned patterns: <strong>{escape(str(len(learning)))}</strong> | "
         f"high-value=<strong>{escape(str(len(high_value)))}</strong> | "
@@ -1884,6 +1890,7 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
         f"<li>Resolution posture: <strong>{escape(resolution_posture)}</strong></li>",
         f"<li>Closure readiness: <strong>{escape(closure_readiness)}</strong></li>",
         f"<li>Exit path: <strong>{escape(exit_path)}</strong></li>",
+        f"<li>Reopen risk: <strong>{escape(reopen_risk)}</strong></li>",
         f"<li>Latest pattern: {latest_scope} | pattern={latest_pattern} | "
         f"confidence={latest_conf} | reuse={latest_reuse}</li>",
     ]
