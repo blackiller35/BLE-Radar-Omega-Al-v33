@@ -1705,6 +1705,12 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     elif guidance == "investigate":
         followup_tempo = "before reuse"
 
+    attention_band = "monitor"
+    if guidance == "keep":
+        attention_band = "low-touch"
+    elif guidance == "investigate":
+        attention_band = "hands-on"
+
     lines = [
         f"<li>Learned patterns: <strong>{escape(str(len(learning)))}</strong> | "
         f"high-value=<strong>{escape(str(len(high_value)))}</strong> | "
@@ -1716,6 +1722,7 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
         f"<li>Review trigger: <strong>{escape(review_trigger)}</strong></li>",
         f"<li>Confidence hint: <strong>{escape(confidence_hint)}</strong></li>",
         f"<li>Follow-up tempo: <strong>{escape(followup_tempo)}</strong></li>",
+        f"<li>Attention band: <strong>{escape(attention_band)}</strong></li>",
         f"<li>Latest pattern: {latest_scope} | pattern={latest_pattern} | "
         f"confidence={latest_conf} | reuse={latest_reuse}</li>",
     ]
