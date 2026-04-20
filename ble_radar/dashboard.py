@@ -1895,6 +1895,20 @@ def render_security_status_panel(security_context) -> str:
         f"<li>Sensitive features: <strong>{escape(str(bool(getattr(security_context, 'sensitive_enabled', False))).lower())}</strong></li>",
         f"<li>Secrets unlocked: <strong>{escape(str(bool(getattr(security_context, 'secrets_unlocked', False))).lower())}</strong></li>",
     ]
+
+    mode = str(getattr(security_context, "mode", "unknown")).strip().lower()
+    if mode == "demo":
+        lines.append(
+            "<li>Locked in demo mode:<ul>"
+            "<li>export context</li>"
+            "<li>incident pack creation</li>"
+            "<li>case writes</li>"
+            "<li>registry writes</li>"
+            "</ul></li>"
+        )
+    elif mode == "operator":
+        lines.append("<li>Operator-only actions: <strong>enabled</strong></li>")
+
     return f"<ul>{''.join(lines)}</ul>"
 
 
