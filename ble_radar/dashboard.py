@@ -1630,6 +1630,48 @@ def render_operator_outcome_learning_panel(summary: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_operator_learning_snapshot_section(summary: dict) -> str:
+    """Render compact read-only learning snapshot from existing outcome learning summary."""
+    if not summary:
+        return '<ul><li class="muted">No learning snapshot available.</li></ul>'
+
+    learning = list(summary.get("outcome_learning", []) or [])
+    high_value = list(summary.get("high_value_action_patterns", []) or [])
+    reopen_reduction = list(summary.get("reopen_reduction_signals", []) or [])
+    mixed = list(summary.get("mixed_result_patterns", []) or [])
+    reuse = list(summary.get("recommended_reuse", []) or [])
+
+    if not learning:
+        return '<ul><li class="muted">No learning snapshot available.</li></ul>'
+
+    latest = learning[0]
+    latest_scope = f"{escape(str(latest.get('scope_type', '-')))}:{escape(str(latest.get('scope_id', '-')))}"
+    latest_pattern = escape(str(latest.get("action_pattern", "-")))
+    latest_conf = escape(str(latest.get("confidence_level", "-")))
+    latest_reuse = escape(str(latest.get("recommended_reuse", "-")))
+
+    lines = [
+        f"<li>Learned patterns: <strong>{escape(str(len(learning)))}</strong> | "
+        f"high-value=<strong>{escape(str(len(high_value)))}</strong> | "
+        f"reopen-reduction=<strong>{escape(str(len(reopen_reduction)))}</strong> | "
+        f"mixed=<strong>{escape(str(len(mixed)))}</strong></li>",
+        f"<li>Latest pattern: {latest_scope} | pattern={latest_pattern} | "
+        f"confidence={latest_conf} | reuse={latest_reuse}</li>",
+    ]
+
+    if reuse:
+        items = "".join(
+            f"<li>{escape(str(r.get('scope_type', '-')))}:{escape(str(r.get('scope_id', '-')))} "
+            f"| {escape(str(r.get('action_pattern', '-')))}</li>"
+            for r in reuse[:3]
+        )
+        lines.append(f"<li>Recommended reuse (top 3):<ul>{items}</ul></li>")
+    else:
+        lines.append('<li class="muted">No recommended reuse candidates yet.</li>')
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -2824,6 +2866,12 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>Operator Outcomes / Feedback Loop</h2>
     {render_operator_outcomes_panel(operator_outcomes_summary)}
     <div class="muted">Outcomes opérateur, actions efficaces, réouvertures et recommandations faibles.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px;">
+    <h2>Learning snapshot</h2>
+    {render_operator_learning_snapshot_section(operator_learning_summary)}
+    <div class="muted">Synthèse compacte read-only de l'apprentissage outcome, réutilisation suggérée et niveau de confiance.</div>
   </div>
 
   <div class="panel" style="margin-bottom:18px;">
