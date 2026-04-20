@@ -1723,6 +1723,12 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     elif guidance == "investigate":
         reuse_gate = "blocked pending review"
 
+    approval_mode = "confirm"
+    if guidance == "keep":
+        approval_mode = "default"
+    elif guidance == "investigate":
+        approval_mode = "hold"
+
     lines = [
         f"<li>Learned patterns: <strong>{escape(str(len(learning)))}</strong> | "
         f"high-value=<strong>{escape(str(len(high_value)))}</strong> | "
@@ -1737,6 +1743,7 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
         f"<li>Attention band: <strong>{escape(attention_band)}</strong></li>",
         f"<li>Response posture: <strong>{escape(response_posture)}</strong></li>",
         f"<li>Reuse gate: <strong>{escape(reuse_gate)}</strong></li>",
+        f"<li>Approval mode: <strong>{escape(approval_mode)}</strong></li>",
         f"<li>Latest pattern: {latest_scope} | pattern={latest_pattern} | "
         f"confidence={latest_conf} | reuse={latest_reuse}</li>",
     ]
