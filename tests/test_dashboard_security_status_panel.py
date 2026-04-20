@@ -39,7 +39,12 @@ def test_render_security_status_panel_with_context():
     assert "Key source: <strong>primary</strong>" in html
     assert "Sensitive features: <strong>true</strong>" in html
     assert "Secrets unlocked: <strong>true</strong>" in html
-    assert "Operator-only actions: <strong>enabled</strong>" in html
+    assert "Operator-only actions:" in html
+    assert "export context" in html
+    assert "incident pack creation" in html
+    assert "case writes" in html
+    assert "registry writes" in html
+    assert "Operator enabled" in html
 
 
 def test_render_security_status_panel_demo_mode_locked_actions():
@@ -55,11 +60,13 @@ def test_render_security_status_panel_demo_mode_locked_actions():
     html = dashboard.render_security_status_panel(context)
 
     assert "Mode: <strong>demo</strong>" in html
-    assert "Locked in demo mode:" in html
-    assert "<li>export context</li>" in html
-    assert "<li>incident pack creation</li>" in html
-    assert "<li>case writes</li>" in html
-    assert "<li>registry writes</li>" in html
+    assert "Operator-only actions:" in html
+    assert "export context" in html
+    assert "incident pack creation" in html
+    assert "case writes" in html
+    assert "registry writes" in html
+    assert "Operator unlock required" in html
+    assert "text-decoration:line-through;" in html
 
 
 def test_render_security_status_panel_fallback():
@@ -95,7 +102,8 @@ def test_dashboard_html_contains_security_status_panel(monkeypatch):
     assert "Key source: <strong>primary</strong>" in html
     assert "Sensitive features: <strong>true</strong>" in html
     assert "Secrets unlocked: <strong>true</strong>" in html
-    assert "Operator-only actions: <strong>enabled</strong>" in html
+    assert "Operator-only actions:" in html
+    assert "Operator enabled" in html
 
 
 def test_dashboard_html_security_status_fallback(monkeypatch):

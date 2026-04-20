@@ -8,6 +8,34 @@ from .registry import get_enabled_tokens, get_policy
 from .yubikey_guard import detect_registered_yubikey
 
 
+OPERATOR_SESSION_UNLOCK_FILE = Path("runtime/operator_session.unlock")
+
+
+def is_operator_session_unlocked() -> bool:
+    try:
+        if not OPERATOR_SESSION_UNLOCK_FILE.exists():
+            return False
+        value = OPERATOR_SESSION_UNLOCK_FILE.read_text(
+            encoding="utf-8", errors="ignore"
+        ).strip()
+        return value.lower() in {"1", "true", "yes", "unlocked"}
+    except Exception:
+        return False
+
+
+def unlock_operator_session() -> None:
+    OPERATOR_SESSION_UNLOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+    OPERATOR_SESSION_UNLOCK_FILE.write_text("unlocked", encoding="utf-8")
+
+
+def lock_operator_session() -> None:
+    try:
+        if OPERATOR_SESSION_UNLOCK_FILE.exists():
+            OPERATOR_SESSION_UNLOCK_FILE.unlink()
+    except Exception:
+        return
+
+
 @dataclass(frozen=True)
 class SecurityContext:
     mode: str
@@ -61,11 +89,13 @@ def build_security_context(config_path: str | Path | None = None) -> SecurityCon
             secrets_unlocked=False,
         )
 
+    session_unlocked = is_operator_session_unlocked()
+
     return SecurityContext(
         mode=recognized_key_mode,
         yubikey_present=True,
         key_name=token_name,
         key_label=token_label,
-        sensitive_enabled=True,
-        secrets_unlocked=True,
+        sensitive_enabled=session_unlocked,
+        secrets_unlocked=session_unlocked,
     )
