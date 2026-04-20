@@ -1687,11 +1687,17 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     elif guidance == "investigate":
         operator_note = "review recent caution signals first"
 
-    review_trigger = "check next outcomes"
+    review_trigger = "recheck after next stable cycle"
     if guidance == "keep":
-        review_trigger = "proceed as-is"
+        review_trigger = "no immediate review needed"
     elif guidance == "investigate":
-        review_trigger = "schedule review"
+        review_trigger = "review before next reuse"
+
+    confidence_hint = "moderate reuse confidence"
+    if guidance == "keep":
+        confidence_hint = "stable reuse signal"
+    elif guidance == "investigate":
+        confidence_hint = "low reuse confidence"
 
     lines = [
         f"<li>Learned patterns: <strong>{escape(str(len(learning)))}</strong> | "
@@ -1702,6 +1708,7 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
         f"<li>Recommended action: <strong>{escape(recommended_action)}</strong></li>",
         f"<li>Operator note: <strong>{escape(operator_note)}</strong></li>",
         f"<li>Review trigger: <strong>{escape(review_trigger)}</strong></li>",
+        f"<li>Confidence hint: <strong>{escape(confidence_hint)}</strong></li>",
         f"<li>Latest pattern: {latest_scope} | pattern={latest_pattern} | "
         f"confidence={latest_conf} | reuse={latest_reuse}</li>",
     ]
