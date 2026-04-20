@@ -164,3 +164,28 @@ def test_build_incident_pack_operator_mode_allows_path(monkeypatch, tmp_path):
     assert result["pack_dir"].exists()
     assert result["manifest_path"].exists()
     assert result["summary_path"].exists()
+
+
+def test_build_incident_pack_operator_session_locked_denied(monkeypatch, tmp_path):
+    monkeypatch.setattr(investigation, "CASES_DIR", tmp_path / "cases")
+    monkeypatch.setattr(
+        incident_pack, "INCIDENT_PACKS_DIR", tmp_path / "incident_packs"
+    )
+
+    case = investigation.create_case("Operator locked guard case")
+
+    monkeypatch.setattr(
+        incident_pack,
+        "build_security_context",
+        lambda: SecurityContext(
+            mode="operator",
+            yubikey_present=True,
+            key_name="primary",
+            key_label="YubiKey-1",
+            sensitive_enabled=False,
+            secrets_unlocked=False,
+        ),
+    )
+
+    with pytest.raises(PermissionError):
+        incident_pack.build_incident_pack(case["id"])

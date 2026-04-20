@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 from ble_radar.security import build_security_context
-from ble_radar.security.policy import require_operator
+from ble_radar.security.policy import require_operator, require_sensitive_feature
 from ble_radar.session_catalog import build_session_catalog, latest_session_overview
 from ble_radar.session_diff import (
     latest_session_diff,
@@ -91,6 +91,7 @@ def save_export_context(
 ) -> dict:
     security_context = build_security_context()
     require_operator(security_context)
+    require_sensitive_feature(security_context)
 
     context = build_export_context(stamp=stamp, recent_limit=recent_limit)
 
