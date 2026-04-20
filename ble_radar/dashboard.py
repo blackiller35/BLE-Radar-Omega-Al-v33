@@ -1687,6 +1687,12 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     elif guidance == "investigate":
         operator_note = "review recent caution signals first"
 
+    review_trigger = "check next outcomes"
+    if guidance == "keep":
+        review_trigger = "proceed as-is"
+    elif guidance == "investigate":
+        review_trigger = "schedule review"
+
     lines = [
         f"<li>Learned patterns: <strong>{escape(str(len(learning)))}</strong> | "
         f"high-value=<strong>{escape(str(len(high_value)))}</strong> | "
@@ -1695,6 +1701,7 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
         f"<li>Operator guidance: <strong>{escape(guidance)}</strong> | priority=<strong>{escape(priority)}</strong> | reason={escape(guidance_reason)}</li>",
         f"<li>Recommended action: <strong>{escape(recommended_action)}</strong></li>",
         f"<li>Operator note: <strong>{escape(operator_note)}</strong></li>",
+        f"<li>Review trigger: <strong>{escape(review_trigger)}</strong></li>",
         f"<li>Latest pattern: {latest_scope} | pattern={latest_pattern} | "
         f"confidence={latest_conf} | reuse={latest_reuse}</li>",
     ]
