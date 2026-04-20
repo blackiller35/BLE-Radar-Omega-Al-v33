@@ -20,6 +20,9 @@ def _operator_mode_autouse(monkeypatch):
     monkeypatch.setattr(
         investigation, "build_security_context", _operator_security_context
     )
+    monkeypatch.setattr(
+        incident_pack, "build_security_context", _operator_security_context
+    )
 
 
 def test_incident_pack_manifest_contains_session_diff(monkeypatch, tmp_path):

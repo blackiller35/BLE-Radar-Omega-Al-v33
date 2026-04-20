@@ -6,7 +6,12 @@ from pathlib import Path
 
 from ble_radar.device_contract import explain_device, normalize_device
 from ble_radar.investigation import load_case, summarize_case
-from ble_radar.session_diff import latest_session_diff, summary_lines as diff_summary_lines
+from ble_radar.security import build_security_context
+from ble_radar.security.policy import require_operator
+from ble_radar.session_diff import (
+    latest_session_diff,
+    summary_lines as diff_summary_lines,
+)
 from ble_radar.session_catalog import latest_session_overview, build_session_catalog
 
 
@@ -29,16 +34,27 @@ def _device_matches(case_device: dict | None, candidate: dict) -> bool:
     c = normalize_device(candidate)
     ref = normalize_device(case_device)
 
-    if ref.get("address") not in (None, "", "-") and c.get("address") == ref.get("address"):
+    if ref.get("address") not in (None, "", "-") and c.get("address") == ref.get(
+        "address"
+    ):
         return True
 
-    if ref.get("name") not in (None, "", "Inconnu") and c.get("name") == ref.get("name"):
+    if ref.get("name") not in (None, "", "Inconnu") and c.get("name") == ref.get(
+        "name"
+    ):
         return True
 
     return False
 
 
-def build_incident_pack(case_id: str, latest_devices: list[dict] | None = None, extra_meta: dict | None = None) -> dict:
+def build_incident_pack(
+    case_id: str,
+    latest_devices: list[dict] | None = None,
+    extra_meta: dict | None = None,
+) -> dict:
+    security_context = build_security_context()
+    require_operator(security_context)
+
     case = load_case(case_id)
     stamp = _now_stamp()
     pack_dir = _ensure_incident_packs_dir() / f"{case_id}_{stamp}"
@@ -71,7 +87,9 @@ def build_incident_pack(case_id: str, latest_devices: list[dict] | None = None, 
         "pack_stamp": stamp,
         "notes_count": len(case.get("notes", [])),
         "case_device": normalized_case_device,
-        "case_device_explanation": explain_device(normalized_case_device) if normalized_case_device else None,
+        "case_device_explanation": explain_device(normalized_case_device)
+        if normalized_case_device
+        else None,
         "latest_devices_count": len(latest_devices or []),
         "matched_devices_count": len(matches),
         "matched_devices": matches,
@@ -82,7 +100,9 @@ def build_incident_pack(case_id: str, latest_devices: list[dict] | None = None, 
     }
 
     manifest_path = pack_dir / "incident_pack.json"
-    manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
 
     lines = summarize_case(case)
     lines.append("")
