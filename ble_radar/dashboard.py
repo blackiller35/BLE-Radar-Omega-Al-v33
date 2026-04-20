@@ -1850,6 +1850,12 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     elif guidance == "investigate":
         closure_readiness = "blocked"
 
+    exit_path = "delay close"
+    if guidance == "keep":
+        exit_path = "normal close"
+    elif guidance == "investigate":
+        exit_path = "keep open"
+
     lines = [
         f"<li>Learned patterns: <strong>{escape(str(len(learning)))}</strong> | "
         f"high-value=<strong>{escape(str(len(high_value)))}</strong> | "
@@ -1877,6 +1883,7 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
         f"<li>Handoff readiness: <strong>{escape(handoff_readiness)}</strong></li>",
         f"<li>Resolution posture: <strong>{escape(resolution_posture)}</strong></li>",
         f"<li>Closure readiness: <strong>{escape(closure_readiness)}</strong></li>",
+        f"<li>Exit path: <strong>{escape(exit_path)}</strong></li>",
         f"<li>Latest pattern: {latest_scope} | pattern={latest_pattern} | "
         f"confidence={latest_conf} | reuse={latest_reuse}</li>",
     ]
