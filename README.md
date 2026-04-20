@@ -66,6 +66,8 @@ Puis modifier par exemple :
 - `v0.1.5` : helper de vérification avant release
 - `v0.1.6` : helper de bootstrap pour la config locale
 - `v0.2.0` : changelog + résumé de release + milestone consolidée
+- `v1.1.0-rc` : série learning snapshot step 35 à step 60 complétée + consolidation post-step-60 fusionnée
+- `v1.1.0-rc` : refactor de lisibilité keep/watch/investigate sans changement de comportement, persistance ou wording dashboard
 
 
 ## Statut
