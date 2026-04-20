@@ -1747,6 +1747,12 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
     elif guidance == "investigate":
         verification_mode = "full review"
 
+    escalation_path = "ready if needed"
+    if guidance == "keep":
+        escalation_path = "none"
+    elif guidance == "investigate":
+        escalation_path = "prepare now"
+
     lines = [
         f"<li>Learned patterns: <strong>{escape(str(len(learning)))}</strong> | "
         f"high-value=<strong>{escape(str(len(high_value)))}</strong> | "
@@ -1765,6 +1771,7 @@ def render_operator_learning_snapshot_section(summary: dict) -> str:
         f"<li>Intervention level: <strong>{escape(intervention_level)}</strong></li>",
         f"<li>Oversight level: <strong>{escape(oversight_level)}</strong></li>",
         f"<li>Verification mode: <strong>{escape(verification_mode)}</strong></li>",
+        f"<li>Escalation path: <strong>{escape(escalation_path)}</strong></li>",
         f"<li>Latest pattern: {latest_scope} | pattern={latest_pattern} | "
         f"confidence={latest_conf} | reuse={latest_reuse}</li>",
     ]
