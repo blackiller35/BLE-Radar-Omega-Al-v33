@@ -1,3 +1,4 @@
+from ble_radar.live_alerts import emit_alert
 from ble_radar.operator_profiles import (
     get_operator_profile,
     list_operator_profiles,
@@ -4316,6 +4317,19 @@ CURRENT_OPERATOR_PROFILE = "balanced"
 
 def get_active_operator_profile():
     return get_operator_profile(CURRENT_OPERATOR_PROFILE)
+
+
+
+def emit_demo_profile_alert():
+    profile = get_active_operator_profile()
+    emit_alert(
+        {
+            "device": "demo-device",
+            "score": profile.get("risk_threshold", 0) + 5,
+            "type": "anomaly",
+        },
+        profile,
+    )
 
 
 def operator_profiles_menu():
