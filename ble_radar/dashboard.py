@@ -2016,30 +2016,31 @@ def render_security_quick_actions_panel(security_context) -> str:
             "Unlock operator session",
             runtime_command="session unlock",
             disabled=unlock_disabled,
-            extra_attrs='data-security-quick-action="unlock"',
+            extra_attrs='data-security-quick-action="unlock" onclick="showSecurityActionFeedback(\'Operator session unlocked\')"',
         ),
         _action_chip(
             "Lock operator session",
             runtime_command="session lock",
             disabled=lock_disabled,
-            extra_attrs='data-security-quick-action="lock"',
+            extra_attrs='data-security-quick-action="lock" onclick="showSecurityActionFeedback(\'Operator session locked\')"',
         ),
         _action_chip(
             "Clear expired session",
             runtime_command="session clear-expired",
             disabled=generic_disabled,
-            extra_attrs='data-security-quick-action="clear-expired"',
+            extra_attrs='data-security-quick-action="clear-expired" onclick="showSecurityActionFeedback(\'Expired session cleared\')"',
         ),
         _action_chip(
             "Open security audit view",
             disabled=generic_disabled,
-            extra_attrs="data-security-quick-action=\"open-audit\" onclick=\"setSecurityAuditViewFilter('all');document.getElementById('security-audit-dedicated-view')?.scrollIntoView({behavior:'smooth', block:'start'});\"",
+            extra_attrs="data-security-quick-action=\"open-audit\" onclick=\"setSecurityAuditViewFilter('all');document.getElementById('security-audit-dedicated-view')?.scrollIntoView({behavior:'smooth', block:'start'});showSecurityActionFeedback('Security audit view opened');\"",
         ),
     ]
 
     lines = [
         f"<li>Quick actions state: <strong>{'demo-disabled' if demo_mode else ('operator-unlocked' if session_unlocked else 'operator-locked')}</strong></li>",
         f'<li style="display:flex;flex-wrap:wrap;gap:6px;">{"".join(chips)}</li>',
+        '<li><div id="sec-quick-action-feedback" role="status" aria-live="polite" style="display:none;padding:3px 9px;border-radius:6px;background:rgba(125,245,163,.13);color:var(--text);font-size:11px;font-weight:600;"></div></li>',
     ]
 
     if demo_mode:
@@ -3694,6 +3695,15 @@ function setSecurityAuditViewFilter(mode) {{
     document.querySelectorAll('[data-security-audit-view-row]').forEach(row => {{
         row.style.display = mode === 'all' || row.dataset.securityAuditViewRow === mode ? '' : 'none';
     }});
+}}
+
+function showSecurityActionFeedback(msg) {{
+    var el = document.getElementById('sec-quick-action-feedback');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = 'inline-block';
+    clearTimeout(el._t);
+    el._t = setTimeout(function() {{ el.style.display = 'none'; }}, 3500);
 }}
 
 searchBox.addEventListener('input', applyFilters);

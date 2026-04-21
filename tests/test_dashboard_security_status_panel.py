@@ -364,3 +364,69 @@ def test_dashboard_html_security_status_fallback(monkeypatch):
 
     assert "Security status" in html
     assert "Security context unavailable." in html
+
+
+# --- Visual feedback tests ---
+
+
+def _operator_locked_context():
+    return SecurityContext(
+        mode="operator",
+        yubikey_present=True,
+        key_name="primary",
+        key_label="YubiKey-1",
+        sensitive_enabled=False,
+        secrets_unlocked=False,
+    )
+
+
+def _operator_unlocked_context():
+    return SecurityContext(
+        mode="operator",
+        yubikey_present=True,
+        key_name="primary",
+        key_label="YubiKey-1",
+        sensitive_enabled=True,
+        secrets_unlocked=True,
+    )
+
+
+def test_quick_action_unlock_feedback_onclick_present():
+    html = dashboard.render_security_quick_actions_panel(_operator_locked_context())
+    assert "showSecurityActionFeedback('Operator session unlocked')" in html
+
+
+def test_quick_action_lock_feedback_onclick_present():
+    html = dashboard.render_security_quick_actions_panel(_operator_unlocked_context())
+    assert "showSecurityActionFeedback('Operator session locked')" in html
+
+
+def test_quick_action_clear_expired_feedback_onclick_present():
+    html = dashboard.render_security_quick_actions_panel(_operator_locked_context())
+    assert "showSecurityActionFeedback('Expired session cleared')" in html
+
+
+def test_quick_action_open_audit_feedback_onclick_present():
+    html = dashboard.render_security_quick_actions_panel(_operator_locked_context())
+    assert "showSecurityActionFeedback('Security audit view opened')" in html
+
+
+def test_quick_action_feedback_div_present_in_panel():
+    html = dashboard.render_security_quick_actions_panel(_operator_locked_context())
+    assert 'id="sec-quick-action-feedback"' in html
+    assert 'aria-live="polite"' in html
+
+
+def test_quick_action_feedback_js_function_in_dashboard_html(monkeypatch):
+    monkeypatch.setattr(dashboard, "load_scan_history", lambda: [])
+    monkeypatch.setattr(dashboard, "load_registry", lambda: {})
+    monkeypatch.setattr(dashboard, "get_vendor_summary", lambda devices: [])
+    monkeypatch.setattr(dashboard, "get_tracker_candidates", lambda devices: devices)
+    monkeypatch.setattr(
+        dashboard, "build_security_context", lambda: _operator_locked_context()
+    )
+
+    html = dashboard.render_dashboard_html(SAMPLE_DEVICES, "2026-04-20_12-00-00")
+
+    assert "showSecurityActionFeedback" in html
+    assert "sec-quick-action-feedback" in html
