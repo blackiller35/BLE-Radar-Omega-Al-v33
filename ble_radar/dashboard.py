@@ -252,6 +252,51 @@ def compute_device_interest_score(
     return {"score": score, "label": label}
 
 
+def detect_device_anomaly_flags(
+    device: dict,
+    registry_row: dict | None = None,
+    observations: list[dict] | None = None,
+) -> list[str]:
+    """Return compact deterministic anomaly flags from local signals only."""
+    row = registry_row if isinstance(registry_row, dict) else {}
+    obs = [o for o in (observations or []) if isinstance(o, dict)]
+    behavior = _device_behavior_flags(device, registry_row=row, observations=obs)
+
+    seen_count = _safe_int(row.get("seen_count", 0), 0)
+    first_seen = str(row.get("first_seen", "")).strip()
+    last_seen = str(row.get("last_seen", "")).strip()
+
+    flags = []
+
+    # New profile: first observations only, no established recurrence yet.
+    if seen_count <= 1 and len(obs) <= 1:
+        flags.append("NEW_DEVICE")
+    elif seen_count <= 2 and first_seen and last_seen and first_seen == last_seen:
+        flags.append("NEW_DEVICE")
+
+    # Stability break: unstable RSSI on an otherwise recurrent/frequent device.
+    if behavior["unstable_signal"] and (
+        behavior["recurring"] or behavior["seen_frequently"]
+    ):
+        flags.append("STABILITY_BREAK")
+
+    names = [
+        str(o.get("name", "")).strip() for o in obs if str(o.get("name", "")).strip()
+    ]
+    current_name = str(device.get("name", "")).strip()
+    if current_name:
+        names.append(current_name)
+    normalized_names = [n for n in names if n and n.lower() != "inconnu"]
+    unique_name_count = len(set(normalized_names))
+    if behavior["name_changed"] and (unique_name_count >= 3 or len(obs) >= 3):
+        flags.append("NAME_CHANGE_SPIKE")
+
+    if behavior["recently_reappeared"]:
+        flags.append("REAPPEAR_ALERT")
+
+    return flags
+
+
 _BUCKET_STYLE = {
     "critical": "color:var(--pink);font-weight:700",
     "review": "color:var(--red)",
@@ -3463,6 +3508,11 @@ def render_dashboard_html(devices, stamp: str) -> str:
             registry_row=registry_row,
             observations=recent_observations.get(addr, []),
         )
+        anomaly_flags = detect_device_anomaly_flags(
+            d,
+            registry_row=registry_row,
+            observations=recent_observations.get(addr, []),
+        )
         explanation_block = escape(explanation)
         interest_label = str(device_interest.get("label", "normal"))
         interest_style = {
@@ -3481,6 +3531,18 @@ def render_dashboard_html(devices, stamp: str) -> str:
             f"interest {escape(str(device_interest.get('score', 0)))} · {escape(interest_label)}"
             f"</div>"
         )
+        if anomaly_flags:
+            anomaly_items = " ".join(
+                f'<span style="display:inline-block;padding:1px 6px;border-radius:999px;'
+                f"border:1px solid rgba(255,123,123,.40);background:rgba(255,123,123,.14);"
+                f'font-size:10px;font-weight:700;margin-right:4px;">{escape(flag)}</span>'
+                for flag in anomaly_flags
+            )
+            explanation_block += (
+                f'<div class="muted" data-device-anomaly-flags="true" style="margin-top:3px;">'
+                f"{anomaly_items}"
+                f"</div>"
+            )
         if behavior_summary:
             explanation_block += (
                 f'<div class="muted" data-device-behavior-summary="true">'

@@ -109,3 +109,76 @@ def test_device_interest_score_minimal_history_edge_case_safe():
 
     assert result["score"] == 0
     assert result["label"] == "normal"
+
+
+def test_new_device_anomaly_appears_when_applicable():
+    flags = dashboard.detect_device_anomaly_flags(
+        {"name": "Inconnu", "address": "AA:55", "rssi": -80},
+        registry_row={
+            "seen_count": 1,
+            "first_seen": "2026-04-21 10:00:00",
+            "last_seen": "2026-04-21 10:00:00",
+        },
+        observations=[],
+    )
+
+    assert "NEW_DEVICE" in flags
+
+
+def test_stability_break_anomaly_appears_when_applicable():
+    flags = dashboard.detect_device_anomaly_flags(
+        {"name": "Beacon", "address": "AA:66", "rssi": -90},
+        registry_row={"seen_count": 10},
+        observations=[
+            {"scan_pos": 0, "name": "Beacon", "rssi": -55},
+            {"scan_pos": 1, "name": "Beacon", "rssi": -86},
+            {"scan_pos": 2, "name": "Beacon", "rssi": -74},
+            {"scan_pos": 3, "name": "Beacon", "rssi": -89},
+        ],
+    )
+
+    assert "STABILITY_BREAK" in flags
+
+
+def test_name_change_spike_anomaly_appears_when_applicable():
+    flags = dashboard.detect_device_anomaly_flags(
+        {"name": "Name-C", "address": "AA:77", "rssi": -72},
+        registry_row={"seen_count": 6},
+        observations=[
+            {"scan_pos": 0, "name": "Name-A", "rssi": -71},
+            {"scan_pos": 1, "name": "Name-B", "rssi": -70},
+            {"scan_pos": 2, "name": "Name-C", "rssi": -72},
+        ],
+    )
+
+    assert "NAME_CHANGE_SPIKE" in flags
+
+
+def test_reappear_alert_anomaly_appears_when_applicable():
+    flags = dashboard.detect_device_anomaly_flags(
+        {"name": "Beacon", "address": "AA:88", "rssi": -73},
+        registry_row={"seen_count": 5},
+        observations=[
+            {"scan_pos": 0, "name": "Beacon", "rssi": -72},
+            {"scan_pos": 4, "name": "Beacon", "rssi": -73},
+        ],
+    )
+
+    assert "REAPPEAR_ALERT" in flags
+
+
+def test_quiet_minimal_history_device_remains_clean_without_noise():
+    flags = dashboard.detect_device_anomaly_flags(
+        {"name": "Inconnu", "address": "AA:99", "rssi": -79},
+        registry_row={
+            "seen_count": 3,
+            "first_seen": "2026-04-20 10:00:00",
+            "last_seen": "2026-04-21 10:00:00",
+        },
+        observations=[
+            {"scan_pos": 0, "name": "Inconnu", "rssi": -79},
+            {"scan_pos": 1, "name": "Inconnu", "rssi": -78},
+        ],
+    )
+
+    assert flags == []
