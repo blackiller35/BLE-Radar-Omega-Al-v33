@@ -2054,6 +2054,123 @@ def render_security_audit_events_panel(
     )
 
 
+def render_security_quick_actions_panel(security_context) -> str:
+    """Render compact quick-action chips for operator session management."""
+    mode = (
+        str(getattr(security_context, "mode", "unknown")).strip().lower()
+        if security_context
+        else "unknown"
+    )
+    session_unlocked = (
+        bool(getattr(security_context, "secrets_unlocked", False))
+        if security_context
+        else False
+    )
+    is_operator = mode == "operator"
+
+    chip_base = (
+        "display:inline-block;padding:4px 10px;border-radius:999px;"
+        "border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);"
+        "color:var(--text);font-size:12px;font-weight:600;margin-right:6px;margin-bottom:4px;"
+    )
+    chip_disabled_style = "opacity:.48;cursor:not-allowed;"
+
+    def _chip(
+        label: str, runtime_command: str, disabled: bool, href: str | None = None
+    ) -> str:
+        disabled_attr = " disabled" if disabled else ""
+        extra_style = chip_disabled_style if disabled else ""
+        if href:
+            return (
+                f'<a href="{escape(href)}" data-security-quick-action="{escape(runtime_command)}" '
+                f'style="{chip_base}{extra_style}text-decoration:none;">{escape(label)}</a>'
+            )
+        return (
+            f'<button type="button" data-runtime-command="{escape(runtime_command)}" '
+            f'data-security-quick-action="{escape(runtime_command)}" '
+            f'style="{chip_base}{extra_style}"{disabled_attr}>{escape(label)}</button>'
+        )
+
+    chips = [
+        _chip("Unlock", "session unlock", disabled=not is_operator or session_unlocked),
+        _chip("Lock", "session lock", disabled=not is_operator or not session_unlocked),
+        _chip("Clear expired session", "session clear", disabled=session_unlocked),
+        _chip(
+            "Open security audit view",
+            "#security-audit-dedicated-view",
+            disabled=False,
+            href="#security-audit-dedicated-view",
+        ),
+    ]
+    return f"<div>{''.join(chips)}</div>"
+
+
+def render_security_audit_dedicated_view(
+    events: list[dict] | None, active_filter: str = "all"
+) -> str:
+    """Render a dedicated full-height security audit event view (up to 40 entries)."""
+    active_filter = str(active_filter or "all").strip().lower()
+    if active_filter not in {"all", "session", "denied", "allowed", "timeout"}:
+        active_filter = "all"
+
+    security_events = [
+        event
+        for event in (events or [])
+        if str(event.get("kind", "")).startswith("security.")
+    ]
+    filtered_events = [
+        event
+        for event in security_events
+        if active_filter == "all" or _security_audit_filter_key(event) == active_filter
+    ]
+
+    button_base = (
+        "padding:4px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.16);"
+        "background:rgba(255,255,255,.05);color:var(--text);font-size:11px;margin-right:4px;"
+        "font-weight:600;letter-spacing:.01em;"
+    )
+    controls = " ".join(
+        (
+            f'<button type="button" data-security-audit-view-filter="{name}" '
+            f'data-security-audit-view-active="{"true" if name == active_filter else "false"}" '
+            f'aria-pressed="{"true" if name == active_filter else "false"}" '
+            f"onclick=\"setSecurityAuditViewFilter('{name}')\" "
+            f'style="{button_base}{"background:rgba(125,245,163,.14);border-color:rgba(125,245,163,.35);box-shadow:inset 0 0 0 1px rgba(125,245,163,.2);" if name == active_filter else ""}">{escape(label)}</button>'
+        )
+        for name, label in (
+            ("all", "all"),
+            ("session", "session"),
+            ("denied", "denied"),
+            ("allowed", "allowed"),
+            ("timeout", "timeout"),
+        )
+    )
+
+    if not filtered_events:
+        body = '<ul><li class="muted">No security audit events.</li></ul>'
+    else:
+        items = []
+        for event in filtered_events[:40]:
+            ts = escape(str(event.get("ts", "-")))
+            kind = escape(str(event.get("kind", "unknown")))
+            data = event.get("data", {}) if isinstance(event.get("data"), dict) else {}
+            detail = data.get("reason") or event.get("message") or "-"
+            category = _security_audit_filter_key(event)
+            items.append(
+                f'<li data-security-audit-view-filter-row="{escape(category)}"><strong>{kind}</strong> | <span class="muted">{ts}</span> | {escape(str(detail))}</li>'
+            )
+        body = f"<ul>{''.join(items)}</ul>"
+
+    return (
+        f'<div id="security-audit-dedicated-view" style="margin-bottom:8px;">'
+        f'<div class="muted" style="margin-bottom:6px;">Security audit filter: '
+        f'<strong data-security-audit-view-active-label="{escape(active_filter)}">{escape(active_filter)}</strong>'
+        f"</div>"
+        f'<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">{controls}</div>'
+        f"</div>{body}"
+    )
+
+
 def render_watch_cases_panel(watch_cases: dict) -> str:
     """Render a compact HTML fragment for local watch/case entries."""
     if not watch_cases:
@@ -3219,9 +3336,21 @@ ul {{ margin:0; padding-left:18px; }}
     </div>
 
     <div class="panel" style="margin-bottom:18px;">
+        <h2>Security quick actions</h2>
+        {render_security_quick_actions_panel(security_context)}
+        <div class="muted">Operator session controls.</div>
+    </div>
+
+    <div class="panel" style="margin-bottom:18px;">
         <h2>Security audit events</h2>
         {render_security_audit_events_panel(security_audit_events)}
         <div class="muted">Recent operator/security audit activity.</div>
+    </div>
+
+    <div class="panel" style="margin-bottom:18px;">
+        <h2>Security audit view</h2>
+        {render_security_audit_dedicated_view(security_audit_events)}
+        <div class="muted">Full operator/security audit log (up to 40 entries).</div>
     </div>
 
   <div class="panel" style="margin-bottom:18px;">
@@ -3521,9 +3650,31 @@ function setSecurityAuditFilter(mode) {{
     }});
 }}
 
+function setSecurityAuditViewFilter(mode) {{
+    document.querySelectorAll('[data-security-audit-view-filter]').forEach(btn => {{
+        const active = btn.dataset.securityAuditViewFilter === mode;
+        btn.dataset.securityAuditViewActive = active ? 'true' : 'false';
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        btn.style.background = active ? 'rgba(125,245,163,.14)' : 'rgba(255,255,255,.05)';
+        btn.style.borderColor = active ? 'rgba(125,245,163,.35)' : 'rgba(255,255,255,.16)';
+        btn.style.boxShadow = active ? 'inset 0 0 0 1px rgba(125,245,163,.2)' : 'none';
+    }});
+
+    const activeLabel = document.querySelector('[data-security-audit-view-active-label]');
+    if (activeLabel) {{
+        activeLabel.textContent = mode;
+        activeLabel.dataset.securityAuditViewActiveLabel = mode;
+    }}
+
+    document.querySelectorAll('[data-security-audit-view-filter-row]').forEach(row => {{
+        row.style.display = mode === 'all' || row.dataset.securityAuditViewFilterRow === mode ? '' : 'none';
+    }});
+}}
+
 searchBox.addEventListener('input', applyFilters);
 vendorSelect.addEventListener('change', applyFilters);
 setSecurityAuditFilter('all');
+setSecurityAuditViewFilter('all');
 </script>
 
 <!-- BLUEHOOD SUMMARY -->

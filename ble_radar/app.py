@@ -166,6 +166,7 @@ from ble_radar.centers.aegis_center import (
     aegis_center,
 )
 from ble_radar.security import (
+    clear_expired_operator_session,
     lock_operator_session,
     read_operator_session_status,
     unlock_operator_session,
@@ -4232,6 +4233,19 @@ def command_center():
         print(f"session_unlocked={status.get('session_unlocked')}")
         print(f"sensitive_enabled={status.get('sensitive_enabled')}")
         print(f"session_timeout_seconds={status.get('session_timeout_seconds')}")
+        pause()
+    elif action == "operator_session_clear":
+        cleared = clear_expired_operator_session()
+        if cleared:
+            print(color("\nExpired operator session cleared.", GREEN, bold=True))
+        else:
+            print(
+                color(
+                    "\nNo expired session to clear (session active or already absent).",
+                    YELLOW,
+                    bold=True,
+                )
+            )
         pause()
     elif action == "view_critical":
         run_view("Vue critique", view_critical)

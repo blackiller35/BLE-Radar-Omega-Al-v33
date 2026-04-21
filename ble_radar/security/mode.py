@@ -70,6 +70,29 @@ def lock_operator_session() -> None:
         return
 
 
+def clear_expired_operator_session() -> bool:
+    """Remove the unlock file only if the session has already expired. Returns True if cleared."""
+    try:
+        if not OPERATOR_SESSION_UNLOCK_FILE.exists():
+            return False
+        age_seconds = time.time() - OPERATOR_SESSION_UNLOCK_FILE.stat().st_mtime
+        if (
+            OPERATOR_SESSION_TIMEOUT_SECONDS > 0
+            and age_seconds > OPERATOR_SESSION_TIMEOUT_SECONDS
+        ):
+            OPERATOR_SESSION_UNLOCK_FILE.unlink()
+            log_event(
+                "security.operator_session.expired_cleared",
+                "info",
+                "Expired operator session file cleared",
+                {"age_seconds": int(age_seconds)},
+            )
+            return True
+        return False
+    except Exception:
+        return False
+
+
 def read_operator_session_status(config_path: str | Path | None = None) -> dict:
     security = build_security_context(config_path=config_path)
     return {
