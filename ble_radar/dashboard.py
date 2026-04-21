@@ -2671,7 +2671,6 @@ def render_session_movement_panel(movement: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
-
 def _device_risk_level(score):
     try:
         score = int(score or 0)
@@ -2700,6 +2699,33 @@ def _device_risk_badge(score):
         f"border-radius:999px;font-size:12px;font-weight:700;"
         f"background:{color};color:#111;'>"
         f"{level} · {score}"
+        f"</span>"
+    )
+
+
+def device_risk_badge(score: int) -> str:
+    try:
+        score = int(score or 0)
+    except Exception:
+        score = 0
+
+    if score >= 75:
+        level = "HIGH"
+        color = "#ff4d4f"
+    elif score >= 50:
+        level = "MEDIUM"
+        color = "#faad14"
+    elif score >= 25:
+        level = "LOW"
+        color = "#52c41a"
+    else:
+        level = "SAFE"
+        color = "#8c8c8c"
+
+    return (
+        f"<span style='display:inline-block;padding:2px 8px;border-radius:999px;"
+        f"font-size:12px;font-weight:600;color:white;background:{color};'>"
+        f"{level} ({score})"
         f"</span>"
     )
 
@@ -3665,6 +3691,7 @@ def render_dashboard_html(devices, stamp: str) -> str:
             registry_row=registry_row,
             observations=recent_observations.get(addr, []),
         )
+        interest_score = device_risk_badge(device_interest.get("score", 0))
         anomaly_flags = detect_device_anomaly_flags(
             d,
             registry_row=registry_row,
