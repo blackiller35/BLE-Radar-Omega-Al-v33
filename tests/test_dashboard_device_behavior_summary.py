@@ -71,7 +71,11 @@ def test_device_interest_score_calculation_correctness():
         device, registry_row=registry_row, observations=observations
     )
 
-    assert result["score"] == 6
+    assert result["base_score"] == 6
+    assert result["anomaly_boost"] == 5
+    assert "STABILITY_BREAK" in result["anomaly_flags"]
+    assert "REAPPEAR_ALERT" in result["anomaly_flags"]
+    assert result["score"] == 11
     assert result["label"] == "suspicious"
 
 
@@ -107,8 +111,159 @@ def test_device_interest_score_minimal_history_edge_case_safe():
         observations=[],
     )
 
-    assert result["score"] == 0
+    assert result["base_score"] == 0
+    assert result["anomaly_boost"] == 1
+    assert "NEW_DEVICE" in result["anomaly_flags"]
+    assert result["score"] == 1
     assert result["label"] == "normal"
+
+
+def test_stronger_anomaly_produces_larger_boost_than_weaker_anomaly():
+    weak = dashboard.compute_device_interest_score(
+        {"name": "Inconnu", "address": "AA:45", "rssi": -78},
+        registry_row={
+            "seen_count": 1,
+            "first_seen": "2026-04-21 10:00:00",
+            "last_seen": "2026-04-21 10:00:00",
+        },
+        observations=[],
+    )
+    strong = dashboard.compute_device_interest_score(
+        {"name": "Beacon", "address": "AA:46", "rssi": -90},
+        registry_row={"seen_count": 10},
+        observations=[
+            {"scan_pos": 0, "name": "Beacon", "rssi": -55},
+            {"scan_pos": 1, "name": "Beacon", "rssi": -86},
+            {"scan_pos": 2, "name": "Beacon", "rssi": -74},
+            {"scan_pos": 3, "name": "Beacon", "rssi": -89},
+        ],
+    )
+
+    assert weak["anomaly_boost"] < strong["anomaly_boost"]
+
+
+def test_score_label_mapping_still_behaves_correctly_after_anomaly_boost():
+    normal = dashboard.compute_device_interest_score(
+        {"name": "Inconnu", "address": "AA:47", "rssi": -80},
+        registry_row={
+            "seen_count": 1,
+            "first_seen": "2026-04-21 10:00:00",
+            "last_seen": "2026-04-21 10:00:00",
+        },
+        observations=[],
+    )
+    interesting = dashboard.compute_device_interest_score(
+        {"name": "Beacon", "address": "AA:48", "rssi": -72},
+        registry_row={
+            "seen_count": 8,
+            "first_seen": "2026-04-20 10:00:00",
+            "last_seen": "2026-04-21 10:00:00",
+        },
+        observations=[],
+    )
+    suspicious = dashboard.compute_device_interest_score(
+        {"name": "Beacon-New", "address": "AA:49", "rssi": -92},
+        registry_row={"seen_count": 8},
+        observations=[
+            {"scan_pos": 0, "name": "Beacon-Old", "rssi": -55},
+            {"scan_pos": 4, "name": "Beacon-New", "rssi": -84},
+        ],
+    )
+
+    assert normal["label"] == "normal"
+    assert interesting["label"] == "interesting"
+    assert suspicious["label"] == "suspicious"
+
+
+def test_devices_without_anomalies_keep_normal_deterministic_scoring_path():
+    result = dashboard.compute_device_interest_score(
+        {"name": "Beacon", "address": "AA:50", "rssi": -74},
+        registry_row={
+            "seen_count": 8,
+            "first_seen": "2026-04-20 10:00:00",
+            "last_seen": "2026-04-21 10:00:00",
+        },
+        observations=[
+            {"scan_pos": 0, "name": "Beacon", "rssi": -74},
+            {"scan_pos": 1, "name": "Beacon", "rssi": -73},
+        ],
+    )
+
+    assert result["base_score"] == 2
+    assert result["anomaly_boost"] == 0
+    assert result["score"] == 2
+    assert result["label"] == "interesting"
+    assert result["anomaly_flags"] == []
+
+
+def test_compact_dashboard_rendering_still_works_with_boosted_scores(monkeypatch):
+    sample_devices = [
+        {
+            "name": "Beacon-New",
+            "address": "AA:51",
+            "vendor": "TestVendor",
+            "profile": "general_ble",
+            "rssi": -92,
+            "risk_score": 10,
+            "follow_score": 10,
+            "confidence_score": 10,
+            "final_score": 30,
+            "alert_level": "moyen",
+            "seen_count": 2,
+            "reason_short": "normal",
+            "flags": [],
+        }
+    ]
+
+    monkeypatch.setattr(
+        dashboard,
+        "load_scan_history",
+        lambda: [
+            {
+                "stamp": "2026-04-21_10-00-00",
+                "count": 1,
+                "critical": 0,
+                "high": 0,
+                "medium": 1,
+                "devices": [
+                    {"address": "AA:51", "name": "Beacon-Old", "rssi": -55},
+                ],
+            },
+            {
+                "stamp": "2026-04-21_10-05-00",
+                "count": 1,
+                "critical": 0,
+                "high": 0,
+                "medium": 1,
+                "devices": [
+                    {"address": "AA:51", "name": "Beacon-New", "rssi": -84},
+                ],
+            },
+        ],
+    )
+    monkeypatch.setattr(
+        dashboard,
+        "load_registry",
+        lambda: {
+            "AA:51": {
+                "address": "AA:51",
+                "seen_count": 8,
+                "session_count": 2,
+                "first_seen": "2026-04-20 10:00:00",
+                "last_seen": "2026-04-21 10:05:00",
+            }
+        },
+    )
+    monkeypatch.setattr(dashboard, "load_last_scan", lambda: [])
+    monkeypatch.setattr(dashboard, "load_watch_cases", lambda: {})
+    monkeypatch.setattr(dashboard, "get_vendor_summary", lambda devices: [])
+    monkeypatch.setattr(dashboard, "get_tracker_candidates", lambda devices: [])
+
+    html = dashboard.render_dashboard_html(sample_devices, "2026-04-21_10-06-00")
+
+    assert 'data-device-interest-badge="true"' in html
+    assert 'data-device-interest-boost="' in html
+    assert 'data-device-anomaly-flags="true"' in html
 
 
 def test_new_device_anomaly_appears_when_applicable():
