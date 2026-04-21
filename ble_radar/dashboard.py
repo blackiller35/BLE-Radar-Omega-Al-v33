@@ -317,6 +317,64 @@ def detect_device_anomaly_flags(
     return flags
 
 
+def detect_device_live_alerts(
+    device: dict,
+    registry_row: dict | None = None,
+    observations: list[dict] | None = None,
+) -> list[str]:
+    """Return compact deterministic live alerts from local anomaly/risk signals."""
+    row = registry_row if isinstance(registry_row, dict) else {}
+    obs = [o for o in (observations or []) if isinstance(o, dict)]
+
+    current_flags = detect_device_anomaly_flags(
+        device,
+        registry_row=row,
+        observations=obs,
+    )
+    score_info = compute_device_interest_score(
+        device,
+        registry_row=row,
+        observations=obs,
+    )
+
+    previous_flags = []
+    if obs:
+        last = obs[-1]
+        previous_device = dict(device)
+        if last.get("name"):
+            previous_device["name"] = last.get("name")
+        if isinstance(last.get("rssi"), (int, float)):
+            previous_device["rssi"] = last.get("rssi")
+        previous_flags = detect_device_anomaly_flags(
+            previous_device,
+            registry_row=row,
+            observations=obs[:-1],
+        )
+
+    newly_present = [flag for flag in current_flags if flag not in previous_flags]
+    alerts = []
+
+    if "NEW_DEVICE" in newly_present or (
+        "NEW_DEVICE" in current_flags and len(obs) <= 1
+    ):
+        alerts.append("New device anomaly detected")
+
+    if "STABILITY_BREAK" in newly_present or (
+        "STABILITY_BREAK" in current_flags and len(obs) >= 3
+    ):
+        alerts.append("Device stability break detected")
+
+    if "REAPPEAR_ALERT" in newly_present or "REAPPEAR_ALERT" in current_flags:
+        alerts.append("Recently reappeared device flagged")
+
+    if _safe_int(score_info.get("anomaly_boost", 0), 0) >= 3:
+        alerts.append("Risk spike detected")
+
+    if not alerts:
+        return []
+    return alerts[:3]
+
+
 _BUCKET_STYLE = {
     "critical": "color:var(--pink);font-weight:700",
     "review": "color:var(--red)",
@@ -3533,6 +3591,11 @@ def render_dashboard_html(devices, stamp: str) -> str:
             registry_row=registry_row,
             observations=recent_observations.get(addr, []),
         )
+        live_alerts = detect_device_live_alerts(
+            d,
+            registry_row=registry_row,
+            observations=recent_observations.get(addr, []),
+        )
         explanation_block = escape(explanation)
         interest_label = str(device_interest.get("label", "normal"))
         interest_style = {
@@ -3570,6 +3633,14 @@ def render_dashboard_html(devices, stamp: str) -> str:
             explanation_block += (
                 f'<div class="muted" data-device-anomaly-flags="true" style="margin-top:3px;">'
                 f"{anomaly_items}"
+                f"</div>"
+            )
+        if live_alerts:
+            alert_text = " | ".join(escape(msg) for msg in live_alerts)
+            explanation_block += (
+                f'<div class="muted" data-device-live-alerts="true" '
+                f'style="margin-top:3px;color:var(--yellow);font-weight:700;">'
+                f"{alert_text}"
                 f"</div>"
             )
         if behavior_summary:
