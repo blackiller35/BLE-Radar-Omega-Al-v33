@@ -150,10 +150,23 @@ def test_render_security_audit_events_panel_all_filter_shows_mixed_events():
     html = dashboard.render_security_audit_events_panel(SAMPLE_SECURITY_AUDIT_EVENTS)
 
     assert 'data-security-audit-filter="all"' in html
+    assert 'data-security-audit-active-label="all"' in html
+    assert 'data-security-audit-active="true"' in html
     assert "security.operator_session.unlocked" in html
     assert "security.sensitive_action.denied" in html
     assert "security.sensitive_action.allowed" in html
     assert "security.operator_session.auto_locked" in html
+
+
+def test_render_security_audit_events_panel_filter_chips_render_correctly():
+    html = dashboard.render_security_audit_events_panel(SAMPLE_SECURITY_AUDIT_EVENTS)
+
+    assert 'data-security-audit-filter="all"' in html
+    assert 'data-security-audit-filter="session"' in html
+    assert 'data-security-audit-filter="denied"' in html
+    assert 'data-security-audit-filter="allowed"' in html
+    assert 'data-security-audit-filter="timeout"' in html
+    assert "Security audit filter:" in html
 
 
 def test_render_security_audit_events_panel_session_filter_only_session_events():
@@ -161,6 +174,7 @@ def test_render_security_audit_events_panel_session_filter_only_session_events()
         SAMPLE_SECURITY_AUDIT_EVENTS, active_filter="session"
     )
 
+    assert 'data-security-audit-active-label="session"' in html
     assert "security.operator_session.unlocked" in html
     assert "security.operator_session.locked" in html
     assert "security.sensitive_action.denied" not in html
@@ -172,6 +186,7 @@ def test_render_security_audit_events_panel_denied_filter_only_denied_events():
         SAMPLE_SECURITY_AUDIT_EVENTS, active_filter="denied"
     )
 
+    assert 'data-security-audit-active-label="denied"' in html
     assert "security.sensitive_action.denied" in html
     assert "security.operator_session.unlocked" not in html
     assert "security.sensitive_action.allowed" not in html
@@ -182,6 +197,7 @@ def test_render_security_audit_events_panel_timeout_filter_only_timeout_events()
         SAMPLE_SECURITY_AUDIT_EVENTS, active_filter="timeout"
     )
 
+    assert 'data-security-audit-active-label="timeout"' in html
     assert "security.operator_session.auto_locked" in html
     assert "timeout" in html
     assert "security.operator_session.unlocked" not in html

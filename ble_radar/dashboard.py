@@ -2008,14 +2008,17 @@ def render_security_audit_events_panel(
     ]
 
     button_base = (
-        "padding:3px 7px;border-radius:999px;border:1px solid rgba(255,255,255,.16);"
+        "padding:4px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.16);"
         "background:rgba(255,255,255,.05);color:var(--text);font-size:11px;margin-right:4px;"
+        "font-weight:600;letter-spacing:.01em;"
     )
     controls = " ".join(
         (
             f'<button type="button" data-security-audit-filter="{name}" '
+            f'data-security-audit-active="{"true" if name == active_filter else "false"}" '
+            f'aria-pressed="{"true" if name == active_filter else "false"}" '
             f"onclick=\"setSecurityAuditFilter('{name}')\" "
-            f'style="{button_base}{"background:rgba(125,245,163,.14);border-color:rgba(125,245,163,.35);" if name == active_filter else ""}">{escape(label)}</button>'
+            f'style="{button_base}{"background:rgba(125,245,163,.14);border-color:rgba(125,245,163,.35);box-shadow:inset 0 0 0 1px rgba(125,245,163,.2);" if name == active_filter else ""}">{escape(label)}</button>'
         )
         for name, label in (
             ("all", "all"),
@@ -2042,7 +2045,12 @@ def render_security_audit_events_panel(
         body = f"<ul>{''.join(items)}</ul>"
 
     return (
-        f'<div class="muted" style="margin-bottom:8px;">Filter: {controls}</div>{body}'
+        f'<div style="margin-bottom:8px;">'
+        f'<div class="muted" style="margin-bottom:6px;">Security audit filter: '
+        f'<strong data-security-audit-active-label="{escape(active_filter)}">{escape(active_filter)}</strong>'
+        f"</div>"
+        f'<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">{controls}</div>'
+        f"</div>{body}"
     )
 
 
@@ -3495,9 +3503,18 @@ function setMode(mode) {{
 function setSecurityAuditFilter(mode) {{
     document.querySelectorAll('[data-security-audit-filter]').forEach(btn => {{
         const active = btn.dataset.securityAuditFilter === mode;
+        btn.dataset.securityAuditActive = active ? 'true' : 'false';
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
         btn.style.background = active ? 'rgba(125,245,163,.14)' : 'rgba(255,255,255,.05)';
         btn.style.borderColor = active ? 'rgba(125,245,163,.35)' : 'rgba(255,255,255,.16)';
+        btn.style.boxShadow = active ? 'inset 0 0 0 1px rgba(125,245,163,.2)' : 'none';
     }});
+
+    const activeLabel = document.querySelector('[data-security-audit-active-label]');
+    if (activeLabel) {{
+        activeLabel.textContent = mode;
+        activeLabel.dataset.securityAuditActiveLabel = mode;
+    }}
 
     document.querySelectorAll('[data-security-audit-filter-row]').forEach(row => {{
         row.style.display = mode === 'all' || row.dataset.securityAuditFilterRow === mode ? '' : 'none';
