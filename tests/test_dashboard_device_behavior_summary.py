@@ -337,3 +337,131 @@ def test_quiet_minimal_history_device_remains_clean_without_noise():
     )
 
     assert flags == []
+
+
+def test_live_alert_appears_for_new_anomaly():
+    alerts = dashboard.detect_device_live_alerts(
+        {"name": "Inconnu", "address": "AB:01", "rssi": -80},
+        registry_row={
+            "seen_count": 1,
+            "first_seen": "2026-04-21 10:00:00",
+            "last_seen": "2026-04-21 10:00:00",
+        },
+        observations=[],
+    )
+
+    assert "New device anomaly detected" in alerts
+
+
+def test_live_alert_appears_for_stability_break():
+    alerts = dashboard.detect_device_live_alerts(
+        {"name": "Beacon", "address": "AB:02", "rssi": -91},
+        registry_row={"seen_count": 10},
+        observations=[
+            {"scan_pos": 0, "name": "Beacon", "rssi": -55},
+            {"scan_pos": 1, "name": "Beacon", "rssi": -56},
+            {"scan_pos": 2, "name": "Beacon", "rssi": -57},
+        ],
+    )
+
+    assert "Device stability break detected" in alerts
+
+
+def test_live_alert_appears_for_risk_spike():
+    alerts = dashboard.detect_device_live_alerts(
+        {"name": "Beacon-New", "address": "AB:03", "rssi": -92},
+        registry_row={"seen_count": 8},
+        observations=[
+            {"scan_pos": 0, "name": "Beacon-Old", "rssi": -55},
+            {"scan_pos": 4, "name": "Beacon-New", "rssi": -84},
+        ],
+    )
+
+    assert "Risk spike detected" in alerts
+
+
+def test_quiet_minimal_history_devices_do_not_produce_noisy_live_alerts():
+    alerts = dashboard.detect_device_live_alerts(
+        {"name": "Inconnu", "address": "AB:04", "rssi": -79},
+        registry_row={
+            "seen_count": 3,
+            "first_seen": "2026-04-20 10:00:00",
+            "last_seen": "2026-04-21 10:00:00",
+        },
+        observations=[
+            {"scan_pos": 0, "name": "Inconnu", "rssi": -79},
+            {"scan_pos": 1, "name": "Inconnu", "rssi": -78},
+        ],
+    )
+
+    assert alerts == []
+
+
+def test_dashboard_rendering_remains_clean_with_live_alert_support(monkeypatch):
+    sample_devices = [
+        {
+            "name": "Beacon-New",
+            "address": "AB:05",
+            "vendor": "TestVendor",
+            "profile": "general_ble",
+            "rssi": -92,
+            "risk_score": 10,
+            "follow_score": 10,
+            "confidence_score": 10,
+            "final_score": 30,
+            "alert_level": "moyen",
+            "seen_count": 2,
+            "reason_short": "normal",
+            "flags": [],
+        }
+    ]
+
+    monkeypatch.setattr(
+        dashboard,
+        "load_scan_history",
+        lambda: [
+            {
+                "stamp": "2026-04-21_10-00-00",
+                "count": 1,
+                "critical": 0,
+                "high": 0,
+                "medium": 1,
+                "devices": [
+                    {"address": "AB:05", "name": "Beacon-Old", "rssi": -55},
+                ],
+            },
+            {
+                "stamp": "2026-04-21_10-05-00",
+                "count": 1,
+                "critical": 0,
+                "high": 0,
+                "medium": 1,
+                "devices": [
+                    {"address": "AB:05", "name": "Beacon-New", "rssi": -84},
+                ],
+            },
+        ],
+    )
+    monkeypatch.setattr(
+        dashboard,
+        "load_registry",
+        lambda: {
+            "AB:05": {
+                "address": "AB:05",
+                "seen_count": 8,
+                "session_count": 2,
+                "first_seen": "2026-04-20 10:00:00",
+                "last_seen": "2026-04-21 10:05:00",
+            }
+        },
+    )
+    monkeypatch.setattr(dashboard, "load_last_scan", lambda: [])
+    monkeypatch.setattr(dashboard, "load_watch_cases", lambda: {})
+    monkeypatch.setattr(dashboard, "get_vendor_summary", lambda devices: [])
+    monkeypatch.setattr(dashboard, "get_tracker_candidates", lambda devices: [])
+
+    html = dashboard.render_dashboard_html(sample_devices, "2026-04-21_10-06-00")
+
+    assert 'data-device-interest-badge="true"' in html
+    assert 'data-device-anomaly-flags="true"' in html
+    assert 'data-device-live-alerts="true"' in html
