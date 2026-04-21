@@ -52,6 +52,8 @@ def parse_command(text: str) -> dict:
             return {"action": "operator_session_lock"}
         if parts[1] == "status":
             return {"action": "operator_session_status"}
+        if parts[1] == "clear":
+            return {"action": "operator_session_clear"}
 
     if first in ("session_unlock", "opunlock"):
         return {"action": "operator_session_unlock"}
@@ -59,6 +61,8 @@ def parse_command(text: str) -> dict:
         return {"action": "operator_session_lock"}
     if first in ("session_status", "opstatus"):
         return {"action": "operator_session_status"}
+    if first in ("session_clear", "opclear"):
+        return {"action": "operator_session_clear"}
 
     if first in ("search", "find", "query", "recherche") and rest:
         return {"action": "search_last", "query": rest}

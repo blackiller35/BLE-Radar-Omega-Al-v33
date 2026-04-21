@@ -4,6 +4,7 @@ from .mode import (
     is_operator_session_unlocked,
     unlock_operator_session,
     lock_operator_session,
+    clear_expired_operator_session,
     read_operator_session_status,
 )
 from .policy import (
