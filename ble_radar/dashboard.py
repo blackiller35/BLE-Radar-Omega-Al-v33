@@ -1975,6 +1975,81 @@ def render_security_status_panel(security_context) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_security_quick_actions_panel(security_context) -> str:
+    """Render compact operator-facing security quick actions."""
+    if security_context is None:
+        return '<ul><li class="muted">Security context unavailable.</li></ul>'
+
+    mode = str(getattr(security_context, "mode", "unknown")).strip().lower()
+    session_unlocked = bool(getattr(security_context, "secrets_unlocked", False))
+
+    demo_mode = mode != "operator"
+    unlock_disabled = demo_mode or session_unlocked
+    lock_disabled = demo_mode or not session_unlocked
+    generic_disabled = demo_mode
+
+    def _action_chip(
+        label: str,
+        runtime_command: str | None = None,
+        disabled: bool = False,
+        extra_attrs: str = "",
+    ) -> str:
+        base = (
+            "padding:4px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.16);"
+            "background:rgba(255,255,255,.05);color:var(--text);font-size:11px;"
+            "font-weight:600;letter-spacing:.01em;"
+        )
+        disabled_style = "opacity:.55;cursor:not-allowed;" if disabled else ""
+        disabled_attr = " disabled" if disabled else ""
+        cmd_attr = (
+            f' data-runtime-command="{escape(runtime_command)}"'
+            if runtime_command
+            else ""
+        )
+        return (
+            f'<button type="button"{cmd_attr}{disabled_attr} {extra_attrs}'
+            f' style="{base}{disabled_style}">{escape(label)}</button>'
+        )
+
+    chips = [
+        _action_chip(
+            "Unlock operator session",
+            runtime_command="session unlock",
+            disabled=unlock_disabled,
+            extra_attrs='data-security-quick-action="unlock"',
+        ),
+        _action_chip(
+            "Lock operator session",
+            runtime_command="session lock",
+            disabled=lock_disabled,
+            extra_attrs='data-security-quick-action="lock"',
+        ),
+        _action_chip(
+            "Clear expired session",
+            runtime_command="session clear-expired",
+            disabled=generic_disabled,
+            extra_attrs='data-security-quick-action="clear-expired"',
+        ),
+        _action_chip(
+            "Open security audit view",
+            disabled=generic_disabled,
+            extra_attrs="data-security-quick-action=\"open-audit\" onclick=\"setSecurityAuditViewFilter('all');document.getElementById('security-audit-dedicated-view')?.scrollIntoView({behavior:'smooth', block:'start'});\"",
+        ),
+    ]
+
+    lines = [
+        f"<li>Quick actions state: <strong>{'demo-disabled' if demo_mode else ('operator-unlocked' if session_unlocked else 'operator-locked')}</strong></li>",
+        f'<li style="display:flex;flex-wrap:wrap;gap:6px;">{"".join(chips)}</li>',
+    ]
+
+    if demo_mode:
+        lines.append(
+            '<li class="muted">YubiKey/operator mode is required before quick actions can run.</li>'
+        )
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def _security_audit_filter_key(event: dict) -> str:
     kind = str(event.get("kind", "")).strip().lower()
     if kind == "security.operator_session.auto_locked":
@@ -2054,6 +2129,7 @@ def render_security_audit_events_panel(
     )
 
 
+<<<<<<< HEAD
 def render_security_quick_actions_panel(security_context) -> str:
     """Render compact quick-action chips for operator session management."""
     mode = (
@@ -2109,6 +2185,12 @@ def render_security_audit_dedicated_view(
     events: list[dict] | None, active_filter: str = "all"
 ) -> str:
     """Render a dedicated full-height security audit event view (up to 40 entries)."""
+=======
+def render_security_audit_dedicated_view(
+    events: list[dict] | None, active_filter: str = "all"
+) -> str:
+    """Render dedicated security audit view with deeper recent history."""
+>>>>>>> origin/main
     active_filter = str(active_filter or "all").strip().lower()
     if active_filter not in {"all", "session", "denied", "allowed", "timeout"}:
         active_filter = "all"
@@ -2124,7 +2206,11 @@ def render_security_audit_dedicated_view(
         if active_filter == "all" or _security_audit_filter_key(event) == active_filter
     ]
 
+<<<<<<< HEAD
     button_base = (
+=======
+    chip_base = (
+>>>>>>> origin/main
         "padding:4px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.16);"
         "background:rgba(255,255,255,.05);color:var(--text);font-size:11px;margin-right:4px;"
         "font-weight:600;letter-spacing:.01em;"
@@ -2135,7 +2221,11 @@ def render_security_audit_dedicated_view(
             f'data-security-audit-view-active="{"true" if name == active_filter else "false"}" '
             f'aria-pressed="{"true" if name == active_filter else "false"}" '
             f"onclick=\"setSecurityAuditViewFilter('{name}')\" "
+<<<<<<< HEAD
             f'style="{button_base}{"background:rgba(125,245,163,.14);border-color:rgba(125,245,163,.35);box-shadow:inset 0 0 0 1px rgba(125,245,163,.2);" if name == active_filter else ""}">{escape(label)}</button>'
+=======
+            f'style="{chip_base}{"background:rgba(125,245,163,.14);border-color:rgba(125,245,163,.35);box-shadow:inset 0 0 0 1px rgba(125,245,163,.2);" if name == active_filter else ""}">{escape(label)}</button>'
+>>>>>>> origin/main
         )
         for name, label in (
             ("all", "all"),
@@ -2147,7 +2237,11 @@ def render_security_audit_dedicated_view(
     )
 
     if not filtered_events:
+<<<<<<< HEAD
         body = '<ul><li class="muted">No security audit events.</li></ul>'
+=======
+        body = '<ul><li class="muted">No recent security audit events.</li></ul>'
+>>>>>>> origin/main
     else:
         items = []
         for event in filtered_events[:40]:
@@ -2157,16 +2251,29 @@ def render_security_audit_dedicated_view(
             detail = data.get("reason") or event.get("message") or "-"
             category = _security_audit_filter_key(event)
             items.append(
+<<<<<<< HEAD
                 f'<li data-security-audit-view-filter-row="{escape(category)}"><strong>{kind}</strong> | <span class="muted">{ts}</span> | {escape(str(detail))}</li>'
+=======
+                f'<li data-security-audit-view-row="{escape(category)}"><strong>{kind}</strong> | <span class="muted">{ts}</span> | {escape(str(detail))}</li>'
+>>>>>>> origin/main
             )
         body = f"<ul>{''.join(items)}</ul>"
 
     return (
+<<<<<<< HEAD
         f'<div id="security-audit-dedicated-view" style="margin-bottom:8px;">'
         f'<div class="muted" style="margin-bottom:6px;">Security audit filter: '
         f'<strong data-security-audit-view-active-label="{escape(active_filter)}">{escape(active_filter)}</strong>'
         f"</div>"
         f'<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">{controls}</div>'
+=======
+        f'<div style="margin-bottom:8px;">'
+        f'<div class="muted" style="margin-bottom:6px;">Security audit view filter: '
+        f'<strong data-security-audit-view-active-label="{escape(active_filter)}">{escape(active_filter)}</strong>'
+        f"</div>"
+        f'<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">{controls}</div>'
+        f'<div class="muted" style="margin-top:8px;">Showing up to 40 recent security audit entries.</div>'
+>>>>>>> origin/main
         f"</div>{body}"
     )
 
@@ -3338,19 +3445,33 @@ ul {{ margin:0; padding-left:18px; }}
     <div class="panel" style="margin-bottom:18px;">
         <h2>Security quick actions</h2>
         {render_security_quick_actions_panel(security_context)}
+<<<<<<< HEAD
         <div class="muted">Operator session controls.</div>
     </div>
 
     <div class="panel" style="margin-bottom:18px;">
+=======
+        <div class="muted">Operator-facing session and audit shortcuts.</div>
+    </div>
+
+    <div class="panel" id="security-audit-panel" style="margin-bottom:18px;">
+>>>>>>> origin/main
         <h2>Security audit events</h2>
         {render_security_audit_events_panel(security_audit_events)}
         <div class="muted">Recent operator/security audit activity.</div>
     </div>
 
+<<<<<<< HEAD
     <div class="panel" style="margin-bottom:18px;">
         <h2>Security audit view</h2>
         {render_security_audit_dedicated_view(security_audit_events)}
         <div class="muted">Full operator/security audit log (up to 40 entries).</div>
+=======
+    <div class="panel" id="security-audit-dedicated-view" style="margin-bottom:18px;">
+        <h2>Security audit view (dedicated)</h2>
+        {render_security_audit_dedicated_view(security_audit_events)}
+        <div class="muted">Dedicated operator security audit inspection view.</div>
+>>>>>>> origin/main
     </div>
 
   <div class="panel" style="margin-bottom:18px;">
@@ -3666,8 +3787,13 @@ function setSecurityAuditViewFilter(mode) {{
         activeLabel.dataset.securityAuditViewActiveLabel = mode;
     }}
 
+<<<<<<< HEAD
     document.querySelectorAll('[data-security-audit-view-filter-row]').forEach(row => {{
         row.style.display = mode === 'all' || row.dataset.securityAuditViewFilterRow === mode ? '' : 'none';
+=======
+    document.querySelectorAll('[data-security-audit-view-row]').forEach(row => {{
+        row.style.display = mode === 'all' || row.dataset.securityAuditViewRow === mode ? '' : 'none';
+>>>>>>> origin/main
     }});
 }}
 
