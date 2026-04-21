@@ -670,6 +670,29 @@ def test_render_security_audit_dedicated_view_audit_filter_only_audit_events():
     assert "Operator session unlocked" not in html
 
 
+def test_render_security_audit_dedicated_view_reset_filter_control_renders():
+    html = dashboard.render_security_audit_dedicated_view(SAMPLE_SECURITY_AUDIT_EVENTS)
+
+    assert 'data-security-audit-view-reset="true"' in html
+    assert "Reset filter" in html
+
+
+def test_render_security_audit_dedicated_view_reset_filter_returns_to_all():
+    html = dashboard.render_security_audit_dedicated_view(
+        SAMPLE_SECURITY_AUDIT_EVENTS, active_filter="session"
+    )
+
+    assert "setSecurityAuditViewFilter('all')" in html
+
+
+def test_render_security_audit_dedicated_view_still_renders_with_reset_control_present():
+    html = dashboard.render_security_audit_dedicated_view(SAMPLE_SECURITY_AUDIT_EVENTS)
+
+    assert "Security audit view filter:" in html
+    assert 'data-security-audit-view-filter="all"' in html
+    assert 'data-security-audit-view-reset="true"' in html
+
+
 def test_render_security_audit_events_panel_all_filter_shows_mixed_events():
     html = dashboard.render_security_audit_events_panel(SAMPLE_SECURITY_AUDIT_EVENTS)
 
