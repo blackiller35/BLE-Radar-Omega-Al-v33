@@ -261,6 +261,149 @@ def test_render_security_quick_actions_recent_history_scoped_to_quick_actions_ar
     assert 'data-security-audit-filter="all"' not in html
 
 
+def test_quick_action_history_all_filter_shows_mixed_entries():
+    history_events = [
+        {
+            "ts": "2026-04-20 12:00:07",
+            "kind": "security.operator_session.unlocked",
+            "message": "Operator session unlocked",
+            "data": {},
+        },
+        {
+            "ts": "2026-04-20 12:00:06",
+            "kind": "security.operator_session.locked",
+            "message": "Operator session locked",
+            "data": {},
+        },
+        {
+            "ts": "2026-04-20 12:00:05",
+            "kind": "security.quick_action.cleared_expired",
+            "message": "Expired session cleared",
+            "data": {},
+        },
+        {
+            "ts": "2026-04-20 12:00:04",
+            "kind": "security.quick_action.audit_view_opened",
+            "message": "Security audit view opened",
+            "data": {},
+        },
+    ]
+
+    html = dashboard.render_security_quick_actions_panel(
+        _operator_locked_context(), history_events, active_history_filter="all"
+    )
+
+    assert 'data-security-quick-action-history-filter="all"' in html
+    assert 'data-security-quick-action-history-active-label="all"' in html
+    assert "Operator session unlocked" in html
+    assert "Expired session cleared" in html
+    assert "Security audit view opened" in html
+
+
+def test_quick_action_history_session_filter_shows_session_actions_only():
+    history_events = [
+        {
+            "ts": "2026-04-20 12:00:07",
+            "kind": "security.operator_session.unlocked",
+            "message": "Operator session unlocked",
+            "data": {},
+        },
+        {
+            "ts": "2026-04-20 12:00:06",
+            "kind": "security.operator_session.locked",
+            "message": "Operator session locked",
+            "data": {},
+        },
+        {
+            "ts": "2026-04-20 12:00:05",
+            "kind": "security.quick_action.cleared_expired",
+            "message": "Expired session cleared",
+            "data": {},
+        },
+    ]
+
+    html = dashboard.render_security_quick_actions_panel(
+        _operator_locked_context(), history_events, active_history_filter="session"
+    )
+
+    assert 'data-security-quick-action-history-active-label="session"' in html
+    assert 'data-security-quick-action-history-row="session"' in html
+    assert 'data-security-quick-action-history-row="cleanup"' not in html
+    assert 'data-security-quick-action-history-row="audit"' not in html
+
+
+def test_quick_action_history_cleanup_filter_shows_cleanup_actions_only():
+    history_events = [
+        {
+            "ts": "2026-04-20 12:00:07",
+            "kind": "security.operator_session.unlocked",
+            "message": "Operator session unlocked",
+            "data": {},
+        },
+        {
+            "ts": "2026-04-20 12:00:05",
+            "kind": "security.quick_action.cleared_expired",
+            "message": "Expired session cleared",
+            "data": {},
+        },
+    ]
+
+    html = dashboard.render_security_quick_actions_panel(
+        _operator_locked_context(), history_events, active_history_filter="cleanup"
+    )
+
+    assert 'data-security-quick-action-history-active-label="cleanup"' in html
+    assert 'data-security-quick-action-history-row="cleanup"' in html
+    assert 'data-security-quick-action-history-row="session"' not in html
+    assert 'data-security-quick-action-history-row="audit"' not in html
+
+
+def test_quick_action_history_audit_filter_shows_audit_actions_only():
+    history_events = [
+        {
+            "ts": "2026-04-20 12:00:07",
+            "kind": "security.operator_session.unlocked",
+            "message": "Operator session unlocked",
+            "data": {},
+        },
+        {
+            "ts": "2026-04-20 12:00:04",
+            "kind": "security.quick_action.audit_view_opened",
+            "message": "Security audit view opened",
+            "data": {},
+        },
+    ]
+
+    html = dashboard.render_security_quick_actions_panel(
+        _operator_locked_context(), history_events, active_history_filter="audit"
+    )
+
+    assert 'data-security-quick-action-history-active-label="audit"' in html
+    assert 'data-security-quick-action-history-row="audit"' in html
+    assert 'data-security-quick-action-history-row="session"' not in html
+    assert 'data-security-quick-action-history-row="cleanup"' not in html
+
+
+def test_quick_action_history_empty_filtered_state_renders_fallback():
+    history_events = [
+        {
+            "ts": "2026-04-20 12:00:07",
+            "kind": "security.operator_session.unlocked",
+            "message": "Operator session unlocked",
+            "data": {},
+        }
+    ]
+
+    html = dashboard.render_security_quick_actions_panel(
+        _operator_locked_context(), history_events, active_history_filter="audit"
+    )
+
+    assert "No recent quick actions for this filter." in html
+    assert 'data-security-quick-action-history-row="session"' not in html
+    assert 'data-security-quick-action-history-row="cleanup"' not in html
+    assert 'data-security-quick-action-history-row="audit"' not in html
+
+
 def test_render_security_audit_events_panel_all_filter_shows_mixed_events():
     html = dashboard.render_security_audit_events_panel(SAMPLE_SECURITY_AUDIT_EVENTS)
 
