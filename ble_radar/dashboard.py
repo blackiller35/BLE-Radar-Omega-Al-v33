@@ -1,4 +1,5 @@
 from ble_radar.bluehood_layer import enrich_devices_for_session
+from datetime import datetime
 from html import escape
 
 from ble_radar.device_contract import explain_device, normalize_device
@@ -128,6 +129,71 @@ def _delta_label(current: int, previous) -> str:
     if diff > 0:
         return f"+{diff}"
     return str(diff)
+
+
+def _parse_scan_stamp(value: str):
+    if not value:
+        return None
+    for fmt in ("%Y-%m-%d_%H-%M-%S", "%Y-%m-%d %H:%M:%S"):
+        try:
+            return datetime.strptime(str(value), fmt)
+        except Exception:
+            continue
+    return None
+
+
+def build_compact_device_behavior_summary(
+    device: dict,
+    registry_row: dict | None = None,
+    observations: list[dict] | None = None,
+) -> str:
+    """Build a compact deterministic behavior summary from local signals only."""
+    row = registry_row if isinstance(registry_row, dict) else {}
+    obs = [o for o in (observations or []) if isinstance(o, dict)]
+
+    summaries = []
+
+    seen_count = _safe_int(row.get("seen_count", 0), 0)
+    if seen_count >= 8:
+        summaries.append("Likely recurring device")
+
+    if len(obs) >= 4:
+        summaries.append("Seen frequently in recent scans")
+
+    names = [
+        str(o.get("name", "")).strip() for o in obs if str(o.get("name", "")).strip()
+    ]
+    current_name = str(device.get("name", "")).strip()
+    if current_name:
+        names.append(current_name)
+    unique_names = {name for name in names if name and name.lower() != "inconnu"}
+    if len(unique_names) >= 2:
+        summaries.append("Name changed recently")
+
+    rssis = []
+    for o in obs:
+        value = o.get("rssi")
+        if isinstance(value, (int, float)):
+            rssis.append(int(value))
+    current_rssi = device.get("rssi")
+    if isinstance(current_rssi, (int, float)):
+        rssis.append(int(current_rssi))
+    if len(rssis) >= 3 and (max(rssis) - min(rssis)) >= 18:
+        summaries.append("Signal pattern unstable")
+
+    positions = sorted(
+        {
+            _safe_int(o.get("scan_pos"), -1)
+            for o in obs
+            if _safe_int(o.get("scan_pos"), -1) >= 0
+        }
+    )
+    if len(positions) >= 2 and (positions[-1] - positions[-2]) >= 3:
+        summaries.append("Recently reappeared after absence")
+
+    if not summaries:
+        return ""
+    return " | ".join(summaries[:3])
 
 
 _BUCKET_STYLE = {
@@ -3130,6 +3196,20 @@ def render_dashboard_html(devices, stamp: str) -> str:
     )
 
     history = load_scan_history()[-8:]
+    recent_observations = {}
+    for idx, scan in enumerate(history[-12:]):
+        for observed in scan.get("devices", []):
+            addr = str(observed.get("address", "")).strip().upper()
+            if not addr or addr == "-":
+                continue
+            recent_observations.setdefault(addr, []).append(
+                {
+                    "scan_pos": idx,
+                    "name": observed.get("name", ""),
+                    "rssi": observed.get("rssi"),
+                    "stamp": scan.get("stamp") or scan.get("timestamp") or "",
+                }
+            )
     operator_plan_records = build_operator_improvement_plan_records(
         current_monitoring_scopes,
         quality_records=operator_quality_records,
@@ -3315,6 +3395,20 @@ def render_dashboard_html(devices, stamp: str) -> str:
 
         flags = d.get("flags", [])
         explanation = explain_device(d)["summary"]
+        addr = str(d.get("address", "")).strip().upper()
+        registry_row = registry.get(addr, {}) if isinstance(registry, dict) else {}
+        behavior_summary = build_compact_device_behavior_summary(
+            d,
+            registry_row=registry_row,
+            observations=recent_observations.get(addr, []),
+        )
+        explanation_block = escape(explanation)
+        if behavior_summary:
+            explanation_block += (
+                f'<div class="muted" data-device-behavior-summary="true">'
+                f"{escape(behavior_summary)}"
+                f"</div>"
+            )
         is_tracker = (
             "true"
             if (
@@ -3344,7 +3438,7 @@ def render_dashboard_html(devices, stamp: str) -> str:
             <td>{escape(str(d.get("alert_level", "faible")))}</td>
             <td>{escape(str(d.get("seen_count", 0)))}</td>
             <td>{escape(",".join(flags) if flags else "-")}</td>
-            <td>{escape(explanation)}</td>
+            <td>{explanation_block}</td>
             <td>{escape(str(d.get("reason_short", "normal")))}</td>
         </tr>
         """
