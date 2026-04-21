@@ -2016,31 +2016,31 @@ def render_security_quick_actions_panel(security_context) -> str:
             "Unlock operator session",
             runtime_command="session unlock",
             disabled=unlock_disabled,
-            extra_attrs='data-security-quick-action="unlock" onclick="showSecurityActionFeedback(\'Operator session unlocked\')"',
+            extra_attrs="data-security-quick-action=\"unlock\" onclick=\"showSecurityActionFeedback('Operator session unlocked', 'unlock')\"",
         ),
         _action_chip(
             "Lock operator session",
             runtime_command="session lock",
             disabled=lock_disabled,
-            extra_attrs='data-security-quick-action="lock" onclick="showSecurityActionFeedback(\'Operator session locked\')"',
+            extra_attrs="data-security-quick-action=\"lock\" onclick=\"showSecurityActionFeedback('Operator session locked', 'lock')\"",
         ),
         _action_chip(
             "Clear expired session",
             runtime_command="session clear-expired",
             disabled=generic_disabled,
-            extra_attrs='data-security-quick-action="clear-expired" onclick="showSecurityActionFeedback(\'Expired session cleared\')"',
+            extra_attrs="data-security-quick-action=\"clear-expired\" onclick=\"showSecurityActionFeedback('Expired session cleared', 'clear-expired')\"",
         ),
         _action_chip(
             "Open security audit view",
             disabled=generic_disabled,
-            extra_attrs="data-security-quick-action=\"open-audit\" onclick=\"setSecurityAuditViewFilter('all');document.getElementById('security-audit-dedicated-view')?.scrollIntoView({behavior:'smooth', block:'start'});showSecurityActionFeedback('Security audit view opened');\"",
+            extra_attrs="data-security-quick-action=\"open-audit\" onclick=\"setSecurityAuditViewFilter('all');document.getElementById('security-audit-dedicated-view')?.scrollIntoView({behavior:'smooth', block:'start'});showSecurityActionFeedback('Security audit view opened', 'audit-view-open');\"",
         ),
     ]
 
     lines = [
         f"<li>Quick actions state: <strong>{'demo-disabled' if demo_mode else ('operator-unlocked' if session_unlocked else 'operator-locked')}</strong></li>",
         f'<li style="display:flex;flex-wrap:wrap;gap:6px;">{"".join(chips)}</li>',
-        '<li><div id="sec-quick-action-feedback" role="status" aria-live="polite" style="display:none;padding:3px 9px;border-radius:6px;background:rgba(125,245,163,.13);color:var(--text);font-size:11px;font-weight:600;"></div></li>',
+        '<li><div id="sec-quick-action-feedback" role="status" aria-live="polite" style="display:none;padding:3px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:var(--text);font-size:11px;font-weight:600;"></div></li>',
     ]
 
     if demo_mode:
@@ -3697,10 +3697,43 @@ function setSecurityAuditViewFilter(mode) {{
     }});
 }}
 
-function showSecurityActionFeedback(msg) {{
+function showSecurityActionFeedback(msg, actionKey) {{
     var el = document.getElementById('sec-quick-action-feedback');
     if (!el) return;
+    var toneByAction = {{
+        'unlock': 'success',
+        'lock': 'warning',
+        'audit-view-open': 'info',
+        'clear-expired': 'neutral',
+    }};
+    var tone = toneByAction[actionKey] || 'info';
+    var styles = {{
+        success: {{
+            background: 'rgba(125,245,163,.16)',
+            borderColor: 'rgba(125,245,163,.38)',
+            color: 'var(--text)',
+        }},
+        warning: {{
+            background: 'rgba(255,193,107,.16)',
+            borderColor: 'rgba(255,193,107,.38)',
+            color: 'var(--text)',
+        }},
+        info: {{
+            background: 'rgba(125,208,255,.16)',
+            borderColor: 'rgba(125,208,255,.38)',
+            color: 'var(--text)',
+        }},
+        neutral: {{
+            background: 'rgba(255,255,255,.08)',
+            borderColor: 'rgba(255,255,255,.22)',
+            color: 'var(--text)',
+        }},
+    }};
+    var style = styles[tone] || styles.info;
     el.textContent = msg;
+    el.style.background = style.background;
+    el.style.borderColor = style.borderColor;
+    el.style.color = style.color;
     el.style.display = 'inline-block';
     clearTimeout(el._t);
     el._t = setTimeout(function() {{ el.style.display = 'none'; }}, 3500);

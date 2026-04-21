@@ -393,22 +393,27 @@ def _operator_unlocked_context():
 
 def test_quick_action_unlock_feedback_onclick_present():
     html = dashboard.render_security_quick_actions_panel(_operator_locked_context())
-    assert "showSecurityActionFeedback('Operator session unlocked')" in html
+    assert "showSecurityActionFeedback('Operator session unlocked', 'unlock')" in html
 
 
 def test_quick_action_lock_feedback_onclick_present():
     html = dashboard.render_security_quick_actions_panel(_operator_unlocked_context())
-    assert "showSecurityActionFeedback('Operator session locked')" in html
+    assert "showSecurityActionFeedback('Operator session locked', 'lock')" in html
 
 
 def test_quick_action_clear_expired_feedback_onclick_present():
     html = dashboard.render_security_quick_actions_panel(_operator_locked_context())
-    assert "showSecurityActionFeedback('Expired session cleared')" in html
+    assert (
+        "showSecurityActionFeedback('Expired session cleared', 'clear-expired')" in html
+    )
 
 
 def test_quick_action_open_audit_feedback_onclick_present():
     html = dashboard.render_security_quick_actions_panel(_operator_locked_context())
-    assert "showSecurityActionFeedback('Security audit view opened')" in html
+    assert (
+        "showSecurityActionFeedback('Security audit view opened', 'audit-view-open')"
+        in html
+    )
 
 
 def test_quick_action_feedback_div_present_in_panel():
@@ -430,3 +435,48 @@ def test_quick_action_feedback_js_function_in_dashboard_html(monkeypatch):
 
     assert "showSecurityActionFeedback" in html
     assert "sec-quick-action-feedback" in html
+
+
+def test_quick_action_feedback_success_style_visible_in_dashboard_html(monkeypatch):
+    monkeypatch.setattr(dashboard, "load_scan_history", lambda: [])
+    monkeypatch.setattr(dashboard, "load_registry", lambda: {})
+    monkeypatch.setattr(dashboard, "get_vendor_summary", lambda devices: [])
+    monkeypatch.setattr(dashboard, "get_tracker_candidates", lambda devices: devices)
+    monkeypatch.setattr(
+        dashboard, "build_security_context", lambda: _operator_locked_context()
+    )
+
+    html = dashboard.render_dashboard_html(SAMPLE_DEVICES, "2026-04-20_12-00-00")
+
+    assert "'unlock': 'success'" in html
+    assert "rgba(125,245,163,.16)" in html
+
+
+def test_quick_action_feedback_warning_style_visible_in_dashboard_html(monkeypatch):
+    monkeypatch.setattr(dashboard, "load_scan_history", lambda: [])
+    monkeypatch.setattr(dashboard, "load_registry", lambda: {})
+    monkeypatch.setattr(dashboard, "get_vendor_summary", lambda devices: [])
+    monkeypatch.setattr(dashboard, "get_tracker_candidates", lambda devices: devices)
+    monkeypatch.setattr(
+        dashboard, "build_security_context", lambda: _operator_unlocked_context()
+    )
+
+    html = dashboard.render_dashboard_html(SAMPLE_DEVICES, "2026-04-20_12-00-00")
+
+    assert "'lock': 'warning'" in html
+    assert "rgba(255,193,107,.16)" in html
+
+
+def test_quick_action_feedback_info_style_visible_in_dashboard_html(monkeypatch):
+    monkeypatch.setattr(dashboard, "load_scan_history", lambda: [])
+    monkeypatch.setattr(dashboard, "load_registry", lambda: {})
+    monkeypatch.setattr(dashboard, "get_vendor_summary", lambda devices: [])
+    monkeypatch.setattr(dashboard, "get_tracker_candidates", lambda devices: devices)
+    monkeypatch.setattr(
+        dashboard, "build_security_context", lambda: _operator_locked_context()
+    )
+
+    html = dashboard.render_dashboard_html(SAMPLE_DEVICES, "2026-04-20_12-00-00")
+
+    assert "'audit-view-open': 'info'" in html
+    assert "rgba(125,208,255,.16)" in html
