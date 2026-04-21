@@ -538,6 +538,34 @@ def test_quick_action_history_empty_filtered_state_count_consistent():
     assert "No recent quick actions for this filter." in html
 
 
+def test_quick_action_history_view_all_link_renders_in_quick_actions_area():
+    html = dashboard.render_security_quick_actions_panel(
+        _operator_locked_context(), SAMPLE_SECURITY_AUDIT_EVENTS
+    )
+
+    assert 'data-security-quick-action-history="true"' in html
+    assert 'data-security-quick-action-history-view-all="true"' in html
+    assert "View all security audit events" in html
+
+
+def test_quick_action_history_view_all_link_points_to_dedicated_audit_view():
+    html = dashboard.render_security_quick_actions_panel(
+        _operator_locked_context(), SAMPLE_SECURITY_AUDIT_EVENTS
+    )
+
+    assert 'href="#security-audit-dedicated-view"' in html
+
+
+def test_quick_action_history_area_still_renders_with_view_all_link_present():
+    html = dashboard.render_security_quick_actions_panel(
+        _operator_locked_context(), SAMPLE_SECURITY_AUDIT_EVENTS
+    )
+
+    assert "Recent quick actions:" in html
+    assert 'data-security-quick-action-history-row="session"' in html
+    assert 'data-security-quick-action-history-view-all="true"' in html
+
+
 def test_render_security_audit_events_panel_all_filter_shows_mixed_events():
     html = dashboard.render_security_audit_events_panel(SAMPLE_SECURITY_AUDIT_EVENTS)
 
