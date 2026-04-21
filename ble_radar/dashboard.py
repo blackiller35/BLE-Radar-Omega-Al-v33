@@ -2671,6 +2671,39 @@ def render_session_movement_panel(movement: dict) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+
+def _device_risk_level(score):
+    try:
+        score = int(score or 0)
+    except Exception:
+        score = 0
+
+    if score >= 75:
+        return "HIGH"
+    if score >= 40:
+        return "MEDIUM"
+    return "LOW"
+
+
+def _device_risk_badge(score):
+    level = _device_risk_level(score)
+
+    color_map = {
+        "HIGH": "#ff4d4f",
+        "MEDIUM": "#faad14",
+        "LOW": "#52c41a",
+    }
+
+    color = color_map[level]
+    return (
+        f"<span style='display:inline-block;padding:2px 8px;"
+        f"border-radius:999px;font-size:12px;font-weight:700;"
+        f"background:{color};color:#111;'>"
+        f"{level} · {score}"
+        f"</span>"
+    )
+
+
 def render_dashboard_html(devices, stamp: str) -> str:
     bluehood_summary = render_bluehood_summary(devices)
     try:
