@@ -1975,6 +1975,81 @@ def render_security_status_panel(security_context) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_security_quick_actions_panel(security_context) -> str:
+    """Render compact operator-facing security quick actions."""
+    if security_context is None:
+        return '<ul><li class="muted">Security context unavailable.</li></ul>'
+
+    mode = str(getattr(security_context, "mode", "unknown")).strip().lower()
+    session_unlocked = bool(getattr(security_context, "secrets_unlocked", False))
+
+    demo_mode = mode != "operator"
+    unlock_disabled = demo_mode or session_unlocked
+    lock_disabled = demo_mode or not session_unlocked
+    generic_disabled = demo_mode
+
+    def _action_chip(
+        label: str,
+        runtime_command: str | None = None,
+        disabled: bool = False,
+        extra_attrs: str = "",
+    ) -> str:
+        base = (
+            "padding:4px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.16);"
+            "background:rgba(255,255,255,.05);color:var(--text);font-size:11px;"
+            "font-weight:600;letter-spacing:.01em;"
+        )
+        disabled_style = "opacity:.55;cursor:not-allowed;" if disabled else ""
+        disabled_attr = " disabled" if disabled else ""
+        cmd_attr = (
+            f' data-runtime-command="{escape(runtime_command)}"'
+            if runtime_command
+            else ""
+        )
+        return (
+            f'<button type="button"{cmd_attr}{disabled_attr} {extra_attrs}'
+            f' style="{base}{disabled_style}">{escape(label)}</button>'
+        )
+
+    chips = [
+        _action_chip(
+            "Unlock operator session",
+            runtime_command="session unlock",
+            disabled=unlock_disabled,
+            extra_attrs='data-security-quick-action="unlock"',
+        ),
+        _action_chip(
+            "Lock operator session",
+            runtime_command="session lock",
+            disabled=lock_disabled,
+            extra_attrs='data-security-quick-action="lock"',
+        ),
+        _action_chip(
+            "Clear expired session",
+            runtime_command="session clear-expired",
+            disabled=generic_disabled,
+            extra_attrs='data-security-quick-action="clear-expired"',
+        ),
+        _action_chip(
+            "Open security audit view",
+            disabled=generic_disabled,
+            extra_attrs="data-security-quick-action=\"open-audit\" onclick=\"setSecurityAuditViewFilter('all');document.getElementById('security-audit-dedicated-view')?.scrollIntoView({behavior:'smooth', block:'start'});\"",
+        ),
+    ]
+
+    lines = [
+        f"<li>Quick actions state: <strong>{'demo-disabled' if demo_mode else ('operator-unlocked' if session_unlocked else 'operator-locked')}</strong></li>",
+        f'<li style="display:flex;flex-wrap:wrap;gap:6px;">{"".join(chips)}</li>',
+    ]
+
+    if demo_mode:
+        lines.append(
+            '<li class="muted">YubiKey/operator mode is required before quick actions can run.</li>'
+        )
+
+    return f"<ul>{''.join(lines)}</ul>"
+
+
 def _security_audit_filter_key(event: dict) -> str:
     kind = str(event.get("kind", "")).strip().lower()
     if kind == "security.operator_session.auto_locked":
@@ -2050,6 +2125,73 @@ def render_security_audit_events_panel(
         f'<strong data-security-audit-active-label="{escape(active_filter)}">{escape(active_filter)}</strong>'
         f"</div>"
         f'<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">{controls}</div>'
+        f"</div>{body}"
+    )
+
+
+def render_security_audit_dedicated_view(
+    events: list[dict] | None, active_filter: str = "all"
+) -> str:
+    """Render dedicated security audit view with deeper recent history."""
+    active_filter = str(active_filter or "all").strip().lower()
+    if active_filter not in {"all", "session", "denied", "allowed", "timeout"}:
+        active_filter = "all"
+
+    security_events = [
+        event
+        for event in (events or [])
+        if str(event.get("kind", "")).startswith("security.")
+    ]
+    filtered_events = [
+        event
+        for event in security_events
+        if active_filter == "all" or _security_audit_filter_key(event) == active_filter
+    ]
+
+    chip_base = (
+        "padding:4px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.16);"
+        "background:rgba(255,255,255,.05);color:var(--text);font-size:11px;margin-right:4px;"
+        "font-weight:600;letter-spacing:.01em;"
+    )
+    controls = " ".join(
+        (
+            f'<button type="button" data-security-audit-view-filter="{name}" '
+            f'data-security-audit-view-active="{"true" if name == active_filter else "false"}" '
+            f'aria-pressed="{"true" if name == active_filter else "false"}" '
+            f"onclick=\"setSecurityAuditViewFilter('{name}')\" "
+            f'style="{chip_base}{"background:rgba(125,245,163,.14);border-color:rgba(125,245,163,.35);box-shadow:inset 0 0 0 1px rgba(125,245,163,.2);" if name == active_filter else ""}">{escape(label)}</button>'
+        )
+        for name, label in (
+            ("all", "all"),
+            ("session", "session"),
+            ("denied", "denied"),
+            ("allowed", "allowed"),
+            ("timeout", "timeout"),
+        )
+    )
+
+    if not filtered_events:
+        body = '<ul><li class="muted">No recent security audit events.</li></ul>'
+    else:
+        items = []
+        for event in filtered_events[:40]:
+            ts = escape(str(event.get("ts", "-")))
+            kind = escape(str(event.get("kind", "unknown")))
+            data = event.get("data", {}) if isinstance(event.get("data"), dict) else {}
+            detail = data.get("reason") or event.get("message") or "-"
+            category = _security_audit_filter_key(event)
+            items.append(
+                f'<li data-security-audit-view-row="{escape(category)}"><strong>{kind}</strong> | <span class="muted">{ts}</span> | {escape(str(detail))}</li>'
+            )
+        body = f"<ul>{''.join(items)}</ul>"
+
+    return (
+        f'<div style="margin-bottom:8px;">'
+        f'<div class="muted" style="margin-bottom:6px;">Security audit view filter: '
+        f'<strong data-security-audit-view-active-label="{escape(active_filter)}">{escape(active_filter)}</strong>'
+        f"</div>"
+        f'<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">{controls}</div>'
+        f'<div class="muted" style="margin-top:8px;">Showing up to 40 recent security audit entries.</div>'
         f"</div>{body}"
     )
 
@@ -3219,9 +3361,21 @@ ul {{ margin:0; padding-left:18px; }}
     </div>
 
     <div class="panel" style="margin-bottom:18px;">
+        <h2>Security quick actions</h2>
+        {render_security_quick_actions_panel(security_context)}
+        <div class="muted">Operator-facing session and audit shortcuts.</div>
+    </div>
+
+    <div class="panel" id="security-audit-panel" style="margin-bottom:18px;">
         <h2>Security audit events</h2>
         {render_security_audit_events_panel(security_audit_events)}
         <div class="muted">Recent operator/security audit activity.</div>
+    </div>
+
+    <div class="panel" id="security-audit-dedicated-view" style="margin-bottom:18px;">
+        <h2>Security audit view (dedicated)</h2>
+        {render_security_audit_dedicated_view(security_audit_events)}
+        <div class="muted">Dedicated operator security audit inspection view.</div>
     </div>
 
   <div class="panel" style="margin-bottom:18px;">
@@ -3521,9 +3675,31 @@ function setSecurityAuditFilter(mode) {{
     }});
 }}
 
+function setSecurityAuditViewFilter(mode) {{
+    document.querySelectorAll('[data-security-audit-view-filter]').forEach(btn => {{
+        const active = btn.dataset.securityAuditViewFilter === mode;
+        btn.dataset.securityAuditViewActive = active ? 'true' : 'false';
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        btn.style.background = active ? 'rgba(125,245,163,.14)' : 'rgba(255,255,255,.05)';
+        btn.style.borderColor = active ? 'rgba(125,245,163,.35)' : 'rgba(255,255,255,.16)';
+        btn.style.boxShadow = active ? 'inset 0 0 0 1px rgba(125,245,163,.2)' : 'none';
+    }});
+
+    const activeLabel = document.querySelector('[data-security-audit-view-active-label]');
+    if (activeLabel) {{
+        activeLabel.textContent = mode;
+        activeLabel.dataset.securityAuditViewActiveLabel = mode;
+    }}
+
+    document.querySelectorAll('[data-security-audit-view-row]').forEach(row => {{
+        row.style.display = mode === 'all' || row.dataset.securityAuditViewRow === mode ? '' : 'none';
+    }});
+}}
+
 searchBox.addEventListener('input', applyFilters);
 vendorSelect.addEventListener('change', applyFilters);
 setSecurityAuditFilter('all');
+setSecurityAuditViewFilter('all');
 </script>
 
 <!-- BLUEHOOD SUMMARY -->

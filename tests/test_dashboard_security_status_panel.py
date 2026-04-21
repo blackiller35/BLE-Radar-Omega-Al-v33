@@ -146,6 +146,59 @@ def test_render_security_status_panel_fallback():
     assert "Security context unavailable." in html
 
 
+def test_render_security_quick_actions_panel_demo_mode_disabled():
+    context = SecurityContext(
+        mode="demo",
+        yubikey_present=False,
+        key_name=None,
+        key_label=None,
+        sensitive_enabled=False,
+        secrets_unlocked=False,
+    )
+
+    html = dashboard.render_security_quick_actions_panel(context)
+
+    assert "Quick actions state: <strong>demo-disabled</strong>" in html
+    assert " disabled" in html
+    assert "YubiKey/operator mode is required before quick actions can run." in html
+
+
+def test_render_security_quick_actions_panel_operator_locked():
+    context = SecurityContext(
+        mode="operator",
+        yubikey_present=True,
+        key_name="primary",
+        key_label="YubiKey-1",
+        sensitive_enabled=False,
+        secrets_unlocked=False,
+    )
+
+    html = dashboard.render_security_quick_actions_panel(context)
+
+    assert "Quick actions state: <strong>operator-locked</strong>" in html
+    assert 'data-security-quick-action="unlock"' in html
+    assert 'data-security-quick-action="lock"' in html
+    assert 'disabled data-security-quick-action="lock"' in html
+    assert 'disabled data-security-quick-action="unlock"' not in html
+
+
+def test_render_security_quick_actions_panel_operator_unlocked():
+    context = SecurityContext(
+        mode="operator",
+        yubikey_present=True,
+        key_name="primary",
+        key_label="YubiKey-1",
+        sensitive_enabled=True,
+        secrets_unlocked=True,
+    )
+
+    html = dashboard.render_security_quick_actions_panel(context)
+
+    assert "Quick actions state: <strong>operator-unlocked</strong>" in html
+    assert 'disabled data-security-quick-action="unlock"' in html
+    assert 'disabled data-security-quick-action="lock"' not in html
+
+
 def test_render_security_audit_events_panel_all_filter_shows_mixed_events():
     html = dashboard.render_security_audit_events_panel(SAMPLE_SECURITY_AUDIT_EVENTS)
 
@@ -216,6 +269,42 @@ def test_render_security_audit_events_panel_empty_filtered_result_fallback():
     assert "No recent security audit events." in empty_html
 
 
+def test_render_security_audit_dedicated_view_renders():
+    html = dashboard.render_security_audit_dedicated_view(SAMPLE_SECURITY_AUDIT_EVENTS)
+
+    assert "Security audit view filter:" in html
+    assert 'data-security-audit-view-filter="all"' in html
+    assert 'data-security-audit-view-active-label="all"' in html
+
+
+def test_render_security_audit_dedicated_view_shows_recent_events():
+    html = dashboard.render_security_audit_dedicated_view(SAMPLE_SECURITY_AUDIT_EVENTS)
+
+    assert "security.operator_session.unlocked" in html
+    assert "2026-04-20 12:00:04" in html
+    assert "security.operator_session.auto_locked" in html
+
+
+def test_render_security_audit_dedicated_view_empty_fallback():
+    html = dashboard.render_security_audit_dedicated_view([], active_filter="all")
+    assert "No recent security audit events." in html
+
+
+def test_render_security_audit_dedicated_view_filters_apply_correctly():
+    session_html = dashboard.render_security_audit_dedicated_view(
+        SAMPLE_SECURITY_AUDIT_EVENTS, active_filter="session"
+    )
+    assert "security.operator_session.unlocked" in session_html
+    assert "security.operator_session.locked" in session_html
+    assert "security.sensitive_action.denied" not in session_html
+
+    timeout_html = dashboard.render_security_audit_dedicated_view(
+        SAMPLE_SECURITY_AUDIT_EVENTS, active_filter="timeout"
+    )
+    assert "security.operator_session.auto_locked" in timeout_html
+    assert "security.operator_session.unlocked" not in timeout_html
+
+
 def test_dashboard_html_contains_security_status_panel(monkeypatch):
     monkeypatch.setattr(dashboard, "load_scan_history", lambda: [])
     monkeypatch.setattr(dashboard, "load_registry", lambda: {})
@@ -243,6 +332,7 @@ def test_dashboard_html_contains_security_status_panel(monkeypatch):
 
     assert "Security status" in html
     assert "Security audit events" in html
+    assert "Security audit view (dedicated)" in html
     assert "Mode: <strong>operator</strong>" in html
     assert "YubiKey present: <strong>true</strong>" in html
     assert "Key source: <strong>primary</strong>" in html
@@ -253,6 +343,7 @@ def test_dashboard_html_contains_security_status_panel(monkeypatch):
     assert "Operator-only actions:" in html
     assert "Operator enabled" in html
     assert 'data-security-audit-filter="all"' in html
+    assert 'data-security-audit-view-filter="all"' in html
     assert "security.operator_session.unlocked" in html
 
 
