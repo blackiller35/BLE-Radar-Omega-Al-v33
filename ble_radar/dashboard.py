@@ -2279,6 +2279,11 @@ def render_security_audit_dedicated_view(
             ("timeout", "timeout"),
         )
     )
+    reset_control = (
+        f'<button type="button" data-security-audit-view-reset="true" '
+        f"onclick=\"setSecurityAuditViewFilter('all')\" "
+        f'style="{chip_base}">Reset filter</button>'
+    )
 
     if not filtered_events:
         body = '<ul><li class="muted">No recent security audit events.</li></ul>'
@@ -2300,7 +2305,7 @@ def render_security_audit_dedicated_view(
         f'<div class="muted" style="margin-bottom:6px;">Security audit view filter: '
         f'<strong data-security-audit-view-active-label="{escape(active_filter)}">{escape(active_filter)}</strong>'
         f"</div>"
-        f'<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">{controls}</div>'
+        f'<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">{controls} {reset_control}</div>'
         f'<div class="muted" style="margin-top:8px;">Showing up to 40 recent security audit entries.</div>'
         f"</div>{body}"
     )
