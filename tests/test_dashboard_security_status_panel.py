@@ -199,6 +199,68 @@ def test_render_security_quick_actions_panel_operator_unlocked():
     assert 'disabled data-security-quick-action="lock"' not in html
 
 
+def test_render_security_quick_actions_recent_history_renders():
+    html = dashboard.render_security_quick_actions_panel(
+        _operator_locked_context(), SAMPLE_SECURITY_AUDIT_EVENTS
+    )
+
+    assert 'data-security-quick-action-history="true"' in html
+    assert "Recent quick actions:" in html
+
+
+def test_render_security_quick_actions_recent_history_expected_text_appears():
+    history_events = [
+        {
+            "ts": "2026-04-20 12:00:07",
+            "kind": "security.operator_session.unlocked",
+            "message": "Operator session unlocked",
+            "data": {},
+        },
+        {
+            "ts": "2026-04-20 12:00:06",
+            "kind": "security.operator_session.locked",
+            "message": "Operator session locked",
+            "data": {},
+        },
+        {
+            "ts": "2026-04-20 12:00:05",
+            "kind": "security.quick_action.cleared_expired",
+            "message": "Expired session cleared",
+            "data": {},
+        },
+        {
+            "ts": "2026-04-20 12:00:04",
+            "kind": "security.quick_action.audit_view_opened",
+            "message": "Security audit view opened",
+            "data": {},
+        },
+    ]
+
+    html = dashboard.render_security_quick_actions_panel(
+        _operator_locked_context(), history_events
+    )
+
+    assert "Operator session unlocked" in html
+    assert "Operator session locked" in html
+    assert "Expired session cleared" in html
+    assert "Security audit view opened" in html
+
+
+def test_render_security_quick_actions_recent_history_empty_fallback_renders():
+    html = dashboard.render_security_quick_actions_panel(_operator_locked_context(), [])
+
+    assert "No recent quick actions." in html
+
+
+def test_render_security_quick_actions_recent_history_scoped_to_quick_actions_area():
+    html = dashboard.render_security_quick_actions_panel(
+        _operator_locked_context(), SAMPLE_SECURITY_AUDIT_EVENTS
+    )
+
+    assert 'data-security-quick-action-history="true"' in html
+    assert 'data-security-audit-filter="all"' not in html
+
+
 def test_render_security_audit_events_panel_all_filter_shows_mixed_events():
     html = dashboard.render_security_audit_events_panel(SAMPLE_SECURITY_AUDIT_EVENTS)
 

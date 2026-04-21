@@ -1975,7 +1975,9 @@ def render_security_status_panel(security_context) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
-def render_security_quick_actions_panel(security_context) -> str:
+def render_security_quick_actions_panel(
+    security_context, events: list[dict] | None = None
+) -> str:
     """Render compact operator-facing security quick actions."""
     if security_context is None:
         return '<ul><li class="muted">Security context unavailable.</li></ul>'
@@ -2037,10 +2039,42 @@ def render_security_quick_actions_panel(security_context) -> str:
         ),
     ]
 
+    recent_actions = []
+    for event in events or []:
+        kind = str(event.get("kind", "")).strip().lower()
+        message = str(event.get("message", "")).strip()
+        message_lower = message.lower()
+        ts = str(event.get("ts", "")).strip()
+        label = None
+        if kind == "security.operator_session.unlocked":
+            label = "Operator session unlocked"
+        elif kind in {
+            "security.operator_session.locked",
+            "security.operator_session.auto_locked",
+        }:
+            label = "Operator session locked"
+        elif "expired session cleared" in message_lower:
+            label = "Expired session cleared"
+        elif "security audit view opened" in message_lower:
+            label = "Security audit view opened"
+        if not label:
+            continue
+        prefix = f'<span class="muted">{escape(ts)} - </span>' if ts else ""
+        recent_actions.append(f"<li>{prefix}{escape(label)}</li>")
+        if len(recent_actions) >= 5:
+            break
+
+    history_html = (
+        f'<ul style="margin-top:4px;">{"".join(recent_actions[:5])}</ul>'
+        if recent_actions
+        else '<div class="muted">No recent quick actions.</div>'
+    )
+
     lines = [
         f"<li>Quick actions state: <strong>{'demo-disabled' if demo_mode else ('operator-unlocked' if session_unlocked else 'operator-locked')}</strong></li>",
         f'<li style="display:flex;flex-wrap:wrap;gap:6px;">{"".join(chips)}</li>',
         '<li><div id="sec-quick-action-feedback" role="status" aria-live="polite" style="display:none;padding:3px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:var(--text);font-size:11px;font-weight:600;"></div></li>',
+        f'<li data-security-quick-action-history="true">Recent quick actions:{history_html}</li>',
     ]
 
     if demo_mode:
@@ -3363,7 +3397,7 @@ ul {{ margin:0; padding-left:18px; }}
 
     <div class="panel" style="margin-bottom:18px;">
         <h2>Security quick actions</h2>
-        {render_security_quick_actions_panel(security_context)}
+        {render_security_quick_actions_panel(security_context, security_audit_events)}
         <div class="muted">Operator-facing session and audit shortcuts.</div>
     </div>
 
