@@ -465,3 +465,145 @@ def test_dashboard_rendering_remains_clean_with_live_alert_support(monkeypatch):
     assert 'data-device-interest-badge="true"' in html
     assert 'data-device-anomaly-flags="true"' in html
     assert 'data-device-live-alerts="true"' in html
+
+
+def test_profile_renders_for_normal_recurring_device():
+    profile = dashboard.build_compact_device_profile(
+        {"name": "Beacon", "address": "AC:01", "rssi": -74},
+        registry_row={"seen_count": 10},
+        observations=[
+            {"scan_pos": 0, "name": "Beacon", "rssi": -74},
+            {"scan_pos": 1, "name": "Beacon", "rssi": -73},
+        ],
+    )
+
+    assert profile["total_sightings"] == 10
+    assert profile["anomaly_count"] == 0
+    assert profile["trust_level"] == "high"
+
+
+def test_profile_anomaly_count_appears_when_anomalies_exist():
+    profile = dashboard.build_compact_device_profile(
+        {"name": "Beacon-New", "address": "AC:02", "rssi": -92},
+        registry_row={"seen_count": 8},
+        observations=[
+            {"scan_pos": 0, "name": "Beacon-Old", "rssi": -55},
+            {"scan_pos": 4, "name": "Beacon-New", "rssi": -84},
+        ],
+    )
+
+    assert profile["anomaly_count"] >= 1
+
+
+def test_profile_trust_level_mapping_behaves_correctly():
+    high = dashboard.build_compact_device_profile(
+        {"name": "Beacon", "address": "AC:03", "rssi": -74},
+        registry_row={"seen_count": 10},
+        observations=[
+            {"scan_pos": 0, "name": "Beacon", "rssi": -74},
+            {"scan_pos": 1, "name": "Beacon", "rssi": -73},
+        ],
+    )
+    medium = dashboard.build_compact_device_profile(
+        {"name": "Beacon", "address": "AC:04", "rssi": -75},
+        registry_row={"seen_count": 4},
+        observations=[
+            {"scan_pos": 0, "name": "Beacon", "rssi": -75},
+            {"scan_pos": 1, "name": "Beacon", "rssi": -74},
+        ],
+    )
+    low = dashboard.build_compact_device_profile(
+        {"name": "Beacon-New", "address": "AC:05", "rssi": -92},
+        registry_row={"seen_count": 8},
+        observations=[
+            {"scan_pos": 0, "name": "Beacon-Old", "rssi": -55},
+            {"scan_pos": 4, "name": "Beacon-New", "rssi": -84},
+        ],
+    )
+
+    assert high["trust_level"] == "high"
+    assert medium["trust_level"] == "medium"
+    assert low["trust_level"] == "low"
+
+
+def test_profile_minimal_history_device_remains_safe_and_compact():
+    profile = dashboard.build_compact_device_profile(
+        {"name": "Inconnu", "address": "AC:06", "rssi": -80},
+        registry_row={},
+        observations=[],
+    )
+
+    assert profile["total_sightings"] == 0
+    assert profile["anomaly_count"] >= 0
+    assert profile["trust_level"] in {"low", "medium", "high"}
+
+
+def test_dashboard_rendering_remains_clean_with_profile_support(monkeypatch):
+    sample_devices = [
+        {
+            "name": "Beacon-New",
+            "address": "AC:07",
+            "vendor": "TestVendor",
+            "profile": "general_ble",
+            "rssi": -92,
+            "risk_score": 10,
+            "follow_score": 10,
+            "confidence_score": 10,
+            "final_score": 30,
+            "alert_level": "moyen",
+            "seen_count": 2,
+            "reason_short": "normal",
+            "flags": [],
+        }
+    ]
+
+    monkeypatch.setattr(
+        dashboard,
+        "load_scan_history",
+        lambda: [
+            {
+                "stamp": "2026-04-21_10-00-00",
+                "count": 1,
+                "critical": 0,
+                "high": 0,
+                "medium": 1,
+                "devices": [
+                    {"address": "AC:07", "name": "Beacon-Old", "rssi": -55},
+                ],
+            },
+            {
+                "stamp": "2026-04-21_10-05-00",
+                "count": 1,
+                "critical": 0,
+                "high": 0,
+                "medium": 1,
+                "devices": [
+                    {"address": "AC:07", "name": "Beacon-New", "rssi": -84},
+                ],
+            },
+        ],
+    )
+    monkeypatch.setattr(
+        dashboard,
+        "load_registry",
+        lambda: {
+            "AC:07": {
+                "address": "AC:07",
+                "seen_count": 8,
+                "session_count": 2,
+                "first_seen": "2026-04-20 10:00:00",
+                "last_seen": "2026-04-21 10:05:00",
+            }
+        },
+    )
+    monkeypatch.setattr(dashboard, "load_last_scan", lambda: [])
+    monkeypatch.setattr(dashboard, "load_watch_cases", lambda: {})
+    monkeypatch.setattr(dashboard, "get_vendor_summary", lambda devices: [])
+    monkeypatch.setattr(dashboard, "get_tracker_candidates", lambda devices: [])
+
+    html = dashboard.render_dashboard_html(sample_devices, "2026-04-21_10-06-00")
+
+    assert 'data-device-interest-badge="true"' in html
+    assert 'data-device-anomaly-flags="true"' in html
+    assert 'data-device-live-alerts="true"' in html
+    assert 'data-device-profile="true"' in html
