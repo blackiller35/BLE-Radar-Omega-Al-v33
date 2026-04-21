@@ -1976,7 +1976,9 @@ def render_security_status_panel(security_context) -> str:
 
 
 def render_security_quick_actions_panel(
-    security_context, events: list[dict] | None = None
+    security_context,
+    events: list[dict] | None = None,
+    active_history_filter: str = "all",
 ) -> str:
     """Render compact operator-facing security quick actions."""
     if security_context is None:
@@ -1989,6 +1991,9 @@ def render_security_quick_actions_panel(
     unlock_disabled = demo_mode or session_unlocked
     lock_disabled = demo_mode or not session_unlocked
     generic_disabled = demo_mode
+    active_history_filter = str(active_history_filter or "all").strip().lower()
+    if active_history_filter not in {"all", "session", "cleanup", "audit"}:
+        active_history_filter = "all"
 
     def _action_chip(
         label: str,
@@ -2046,26 +2051,66 @@ def render_security_quick_actions_panel(
         message_lower = message.lower()
         ts = str(event.get("ts", "")).strip()
         label = None
+        history_filter = None
         if kind == "security.operator_session.unlocked":
             label = "Operator session unlocked"
+            history_filter = "session"
         elif kind in {
             "security.operator_session.locked",
             "security.operator_session.auto_locked",
         }:
             label = "Operator session locked"
+            history_filter = "session"
         elif "expired session cleared" in message_lower:
             label = "Expired session cleared"
+            history_filter = "cleanup"
         elif "security audit view opened" in message_lower:
             label = "Security audit view opened"
+            history_filter = "audit"
         if not label:
             continue
         prefix = f'<span class="muted">{escape(ts)} - </span>' if ts else ""
-        recent_actions.append(f"<li>{prefix}{escape(label)}</li>")
+        recent_actions.append(
+            f'<li data-security-quick-action-history-row="{history_filter}">{prefix}{escape(label)}</li>'
+        )
         if len(recent_actions) >= 5:
             break
 
+    filtered_recent_actions = [
+        item
+        for item in recent_actions
+        if active_history_filter == "all"
+        or f'data-security-quick-action-history-row="{active_history_filter}"' in item
+    ]
+
+    button_base = (
+        "padding:2px 7px;border-radius:999px;border:1px solid rgba(255,255,255,.16);"
+        "background:rgba(255,255,255,.05);color:var(--text);font-size:10px;margin-right:4px;"
+        "font-weight:600;letter-spacing:.01em;"
+    )
+    controls = " ".join(
+        (
+            f'<button type="button" data-security-quick-action-history-filter="{name}" '
+            f'data-security-quick-action-history-active="{"true" if name == active_history_filter else "false"}" '
+            f'aria-pressed="{"true" if name == active_history_filter else "false"}" '
+            f"onclick=\"setSecurityQuickActionHistoryFilter('{name}')\" "
+            f'style="{button_base}{"background:rgba(125,245,163,.14);border-color:rgba(125,245,163,.35);box-shadow:inset 0 0 0 1px rgba(125,245,163,.2);" if name == active_history_filter else ""}">{escape(label)}</button>'
+        )
+        for name, label in (
+            ("all", "all"),
+            ("session", "session"),
+            ("cleanup", "cleanup"),
+            ("audit", "audit"),
+        )
+    )
+
     history_html = (
-        f'<ul style="margin-top:4px;">{"".join(recent_actions[:5])}</ul>'
+        f'<div style="margin-top:4px;">'
+        f"Security action history filter: {controls} "
+        f'active=<strong data-security-quick-action-history-active-label="{active_history_filter}">{active_history_filter}</strong>'
+        f"</div>"
+        f'<ul style="margin-top:4px;">{"".join(filtered_recent_actions[:5])}</ul>'
+        f'<div class="muted" data-security-quick-action-history-empty="true" style="display:{"none" if filtered_recent_actions else "block"};">No recent quick actions for this filter.</div>'
         if recent_actions
         else '<div class="muted">No recent quick actions.</div>'
     )
@@ -3731,6 +3776,35 @@ function setSecurityAuditViewFilter(mode) {{
     }});
 }}
 
+function setSecurityQuickActionHistoryFilter(mode) {{
+    document.querySelectorAll('[data-security-quick-action-history-filter]').forEach(btn => {{
+        const active = btn.dataset.securityQuickActionHistoryFilter === mode;
+        btn.dataset.securityQuickActionHistoryActive = active ? 'true' : 'false';
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        btn.style.background = active ? 'rgba(125,245,163,.14)' : 'rgba(255,255,255,.05)';
+        btn.style.borderColor = active ? 'rgba(125,245,163,.35)' : 'rgba(255,255,255,.16)';
+        btn.style.boxShadow = active ? 'inset 0 0 0 1px rgba(125,245,163,.2)' : 'none';
+    }});
+
+    const activeLabel = document.querySelector('[data-security-quick-action-history-active-label]');
+    if (activeLabel) {{
+        activeLabel.textContent = mode;
+        activeLabel.dataset.securityQuickActionHistoryActiveLabel = mode;
+    }}
+
+    let visibleRows = 0;
+    document.querySelectorAll('[data-security-quick-action-history-row]').forEach(row => {{
+        const visible = mode === 'all' || row.dataset.securityQuickActionHistoryRow === mode;
+        row.style.display = visible ? '' : 'none';
+        if (visible) visibleRows += 1;
+    }});
+
+    const emptyState = document.querySelector('[data-security-quick-action-history-empty="true"]');
+    if (emptyState) {{
+        emptyState.style.display = visibleRows === 0 ? 'block' : 'none';
+    }}
+}}
+
 function showSecurityActionFeedback(msg, actionKey) {{
     var el = document.getElementById('sec-quick-action-feedback');
     if (!el) return;
@@ -3777,6 +3851,7 @@ searchBox.addEventListener('input', applyFilters);
 vendorSelect.addEventListener('change', applyFilters);
 setSecurityAuditFilter('all');
 setSecurityAuditViewFilter('all');
+setSecurityQuickActionHistoryFilter('all');
 </script>
 
 <!-- BLUEHOOD SUMMARY -->
