@@ -1,3 +1,4 @@
+from ble_radar.alert_history import get_recent_alerts
 from ble_radar.bluehood_layer import enrich_devices_for_session
 from datetime import datetime
 from html import escape
@@ -4363,3 +4364,15 @@ def render_bluehood_summary(
   </ul>
 </section>
 """
+
+
+def render_alert_history_panel():
+    alerts = get_recent_alerts()
+
+    html = "<section class='panel'><h3>Alert History</h3><ul>"
+
+    for a in reversed(alerts):
+        html += f"<li>{a['timestamp']} | {a['device']} | {a['score']} | {a['profile']}</li>"
+
+    html += "</ul></section>"
+    return html
