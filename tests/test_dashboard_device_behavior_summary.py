@@ -57,3 +57,55 @@ def test_empty_minimal_history_case_remains_clean_and_safe():
     )
 
     assert summary == ""
+
+
+def test_device_interest_score_calculation_correctness():
+    device = {"name": "Tracker-New", "address": "AA:FF", "rssi": -90}
+    registry_row = {"seen_count": 10}
+    observations = [
+        {"scan_pos": 0, "name": "Tracker-Old", "rssi": -55},
+        {"scan_pos": 4, "name": "Tracker-New", "rssi": -86},
+    ]
+
+    result = dashboard.compute_device_interest_score(
+        device, registry_row=registry_row, observations=observations
+    )
+
+    assert result["score"] == 6
+    assert result["label"] == "suspicious"
+
+
+def test_device_interest_score_label_mapping():
+    normal = dashboard.compute_device_interest_score(
+        {"name": "Inconnu", "address": "AA:11", "rssi": -80},
+        registry_row={"seen_count": 0},
+        observations=[],
+    )
+    interesting = dashboard.compute_device_interest_score(
+        {"name": "Beacon", "address": "AA:22", "rssi": -75},
+        registry_row={"seen_count": 8},
+        observations=[],
+    )
+    suspicious = dashboard.compute_device_interest_score(
+        {"name": "Beacon-New", "address": "AA:33", "rssi": -92},
+        registry_row={"seen_count": 8},
+        observations=[
+            {"scan_pos": 0, "name": "Beacon-Old", "rssi": -55},
+            {"scan_pos": 1, "name": "Beacon-New", "rssi": -84},
+        ],
+    )
+
+    assert normal["label"] == "normal"
+    assert interesting["label"] == "interesting"
+    assert suspicious["label"] == "suspicious"
+
+
+def test_device_interest_score_minimal_history_edge_case_safe():
+    result = dashboard.compute_device_interest_score(
+        {"name": "Inconnu", "address": "AA:44", "rssi": -79},
+        registry_row={},
+        observations=[],
+    )
+
+    assert result["score"] == 0
+    assert result["label"] == "normal"
