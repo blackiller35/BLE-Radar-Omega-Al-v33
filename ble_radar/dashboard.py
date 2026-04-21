@@ -3893,7 +3893,7 @@ ul {{ margin:0; padding-left:18px; }}
 
   <div class="grid2">
     <div class="panel">
-      <h2>Top trackers probables</h2>
+      <h2>Top trackers probables ({len(top_trackers)})</h2>
       <ul>{"".join(tracker_list) if tracker_list else '<li class="muted">Aucun</li>'}</ul>
     </div>
     <div class="panel">
