@@ -2082,6 +2082,16 @@ def render_security_quick_actions_panel(
         if active_history_filter == "all"
         or f'data-security-quick-action-history-row="{active_history_filter}"' in item
     ]
+    visible_count = len(filtered_recent_actions[:5])
+    noun = "action" if visible_count == 1 else "actions"
+    if active_history_filter == "all":
+        count_label = f"Showing {visible_count} recent {noun}"
+    elif active_history_filter == "session":
+        count_label = f"Showing {visible_count} session {noun}"
+    elif active_history_filter == "cleanup":
+        count_label = f"Showing {visible_count} cleanup {noun}"
+    else:
+        count_label = f"Showing {visible_count} audit {noun}"
 
     button_base = (
         "padding:2px 7px;border-radius:999px;border:1px solid rgba(255,255,255,.16);"
@@ -2108,6 +2118,11 @@ def render_security_quick_actions_panel(
         f'<div style="margin-top:4px;">'
         f"Security action history filter: {controls} "
         f'active=<strong data-security-quick-action-history-active-label="{active_history_filter}">{active_history_filter}</strong>'
+        f"</div>"
+        f'<div class="muted" style="margin-top:3px;">'
+        f'<span data-security-quick-action-history-count-label="{active_history_filter}">{escape(count_label)}</span> '
+        f'<span class="muted">(max 5)</span> '
+        f'<a href="#security-audit-dedicated-view" data-security-quick-action-history-view-all="true" style="color:var(--blue);text-decoration:none;">View all security audit events</a>'
         f"</div>"
         f'<ul style="margin-top:4px;">{"".join(filtered_recent_actions[:5])}</ul>'
         f'<div class="muted" data-security-quick-action-history-empty="true" style="display:{"none" if filtered_recent_actions else "block"};">No recent quick actions for this filter.</div>'
@@ -3802,6 +3817,17 @@ function setSecurityQuickActionHistoryFilter(mode) {{
     const emptyState = document.querySelector('[data-security-quick-action-history-empty="true"]');
     if (emptyState) {{
         emptyState.style.display = visibleRows === 0 ? 'block' : 'none';
+    }}
+
+    const countLabel = document.querySelector('[data-security-quick-action-history-count-label]');
+    if (countLabel) {{
+        const noun = visibleRows === 1 ? 'action' : 'actions';
+        let text = `Showing ${{visibleRows}} recent ${{noun}}`;
+        if (mode === 'session') text = `Showing ${{visibleRows}} session ${{noun}}`;
+        else if (mode === 'cleanup') text = `Showing ${{visibleRows}} cleanup ${{noun}}`;
+        else if (mode === 'audit') text = `Showing ${{visibleRows}} audit ${{noun}}`;
+        countLabel.textContent = text;
+        countLabel.dataset.securityQuickActionHistoryCountLabel = mode;
     }}
 }}
 
