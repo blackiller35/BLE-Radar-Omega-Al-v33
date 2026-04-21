@@ -2122,7 +2122,7 @@ def render_security_quick_actions_panel(
         f'<div class="muted" style="margin-top:3px;">'
         f'<span data-security-quick-action-history-count-label="{active_history_filter}">{escape(count_label)}</span> '
         f'<span class="muted">(max 5)</span> '
-        f'<a href="#security-audit-dedicated-view" data-security-quick-action-history-view-all="true" style="color:var(--blue);text-decoration:none;">View all security audit events</a>'
+        f"<a href=\"#security-audit-dedicated-view\" data-security-quick-action-history-view-all=\"true\" onclick=\"setSecurityAuditViewFilter('{active_history_filter}');document.getElementById('security-audit-dedicated-view')?.scrollIntoView({{behavior:'smooth', block:'start'}});\" style=\"color:var(--blue);text-decoration:none;\">View all security audit events</a>"
         f"</div>"
         f'<ul style="margin-top:4px;">{"".join(filtered_recent_actions[:5])}</ul>'
         f'<div class="muted" data-security-quick-action-history-empty="true" style="display:{"none" if filtered_recent_actions else "block"};">No recent quick actions for this filter.</div>'
@@ -2147,12 +2147,17 @@ def render_security_quick_actions_panel(
 
 def _security_audit_filter_key(event: dict) -> str:
     kind = str(event.get("kind", "")).strip().lower()
+    message = str(event.get("message", "")).strip().lower()
     if kind == "security.operator_session.auto_locked":
         return "timeout"
     if kind == "security.sensitive_action.denied":
         return "denied"
     if kind == "security.sensitive_action.allowed":
         return "allowed"
+    if "expired session cleared" in message:
+        return "cleanup"
+    if "security audit view opened" in message:
+        return "audit"
     if kind.startswith("security.operator_session."):
         return "session"
     return "all"
@@ -2229,7 +2234,15 @@ def render_security_audit_dedicated_view(
 ) -> str:
     """Render dedicated security audit view with deeper recent history."""
     active_filter = str(active_filter or "all").strip().lower()
-    if active_filter not in {"all", "session", "denied", "allowed", "timeout"}:
+    if active_filter not in {
+        "all",
+        "session",
+        "cleanup",
+        "audit",
+        "denied",
+        "allowed",
+        "timeout",
+    }:
         active_filter = "all"
 
     security_events = [
@@ -2259,6 +2272,8 @@ def render_security_audit_dedicated_view(
         for name, label in (
             ("all", "all"),
             ("session", "session"),
+            ("cleanup", "cleanup"),
+            ("audit", "audit"),
             ("denied", "denied"),
             ("allowed", "allowed"),
             ("timeout", "timeout"),

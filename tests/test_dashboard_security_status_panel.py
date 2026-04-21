@@ -556,6 +556,60 @@ def test_quick_action_history_view_all_link_points_to_dedicated_audit_view():
     assert 'href="#security-audit-dedicated-view"' in html
 
 
+def test_quick_action_history_view_all_syncs_all_filter_to_dedicated_audit_view():
+    html = dashboard.render_security_quick_actions_panel(
+        _operator_locked_context(),
+        SAMPLE_SECURITY_AUDIT_EVENTS,
+        active_history_filter="all",
+    )
+
+    assert "setSecurityAuditViewFilter('all')" in html
+
+
+def test_quick_action_history_view_all_syncs_session_filter_to_dedicated_audit_view():
+    html = dashboard.render_security_quick_actions_panel(
+        _operator_locked_context(),
+        SAMPLE_SECURITY_AUDIT_EVENTS,
+        active_history_filter="session",
+    )
+
+    assert "setSecurityAuditViewFilter('session')" in html
+
+
+def test_quick_action_history_view_all_syncs_cleanup_filter_to_dedicated_audit_view():
+    history_events = [
+        {
+            "ts": "2026-04-20 12:00:05",
+            "kind": "security.quick_action.cleared_expired",
+            "message": "Expired session cleared",
+            "data": {},
+        }
+    ]
+
+    html = dashboard.render_security_quick_actions_panel(
+        _operator_locked_context(), history_events, active_history_filter="cleanup"
+    )
+
+    assert "setSecurityAuditViewFilter('cleanup')" in html
+
+
+def test_quick_action_history_view_all_syncs_audit_filter_to_dedicated_audit_view():
+    history_events = [
+        {
+            "ts": "2026-04-20 12:00:04",
+            "kind": "security.quick_action.audit_view_opened",
+            "message": "Security audit view opened",
+            "data": {},
+        }
+    ]
+
+    html = dashboard.render_security_quick_actions_panel(
+        _operator_locked_context(), history_events, active_history_filter="audit"
+    )
+
+    assert "setSecurityAuditViewFilter('audit')" in html
+
+
 def test_quick_action_history_area_still_renders_with_view_all_link_present():
     html = dashboard.render_security_quick_actions_panel(
         _operator_locked_context(), SAMPLE_SECURITY_AUDIT_EVENTS
@@ -564,6 +618,56 @@ def test_quick_action_history_area_still_renders_with_view_all_link_present():
     assert "Recent quick actions:" in html
     assert 'data-security-quick-action-history-row="session"' in html
     assert 'data-security-quick-action-history-view-all="true"' in html
+
+
+def test_render_security_audit_dedicated_view_cleanup_filter_only_cleanup_events():
+    history_events = [
+        {
+            "ts": "2026-04-20 12:00:07",
+            "kind": "security.operator_session.unlocked",
+            "message": "Operator session unlocked",
+            "data": {},
+        },
+        {
+            "ts": "2026-04-20 12:00:05",
+            "kind": "security.quick_action.cleared_expired",
+            "message": "Expired session cleared",
+            "data": {},
+        },
+    ]
+
+    html = dashboard.render_security_audit_dedicated_view(
+        history_events, active_filter="cleanup"
+    )
+
+    assert 'data-security-audit-view-active-label="cleanup"' in html
+    assert "Expired session cleared" in html
+    assert "Operator session unlocked" not in html
+
+
+def test_render_security_audit_dedicated_view_audit_filter_only_audit_events():
+    history_events = [
+        {
+            "ts": "2026-04-20 12:00:07",
+            "kind": "security.operator_session.unlocked",
+            "message": "Operator session unlocked",
+            "data": {},
+        },
+        {
+            "ts": "2026-04-20 12:00:04",
+            "kind": "security.quick_action.audit_view_opened",
+            "message": "Security audit view opened",
+            "data": {},
+        },
+    ]
+
+    html = dashboard.render_security_audit_dedicated_view(
+        history_events, active_filter="audit"
+    )
+
+    assert 'data-security-audit-view-active-label="audit"' in html
+    assert "Security audit view opened" in html
+    assert "Operator session unlocked" not in html
 
 
 def test_render_security_audit_events_panel_all_filter_shows_mixed_events():
