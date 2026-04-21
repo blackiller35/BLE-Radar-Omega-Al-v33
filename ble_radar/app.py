@@ -1,3 +1,10 @@
+from ble_radar.operator_profiles import (
+    get_operator_profile,
+    list_operator_profiles,
+    profile_summary_lines,
+    resolve_operator_profile,
+)
+
 from ble_radar.bluehood_layer import enrich_devices_for_session
 from pathlib import Path
 import time
@@ -4301,6 +4308,46 @@ def live_radar():
         print()
         print(color("Sortie du radar live.", GREEN, bold=True))
         pause()
+
+
+
+CURRENT_OPERATOR_PROFILE = "balanced"
+
+
+def get_active_operator_profile():
+    return get_operator_profile(CURRENT_OPERATOR_PROFILE)
+
+
+def operator_profiles_menu():
+    global CURRENT_OPERATOR_PROFILE
+
+    while True:
+        print("\n=== OPERATOR PROFILES ===")
+        profiles = list_operator_profiles()
+
+        for i, name in enumerate(profiles, 1):
+            marker = " (ACTIVE)" if name == CURRENT_OPERATOR_PROFILE else ""
+            print(f"{i}. {name}{marker}")
+
+        print("0. Back")
+        choice = input("Select profile: ").strip()
+
+        if choice == "0":
+            return
+
+        if not choice.isdigit():
+            print("[!] Invalid selection")
+            continue
+
+        idx = int(choice) - 1
+        if 0 <= idx < len(profiles):
+            selected = resolve_operator_profile(profiles[idx])
+            CURRENT_OPERATOR_PROFILE = selected
+            print(f"\n[OMEGA] Operator profile engaged: {selected.upper()}")
+            for line in profile_summary_lines(selected):
+                print(f" - {line}")
+        else:
+            print("[!] Invalid selection")
 
 
 def main_menu():
