@@ -142,23 +142,18 @@ def _parse_scan_stamp(value: str):
     return None
 
 
-def build_compact_device_behavior_summary(
+def _device_behavior_flags(
     device: dict,
     registry_row: dict | None = None,
     observations: list[dict] | None = None,
-) -> str:
-    """Build a compact deterministic behavior summary from local signals only."""
+) -> dict:
+    """Return deterministic behavior flags based on local registry/history signals."""
     row = registry_row if isinstance(registry_row, dict) else {}
     obs = [o for o in (observations or []) if isinstance(o, dict)]
 
-    summaries = []
-
     seen_count = _safe_int(row.get("seen_count", 0), 0)
-    if seen_count >= 8:
-        summaries.append("Likely recurring device")
-
-    if len(obs) >= 4:
-        summaries.append("Seen frequently in recent scans")
+    recurring = seen_count >= 8
+    seen_frequently = len(obs) >= 4
 
     names = [
         str(o.get("name", "")).strip() for o in obs if str(o.get("name", "")).strip()
@@ -167,8 +162,7 @@ def build_compact_device_behavior_summary(
     if current_name:
         names.append(current_name)
     unique_names = {name for name in names if name and name.lower() != "inconnu"}
-    if len(unique_names) >= 2:
-        summaries.append("Name changed recently")
+    name_changed = len(unique_names) >= 2
 
     rssis = []
     for o in obs:
@@ -178,8 +172,7 @@ def build_compact_device_behavior_summary(
     current_rssi = device.get("rssi")
     if isinstance(current_rssi, (int, float)):
         rssis.append(int(current_rssi))
-    if len(rssis) >= 3 and (max(rssis) - min(rssis)) >= 18:
-        summaries.append("Signal pattern unstable")
+    unstable_signal = len(rssis) >= 3 and (max(rssis) - min(rssis)) >= 18
 
     positions = sorted(
         {
@@ -188,12 +181,75 @@ def build_compact_device_behavior_summary(
             if _safe_int(o.get("scan_pos"), -1) >= 0
         }
     )
-    if len(positions) >= 2 and (positions[-1] - positions[-2]) >= 3:
+    recently_reappeared = len(positions) >= 2 and (positions[-1] - positions[-2]) >= 3
+
+    return {
+        "recurring": recurring,
+        "seen_frequently": seen_frequently,
+        "name_changed": name_changed,
+        "unstable_signal": unstable_signal,
+        "recently_reappeared": recently_reappeared,
+    }
+
+
+def build_compact_device_behavior_summary(
+    device: dict,
+    registry_row: dict | None = None,
+    observations: list[dict] | None = None,
+) -> str:
+    """Build a compact deterministic behavior summary from local signals only."""
+    flags = _device_behavior_flags(
+        device, registry_row=registry_row, observations=observations
+    )
+    summaries = []
+
+    if flags["recurring"]:
+        summaries.append("Likely recurring device")
+
+    if flags["seen_frequently"]:
+        summaries.append("Seen frequently in recent scans")
+
+    if flags["name_changed"]:
+        summaries.append("Name changed recently")
+
+    if flags["unstable_signal"]:
+        summaries.append("Signal pattern unstable")
+
+    if flags["recently_reappeared"]:
         summaries.append("Recently reappeared after absence")
 
     if not summaries:
         return ""
     return " | ".join(summaries[:3])
+
+
+def compute_device_interest_score(
+    device: dict,
+    registry_row: dict | None = None,
+    observations: list[dict] | None = None,
+) -> dict:
+    """Compute deterministic local risk/interest score from behavior flags."""
+    flags = _device_behavior_flags(
+        device, registry_row=registry_row, observations=observations
+    )
+    score = 0
+    if flags["recurring"]:
+        score += 2
+    if flags["name_changed"]:
+        score += 2
+    if flags["unstable_signal"]:
+        score += 1
+    if flags["recently_reappeared"]:
+        score += 1
+
+    if score <= 1:
+        label = "normal"
+    elif score <= 3:
+        label = "interesting"
+    else:
+        label = "suspicious"
+
+    return {"score": score, "label": label}
 
 
 _BUCKET_STYLE = {
@@ -3402,7 +3458,29 @@ def render_dashboard_html(devices, stamp: str) -> str:
             registry_row=registry_row,
             observations=recent_observations.get(addr, []),
         )
+        device_interest = compute_device_interest_score(
+            d,
+            registry_row=registry_row,
+            observations=recent_observations.get(addr, []),
+        )
         explanation_block = escape(explanation)
+        interest_label = str(device_interest.get("label", "normal"))
+        interest_style = {
+            "normal": "background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.20);",
+            "interesting": "background:rgba(255,209,102,.16);border:1px solid rgba(255,209,102,.38);",
+            "suspicious": "background:rgba(255,123,123,.16);border:1px solid rgba(255,123,123,.38);",
+        }.get(
+            interest_label,
+            "background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.20);",
+        )
+        explanation_block += (
+            f'<div class="muted" data-device-interest-badge="true" '
+            f'data-device-interest-label="{escape(interest_label)}" '
+            f'data-device-interest-score="{escape(str(device_interest.get("score", 0)))}" '
+            f'style="margin-top:3px;display:inline-block;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:700;{interest_style}">'
+            f"interest {escape(str(device_interest.get('score', 0)))} · {escape(interest_label)}"
+            f"</div>"
+        )
         if behavior_summary:
             explanation_block += (
                 f'<div class="muted" data-device-behavior-summary="true">'
