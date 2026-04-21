@@ -375,6 +375,52 @@ def detect_device_live_alerts(
     return alerts[:3]
 
 
+def build_compact_device_profile(
+    device: dict,
+    registry_row: dict | None = None,
+    observations: list[dict] | None = None,
+) -> dict:
+    """Build a compact deterministic device profile from local history and analysis."""
+    row = registry_row if isinstance(registry_row, dict) else {}
+    obs = [o for o in (observations or []) if isinstance(o, dict)]
+    behavior = _device_behavior_flags(device, registry_row=row, observations=obs)
+    score_info = compute_device_interest_score(
+        device,
+        registry_row=row,
+        observations=obs,
+    )
+    anomaly_flags = detect_device_anomaly_flags(
+        device,
+        registry_row=row,
+        observations=obs,
+    )
+
+    total_sightings = _safe_int(row.get("seen_count", 0), 0)
+    if total_sightings <= 0:
+        total_sightings = len(obs)
+
+    anomaly_count = len(anomaly_flags)
+    last_risk = str(score_info.get("label", "normal"))
+
+    if total_sightings >= 8 and anomaly_count == 0 and not behavior["unstable_signal"]:
+        trust_level = "high"
+    elif (
+        total_sightings >= 3
+        and anomaly_count <= 1
+        and _safe_int(score_info.get("anomaly_boost", 0), 0) <= 1
+    ):
+        trust_level = "medium"
+    else:
+        trust_level = "low"
+
+    return {
+        "total_sightings": total_sightings,
+        "anomaly_count": anomaly_count,
+        "last_risk": last_risk,
+        "trust_level": trust_level,
+    }
+
+
 _BUCKET_STYLE = {
     "critical": "color:var(--pink);font-weight:700",
     "review": "color:var(--red)",
@@ -3596,6 +3642,11 @@ def render_dashboard_html(devices, stamp: str) -> str:
             registry_row=registry_row,
             observations=recent_observations.get(addr, []),
         )
+        device_profile = build_compact_device_profile(
+            d,
+            registry_row=registry_row,
+            observations=recent_observations.get(addr, []),
+        )
         explanation_block = escape(explanation)
         interest_label = str(device_interest.get("label", "normal"))
         interest_style = {
@@ -3643,6 +3694,17 @@ def render_dashboard_html(devices, stamp: str) -> str:
                 f"{alert_text}"
                 f"</div>"
             )
+        profile_text = (
+            f"profile sightings={escape(str(device_profile.get('total_sightings', 0)))}"
+            f" | anomalies={escape(str(device_profile.get('anomaly_count', 0)))}"
+            f" | last_risk={escape(str(device_profile.get('last_risk', 'normal')))}"
+            f" | trust={escape(str(device_profile.get('trust_level', 'low')))}"
+        )
+        explanation_block += (
+            f'<div class="muted" data-device-profile="true" style="margin-top:3px;">'
+            f"{profile_text}"
+            f"</div>"
+        )
         if behavior_summary:
             explanation_block += (
                 f'<div class="muted" data-device-behavior-summary="true">'
