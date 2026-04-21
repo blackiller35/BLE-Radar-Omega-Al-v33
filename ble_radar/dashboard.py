@@ -228,19 +228,33 @@ def compute_device_interest_score(
     registry_row: dict | None = None,
     observations: list[dict] | None = None,
 ) -> dict:
-    """Compute deterministic local risk/interest score from behavior flags."""
+    """Compute deterministic local risk/interest score from behavior + anomaly flags."""
     flags = _device_behavior_flags(
         device, registry_row=registry_row, observations=observations
     )
-    score = 0
+    base_score = 0
     if flags["recurring"]:
-        score += 2
+        base_score += 2
     if flags["name_changed"]:
-        score += 2
+        base_score += 2
     if flags["unstable_signal"]:
-        score += 1
+        base_score += 1
     if flags["recently_reappeared"]:
-        score += 1
+        base_score += 1
+
+    anomaly_flags = detect_device_anomaly_flags(
+        device,
+        registry_row=registry_row,
+        observations=observations,
+    )
+    anomaly_boost_map = {
+        "NEW_DEVICE": 1,
+        "NAME_CHANGE_SPIKE": 2,
+        "REAPPEAR_ALERT": 2,
+        "STABILITY_BREAK": 3,
+    }
+    anomaly_boost = sum(anomaly_boost_map.get(flag, 0) for flag in anomaly_flags)
+    score = base_score + anomaly_boost
 
     if score <= 1:
         label = "normal"
@@ -249,7 +263,13 @@ def compute_device_interest_score(
     else:
         label = "suspicious"
 
-    return {"score": score, "label": label}
+    return {
+        "score": score,
+        "label": label,
+        "base_score": base_score,
+        "anomaly_boost": anomaly_boost,
+        "anomaly_flags": anomaly_flags,
+    }
 
 
 def detect_device_anomaly_flags(
@@ -3523,12 +3543,21 @@ def render_dashboard_html(devices, stamp: str) -> str:
             interest_label,
             "background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.20);",
         )
+        interest_text = (
+            f"interest {escape(str(device_interest.get('score', 0)))} · {escape(interest_label)}"
+            + (
+                f" (+{escape(str(device_interest.get('anomaly_boost', 0)))} anomaly)"
+                if _safe_int(device_interest.get("anomaly_boost", 0), 0) > 0
+                else ""
+            )
+        )
         explanation_block += (
             f'<div class="muted" data-device-interest-badge="true" '
             f'data-device-interest-label="{escape(interest_label)}" '
             f'data-device-interest-score="{escape(str(device_interest.get("score", 0)))}" '
+            f'data-device-interest-boost="{escape(str(device_interest.get("anomaly_boost", 0)))}" '
             f'style="margin-top:3px;display:inline-block;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:700;{interest_style}">'
-            f"interest {escape(str(device_interest.get('score', 0)))} · {escape(interest_label)}"
+            f"{interest_text}"
             f"</div>"
         )
         if anomaly_flags:
