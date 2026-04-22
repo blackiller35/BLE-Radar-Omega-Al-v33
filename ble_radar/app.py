@@ -547,18 +547,71 @@ def smart_views_menu():
             pause()
 
 
-def open_last():
+def _latest_report_file(pattern: str):
     files = sorted(
-        Path("reports").glob("*.html"), key=lambda p: p.stat().st_mtime, reverse=True
+        Path("reports").glob(pattern),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
     )
+    return files[0] if files else None
+
+
+def _open_report_path(path, empty_message: str):
     clear()
     banner()
-    if files:
-        print(color(f"\nOuverture: {files[0]}", GREEN, bold=True))
-        open_html_report(files[0])
+    if path:
+        print(color(f"\nOuverture: {path}", GREEN, bold=True))
+        open_html_report(path)
     else:
-        print(color("\nAucun rapport HTML trouvé.", YELLOW, bold=True))
+        print(color(f"\n{empty_message}", YELLOW, bold=True))
     pause()
+
+
+def open_last_dashboard_report():
+    _open_report_path(
+        _latest_report_file("scan_*.html"),
+        "Aucun dashboard HTML trouvé.",
+    )
+
+
+def open_last_operator_panel_report():
+    _open_report_path(
+        _latest_report_file("operator_panel_*.html"),
+        "Aucun Operator Panel HTML trouvé.",
+    )
+
+
+def open_last_any_html_report():
+    _open_report_path(
+        _latest_report_file("*.html"),
+        "Aucun rapport HTML trouvé.",
+    )
+
+
+def open_last():
+    while True:
+        clear()
+        banner()
+        print(color("\nOpen report / Operator Panel", CYAN, bold=True))
+        print(hr())
+        print("1) Ouvrir le dernier dashboard HTML")
+        print("2) Ouvrir le dernier Operator Panel")
+        print("3) Ouvrir le dernier HTML (tout type)")
+        print("4) Retour")
+
+        choice = input("Choix > ").strip()
+
+        if choice == "1":
+            open_last_dashboard_report()
+        elif choice == "2":
+            open_last_operator_panel_report()
+        elif choice == "3":
+            open_last_any_html_report()
+        elif choice == "4":
+            break
+        else:
+            print(color("Choix invalide", RED, bold=True))
+            pause()
 
 
 def show_history():
