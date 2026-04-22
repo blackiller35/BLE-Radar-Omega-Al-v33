@@ -6,6 +6,7 @@ from pathlib import Path
 from ble_radar.config import REPORTS_DIR, HISTORY_DIR
 from ble_radar.dashboard import render_dashboard_html
 from ble_radar.device_contract import explain_device
+from ble_radar.operator_panel import render_operator_panel_html
 from ble_radar.state import append_scan_history, build_trends
 
 
@@ -114,6 +115,72 @@ def save_html(devices: list[dict], stamp: str) -> Path:
     return path
 
 
+def build_operator_panel_events(devices: list[dict]) -> list[dict]:
+    ranked = sorted(
+        devices,
+        key=lambda x: x.get("final_score", x.get("risk_score", 0)),
+        reverse=True,
+    )
+
+    events: list[dict] = []
+
+    for d in ranked[:12]:
+        name = d.get("name", "Inconnu")
+        address = d.get("address", "-")
+        score = int(d.get("final_score", d.get("risk_score", 0)) or 0)
+        alert_level = str(d.get("alert_level", "")).lower()
+
+        severity = "low"
+        if alert_level == "critique" or score >= 85:
+            severity = "critical"
+        elif alert_level == "élevé" or score >= 65:
+            severity = "high"
+        elif alert_level == "moyen" or score >= 35:
+            severity = "medium"
+
+        reasons = []
+        if d.get("watch_hit"):
+            reasons.append("watchlist hit")
+        if d.get("possible_suivi"):
+            reasons.append("possible tracking")
+        if d.get("persistent_nearby"):
+            reasons.append("persistent nearby")
+        if d.get("reason_short"):
+            reasons.append(str(d.get("reason_short")))
+
+        message = " | ".join(reasons[:3]).strip()
+        if not message:
+            message = explain_device(d)["summary"]
+
+        if severity == "low" and not (
+            d.get("watch_hit")
+            or d.get("possible_suivi")
+            or d.get("persistent_nearby")
+        ):
+            continue
+
+        events.append(
+            {
+                "severity": severity,
+                "title": f"{name} ({address})",
+                "message": message,
+            }
+        )
+
+    return events[:10]
+
+
+def save_operator_panel_html(devices: list[dict], stamp: str) -> Path:
+    path = REPORTS_DIR / f"operator_panel_{stamp}.html"
+    html = render_operator_panel_html(
+        devices,
+        stamp,
+        events=build_operator_panel_events(devices),
+    )
+    path.write_text(html, encoding="utf-8")
+    return path
+
+
 def save_executive_summary(devices: list[dict], stamp: str) -> Path:
     path = HISTORY_DIR / f"executive_summary_{stamp}.json"
     data = {
@@ -134,6 +201,7 @@ def save_all_reports(devices: list[dict]) -> dict:
     csv_path = save_csv(devices, stamp)
     txt_path = save_txt(devices, stamp)
     html_path = save_html(devices, stamp)
+    operator_panel_html_path = save_operator_panel_html(devices, stamp)
     history_path = append_scan_history(devices, stamp)
     trends = build_trends()
     summary_path = save_executive_summary(devices, stamp)
@@ -144,6 +212,7 @@ def save_all_reports(devices: list[dict]) -> dict:
         "csv": csv_path,
         "txt": txt_path,
         "html": html_path,
+        "operator_panel_html": operator_panel_html_path,
         "history": history_path,
         "summary": summary_path,
         "trends": trends,
