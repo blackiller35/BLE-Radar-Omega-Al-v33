@@ -353,7 +353,7 @@ def do_scan_mode(mode_key):
     show_mission_summary(devices)
     if result.get("paths"):
         show_report_paths(result["paths"])
-        open_html_report(result["paths"]["html"])
+        maybe_open_post_scan_report(result["paths"])
     show_vendor_summary(devices)
     show_comparison_summary(result.get("comparison"))
     pause()
@@ -565,6 +565,38 @@ def _open_report_path(path, empty_message: str):
     else:
         print(color(f"\n{empty_message}", YELLOW, bold=True))
     pause()
+
+
+def maybe_open_post_scan_report(paths: dict):
+    dashboard_path = paths.get("html")
+    operator_panel_path = paths.get("operator_panel_html")
+
+    if not dashboard_path and not operator_panel_path:
+        return
+
+    print()
+    print(color("Ouverture post-scan", CYAN, bold=True))
+    print(hr())
+
+    if dashboard_path:
+        print("1) Ouvrir le dashboard HTML du scan courant")
+    if operator_panel_path:
+        print("2) Ouvrir l'Operator Panel correspondant")
+    if dashboard_path and operator_panel_path:
+        print("3) Ouvrir les deux")
+        print("4) Ne rien ouvrir")
+    else:
+        print("3) Ne rien ouvrir")
+
+    choice = input("Choix > ").strip()
+
+    if dashboard_path and choice == "1":
+        open_html_report(dashboard_path)
+    elif operator_panel_path and choice == "2":
+        open_html_report(operator_panel_path)
+    elif dashboard_path and operator_panel_path and choice == "3":
+        open_html_report(dashboard_path)
+        open_html_report(operator_panel_path)
 
 
 def open_last_dashboard_report():
