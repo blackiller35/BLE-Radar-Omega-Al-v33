@@ -86,6 +86,8 @@ def show_report_paths(paths):
     print(color("CSV     :", BLUE, bold=True), paths["csv"])
     print(color("TXT     :", BLUE, bold=True), paths["txt"])
     print(color("HTML    :", BLUE, bold=True), paths["html"])
+    if paths.get("operator_panel_html"):
+        print(color("OPANEL  :", BLUE, bold=True), paths["operator_panel_html"])
     print(color("HISTORY :", BLUE, bold=True), paths["history"])
     print(color("SUMMARY :", BLUE, bold=True), paths["summary"])
 
