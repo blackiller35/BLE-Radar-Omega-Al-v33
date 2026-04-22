@@ -108,9 +108,37 @@ def save_txt(devices: list[dict], stamp: str) -> Path:
     return path
 
 
+def _inject_operator_panel_entry_link(html: str, stamp: str) -> str:
+    target = f"operator_panel_{stamp}.html"
+    if target in html:
+        return html
+
+    if "</body>" not in html.lower():
+        return html
+
+    entry_html = f"""
+<section style="margin:18px 0;padding:16px;border:1px solid #1f3b52;border-radius:14px;background:#0b1621;">
+  <h2 style="margin:0 0 8px;">Operator Panel</h2>
+  <p style="margin:0 0 10px;color:#9bb6c9;">
+    Open the dedicated Operator Panel view for this same BLE export snapshot.
+  </p>
+  <p style="margin:0;">
+    <a href="{target}" style="color:#59d7ff;font-weight:700;text-decoration:none;">
+      Open Operator Panel →
+    </a>
+  </p>
+</section>
+""".strip()
+
+    lower_html = html.lower()
+    body_idx = lower_html.rfind("</body>")
+    return html[:body_idx] + entry_html + "\n" + html[body_idx:]
+
+
 def save_html(devices: list[dict], stamp: str) -> Path:
     path = REPORTS_DIR / f"scan_{stamp}.html"
     html = render_dashboard_html(devices, stamp)
+    html = _inject_operator_panel_entry_link(html, stamp)
     path.write_text(html, encoding="utf-8")
     return path
 
