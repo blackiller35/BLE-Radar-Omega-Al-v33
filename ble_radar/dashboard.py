@@ -4343,7 +4343,33 @@ function setMode(mode) {{
   applyFilters();
 }}
 
-function setSecurityAuditFilter(mode) {{
+const SECURITY_AUDIT_FILTER_STORAGE_KEY = 'bleRadarSecurityAuditFilter';
+
+function normalizeSecurityAuditFilter(mode) {{
+    return ['all', 'session', 'cleanup', 'audit'].includes(mode) ? mode : 'all';
+}}
+
+function loadPersistedSecurityAuditFilter() {{
+    try {{
+        return normalizeSecurityAuditFilter(
+            window.localStorage.getItem(SECURITY_AUDIT_FILTER_STORAGE_KEY) || 'all'
+        );
+    }} catch (_err) {{
+        return 'all';
+    }}
+}}
+
+function persistSecurityAuditFilter(mode) {{
+    const normalized = normalizeSecurityAuditFilter(mode);
+    try {{
+        window.localStorage.setItem(SECURITY_AUDIT_FILTER_STORAGE_KEY, normalized);
+    }} catch (_err) {{
+        // Ignore storage errors in local static dashboard mode.
+    }}
+    return normalized;
+}}
+
+function applySecurityAuditFilterButtons(mode) {{
     document.querySelectorAll('[data-security-audit-filter]').forEach(btn => {{
         const active = btn.dataset.securityAuditFilter === mode;
         btn.dataset.securityAuditActive = active ? 'true' : 'false';
@@ -4353,18 +4379,6 @@ function setSecurityAuditFilter(mode) {{
         btn.style.boxShadow = active ? 'inset 0 0 0 1px rgba(125,245,163,.2)' : 'none';
     }});
 
-    const activeLabel = document.querySelector('[data-security-audit-active-label]');
-    if (activeLabel) {{
-        activeLabel.textContent = mode;
-        activeLabel.dataset.securityAuditActiveLabel = mode;
-    }}
-
-    document.querySelectorAll('[data-security-audit-filter-row]').forEach(row => {{
-        row.style.display = mode === 'all' || row.dataset.securityAuditFilterRow === mode ? '' : 'none';
-    }});
-}}
-
-function setSecurityAuditViewFilter(mode) {{
     document.querySelectorAll('[data-security-audit-view-filter]').forEach(btn => {{
         const active = btn.dataset.securityAuditViewFilter === mode;
         btn.dataset.securityAuditViewActive = active ? 'true' : 'false';
@@ -4373,17 +4387,50 @@ function setSecurityAuditViewFilter(mode) {{
         btn.style.borderColor = active ? 'rgba(125,245,163,.35)' : 'rgba(255,255,255,.16)';
         btn.style.boxShadow = active ? 'inset 0 0 0 1px rgba(125,245,163,.2)' : 'none';
     }});
+}}
 
-    const activeLabel = document.querySelector('[data-security-audit-view-active-label]');
+function applySecurityAuditFilterLabels(mode) {{
+    const activeLabel = document.querySelector('[data-security-audit-active-label]');
     if (activeLabel) {{
         activeLabel.textContent = mode;
-        activeLabel.dataset.securityAuditViewActiveLabel = mode;
+        activeLabel.dataset.securityAuditActiveLabel = mode;
     }}
+
+    const activeViewLabel = document.querySelector('[data-security-audit-view-active-label]');
+    if (activeViewLabel) {{
+        activeViewLabel.textContent = mode;
+        activeViewLabel.dataset.securityAuditViewActiveLabel = mode;
+    }}
+}}
+
+function applySecurityAuditFilterRows(mode) {{
+    document.querySelectorAll('[data-security-audit-filter-row]').forEach(row => {{
+        row.style.display = mode === 'all' || row.dataset.securityAuditFilterRow === mode ? '' : 'none';
+    }});
 
     document.querySelectorAll('[data-security-audit-view-row]').forEach(row => {{
         row.style.display = mode === 'all' || row.dataset.securityAuditViewRow === mode ? '' : 'none';
     }});
 }}
+
+function syncSecurityAuditFilterUi(mode) {{
+    const normalized = normalizeSecurityAuditFilter(mode);
+    applySecurityAuditFilterButtons(normalized);
+    applySecurityAuditFilterLabels(normalized);
+    applySecurityAuditFilterRows(normalized);
+}}
+
+function setSecurityAuditFilter(mode) {{
+    syncSecurityAuditFilterUi(persistSecurityAuditFilter(mode));
+}}
+
+function setSecurityAuditViewFilter(mode) {{
+    syncSecurityAuditFilterUi(persistSecurityAuditFilter(mode));
+}}
+
+window.addEventListener('DOMContentLoaded', () => {{
+    syncSecurityAuditFilterUi(loadPersistedSecurityAuditFilter());
+}});
 
 function setSecurityQuickActionHistoryFilter(mode) {{
     document.querySelectorAll('[data-security-quick-action-history-filter]').forEach(btn => {{

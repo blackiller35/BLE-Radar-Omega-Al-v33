@@ -799,6 +799,31 @@ def test_render_security_audit_dedicated_view_filters_apply_correctly():
     assert "security.operator_session.unlocked" not in timeout_html
 
 
+
+
+def test_dashboard_html_contains_persisted_security_audit_filter_js(monkeypatch):
+    monkeypatch.setattr(dashboard, "load_scan_history", lambda: [])
+    monkeypatch.setattr(dashboard, "load_registry", lambda: {})
+    monkeypatch.setattr(dashboard, "get_vendor_summary", lambda devices: [("TestVendor", 1)])
+    monkeypatch.setattr(dashboard, "get_tracker_candidates", lambda devices: devices)
+    monkeypatch.setattr(
+        dashboard,
+        "build_security_context",
+        lambda: _operator_locked_context(),
+    )
+    monkeypatch.setattr(
+        dashboard,
+        "read_events",
+        lambda limit=25: SAMPLE_SECURITY_AUDIT_EVENTS,
+    )
+
+    html = dashboard.render_dashboard_html(SAMPLE_DEVICES, "2026-04-20_12-00-00")
+
+    assert "bleRadarSecurityAuditFilter" in html
+    assert "localStorage.setItem(SECURITY_AUDIT_FILTER_STORAGE_KEY" in html
+    assert "loadPersistedSecurityAuditFilter()" in html
+    assert "window.addEventListener('DOMContentLoaded'" in html
+
 def test_dashboard_html_contains_security_status_panel(monkeypatch):
     monkeypatch.setattr(dashboard, "load_scan_history", lambda: [])
     monkeypatch.setattr(dashboard, "load_registry", lambda: {})
