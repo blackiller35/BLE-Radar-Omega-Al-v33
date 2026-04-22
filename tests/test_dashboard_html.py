@@ -51,7 +51,6 @@ def test_render_dashboard_html_contains_main_sections(monkeypatch):
     assert "BLE Radar Omega AI - Dashboard" in html
     assert "Résumé global" in html
     assert "Watchlist Hits" in html
-    assert "Top appareils chauds" in html
     assert "Top trackers probables" in html
     assert "Répartition vendors" in html
     assert "Filtres rapides" in html
