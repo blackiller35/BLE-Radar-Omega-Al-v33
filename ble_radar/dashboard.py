@@ -422,6 +422,77 @@ def build_compact_device_profile(
     }
 
 
+def build_tracking_exposure_summary(
+    device: dict,
+    registry_row: dict | None = None,
+    observations: list[dict] | None = None,
+) -> dict:
+    behavior = _device_behavior_flags(
+        device,
+        registry_row=registry_row,
+        observations=observations,
+    )
+    interest = compute_device_interest_score(
+        device,
+        registry_row=registry_row,
+        observations=observations,
+    )
+    anomalies = detect_device_anomaly_flags(
+        device,
+        registry_row=registry_row,
+        observations=observations,
+    )
+
+    privacy_score = 0
+
+    if behavior.get("recurring"):
+        privacy_score += 2
+    if behavior.get("seen_frequently"):
+        privacy_score += 1
+    if behavior.get("name_changed"):
+        privacy_score += 2
+    if behavior.get("unstable_signal"):
+        privacy_score += 1
+    if behavior.get("recently_reappeared"):
+        privacy_score += 2
+
+    if "REAPPEAR_ALERT" in anomalies:
+        privacy_score += 1
+    if "NAME_CHANGE_SPIKE" in anomalies:
+        privacy_score += 1
+
+    if privacy_score <= 1:
+        level = "low"
+    elif privacy_score <= 3:
+        level = "medium"
+    else:
+        level = "high"
+
+    tracking_exposure = "unlikely"
+    if privacy_score >= 5:
+        tracking_exposure = "probable"
+    elif privacy_score >= 3:
+        tracking_exposure = "possible"
+
+    reasons = []
+    if behavior.get("recurring"):
+        reasons.append("recurring presence")
+    if behavior.get("name_changed"):
+        reasons.append("name churn")
+    if behavior.get("unstable_signal"):
+        reasons.append("unstable signal pattern")
+    if behavior.get("recently_reappeared"):
+        reasons.append("reappeared after absence")
+
+    return {
+        "privacy_score": privacy_score,
+        "privacy_level": level,
+        "tracking_exposure": tracking_exposure,
+        "reasons": reasons[:4],
+        "interest_label": interest.get("label", "normal"),
+    }
+
+
 _BUCKET_STYLE = {
     "critical": "color:var(--pink);font-weight:700",
     "review": "color:var(--red)",
@@ -493,6 +564,26 @@ def render_investigation_profile_panel(profile: dict | None) -> str:
     return f"<ul>{''.join(lines)}</ul>"
 
 
+def render_tracking_exposure_panel(rows: list[dict]) -> str:
+    """Render compact tracking exposure / privacy risk rows."""
+    if not rows:
+        return '<ul><li class="muted">Aucune donnée privacy/tracking.</li></ul>'
+
+    items = []
+    for row in rows[:10]:
+        reasons = ", ".join(row.get("reasons", [])) or "no strong signal"
+        items.append(
+            f"<li>"
+            f"<code>{escape(str(row.get('address', '?')))}</code> | "
+            f"{escape(str(row.get('name', 'Inconnu')))} | "
+            f"privacy=<strong>{escape(str(row.get('privacy_level', 'low')).upper())}</strong> | "
+            f"tracking={escape(str(row.get('tracking_exposure', 'unlikely')))} | "
+            f"{escape(reasons)}"
+            f"</li>"
+        )
+    return f"<ul>{''.join(items)}</ul>"
+
+
 def render_case_workflow_panel(summary: dict) -> str:
     """Render a compact HTML panel for the operator case workflow."""
     if not summary or summary.get("total", 0) == 0:
@@ -505,7 +596,7 @@ def render_case_workflow_panel(summary: dict) -> str:
 
     lines = [
         f"<li>Cas ouverts : <strong>{len(open_cases)}</strong> | "
-        f"En cours d'investigation : <strong>{len(investigating)}</strong> | "
+        f"En course d'investigation : <strong>{len(investigating)}</strong> | "
         f"Action requise : <strong>{len(needs_action)}</strong> | "
         f"Résolus récents : <strong>{len(resolved)}</strong></li>",
     ]
@@ -556,7 +647,7 @@ def render_operator_timeline_panel(events: list) -> str:
 def render_operator_playbook_panel(recommendations: list) -> str:
     """Render compact operator playbook recommendations."""
     if not recommendations:
-        return '<ul><li class="muted">Aucune recommandation opérateur disponible.</li></ul>'
+        return '<ul><li class="muted">Aucune recommendation opérateur disponible.</li></ul>'
 
     rows = []
     for rec in recommendations:
@@ -1586,7 +1677,6 @@ def render_operator_post_closure_monitoring_policy_panel(summary: dict) -> str:
     lines.append(f"<li>Recent reopen triggers (top 6):<ul>{items}</ul></li>")
 
     return f"<ul>{''.join(lines)}</ul>"
-
 
 def render_operator_reopen_policy_panel(summary: dict) -> str:
     """Render compact operator controlled reopen policy panel."""
@@ -2730,9 +2820,11 @@ def device_risk_badge(score: int) -> str:
         f"</span>"
     )
 
-
 def render_dashboard_html(devices, stamp: str) -> str:
-    bluehood_summary = render_bluehood_summary(devices)
+    try:
+        bluehood_summary = render_bluehood_summary(devices)
+    except Exception:
+        bluehood_summary = ""
     try:
         security_context = build_security_context()
     except Exception:
@@ -3480,21 +3572,6 @@ def render_dashboard_html(devices, stamp: str) -> str:
         operator_quality_records
     )
 
-    history = load_scan_history()[-8:]
-    recent_observations = {}
-    for idx, scan in enumerate(history[-12:]):
-        for observed in scan.get("devices", []):
-            addr = str(observed.get("address", "")).strip().upper()
-            if not addr or addr == "-":
-                continue
-            recent_observations.setdefault(addr, []).append(
-                {
-                    "scan_pos": idx,
-                    "name": observed.get("name", ""),
-                    "rssi": observed.get("rssi"),
-                    "stamp": scan.get("stamp") or scan.get("timestamp") or "",
-                }
-            )
     operator_plan_records = build_operator_improvement_plan_records(
         current_monitoring_scopes,
         quality_records=operator_quality_records,
@@ -3510,7 +3587,7 @@ def render_dashboard_html(devices, stamp: str) -> str:
         generated_at=stamp,
     )
     operator_plan_summary = summarize_operator_improvement_plans(operator_plan_records)
-
+    tracking_exposure_rows = []
     operator_learning_records = build_operator_outcome_learning_records(
         current_monitoring_scopes,
         resolution_quality_records=operator_quality_records,
@@ -3528,6 +3605,40 @@ def render_dashboard_html(devices, stamp: str) -> str:
     operator_learning_summary = summarize_operator_outcome_learning(
         operator_learning_records
     )
+    history = load_scan_history()[-8:]
+    recent_observations = {}
+
+    for idx, scan in enumerate(history[-12:]):
+        for observed in scan.get("devices", []):
+            addr = str(observed.get("address", "")).strip().upper()
+            if not addr or addr == "-":
+                continue
+            recent_observations.setdefault(addr, []).append(
+                {
+                    "scan_pos": idx,
+                    "name": observed.get("name", ""),
+                    "rssi": observed.get("rssi"),
+                    "stamp": scan.get("stamp") or scan.get("timestamp") or "",
+                }
+            )
+
+    for d in devices:
+        addr = str(d.get("address", "")).strip().upper()
+        if not addr or addr == "-":
+            continue
+        summary = build_tracking_exposure_summary(
+            d,
+            registry_row=registry.get(addr, {}),
+            observations=recent_observations.get(addr, []),
+        )
+        tracking_exposure_rows.append(
+            {
+                "address": addr,
+                "name": d.get("name", "Inconnu"),
+                **summary,
+            }
+        )
+
     previous = history[-1] if history else None
 
     critical = [d for d in devices if d.get("alert_level") == "critique"]
@@ -3807,15 +3918,6 @@ def render_dashboard_html(devices, stamp: str) -> str:
         """
         )
 
-    try:
-        bluehood_summary = render_bluehood_summary(devices)
-    except Exception:
-        bluehood_summary = ""
-
-    try:
-        bluehood_summary = render_bluehood_summary(devices)
-    except Exception:
-        bluehood_summary = ""
 
     return f"""<!doctype html>
 <html lang="fr">
@@ -3865,7 +3967,9 @@ ul {{ margin:0; padding-left:18px; }}
     <div class="card"><div>Critiques</div><div class="big">{len(critical)}</div></div>
     <div class="card"><div>Élevés</div><div class="big">{len(high)}</div></div>
     <div class="card"><div>Moyens</div><div class="big">{len(medium)}</div></div>
-    <div class="card"><div>Watchlist Hits</div><div class="big">{len(watch_hits)}</div></div>
+    <div class="card"><div>Watchlist Hits</div><div class="big">{
+        len(watch_hits)
+    }</div></div>
   </div>
 
   <div class="grid2">
@@ -3885,18 +3989,22 @@ ul {{ margin:0; padding-left:18px; }}
     <div class="panel">
       <h2>Cas d'investigation récents</h2>
       <ul>{
-        "".join(case_list)
-        if case_list
-        else '<li class="muted">Aucun cas récent</li>'
-      }</ul>
+        "".join(case_list) if case_list else '<li class="muted">Aucun cas récent</li>'
+    }</ul>
     </div>
     <div class="panel">
       <h2>Top trackers probables ({len(top_trackers)})</h2>
-      <ul>{"".join(tracker_list) if tracker_list else '<li class="muted">Aucun</li>'}</ul>
+      <ul>{
+        "".join(tracker_list) if tracker_list else '<li class="muted">Aucun</li>'
+    }</ul>
     </div>
     <div class="panel">
       <h2>Répartition vendors</h2>
-      {"".join(vendor_bars) if vendor_bars else '<div class="muted">Aucune donnée</div>'}
+      {
+        "".join(vendor_bars)
+        if vendor_bars
+        else '<div class="muted">Aucune donnée</div>'
+    }
     </div>
   </div>
 
@@ -3919,7 +4027,11 @@ ul {{ margin:0; padding-left:18px; }}
     </div>
     <div class="panel">
       <h2>Sessions récentes</h2>
-      <ul>{"".join(recent_session_lines) if recent_session_lines else '<li class="muted">Aucune session récente</li>'}</ul>
+      <ul>{
+        "".join(recent_session_lines)
+        if recent_session_lines
+        else '<li class="muted">Aucune session récente</li>'
+    }</ul>
     </div>
   </div>
 
@@ -3949,7 +4061,11 @@ ul {{ margin:0; padding-left:18px; }}
 
   <div class="panel" style="margin-bottom:18px;">
     <h2>Device registry snapshot</h2>
-    <ul>{"".join(registry_lines) if registry_lines else '<li class="muted">Aucune donnée registry disponible</li>'}</ul>
+    <ul>{
+        "".join(registry_lines)
+        if registry_lines
+        else '<li class="muted">Aucune donnée registry disponible</li>'
+    }</ul>
     <div class="muted">Aperçu local des appareils du scan courant (top 10).</div>
   </div>
 
@@ -4156,7 +4272,11 @@ ul {{ margin:0; padding-left:18px; }}
           <tr><th>Scan</th><th>Total</th><th>Critiques</th><th>Élevés</th><th>Moyens</th></tr>
         </thead>
         <tbody>
-          {"".join(trend_rows) if trend_rows else '<tr><td colspan="5" class="muted">Aucun historique</td></tr>'}
+          {
+        "".join(trend_rows)
+        if trend_rows
+        else '<tr><td colspan="5" class="muted">Aucun historique</td></tr>'
+    }
         </tbody>
       </table>
     </div>
@@ -4429,7 +4549,9 @@ def render_alert_history_panel():
     html = "<section class='panel'><h3>Alert History</h3><ul>"
 
     for a in reversed(alerts):
-        html += f"<li>{a['timestamp']} | {a['device']} | {a['score']} | {a['profile']}</li>"
+        html += (
+            f"<li>{a['timestamp']} | {a['device']} | {a['score']} | {a['profile']}</li>"
+        )
 
     html += "</ul></section>"
     return html
