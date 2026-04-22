@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
+from ble_radar.alert_history import record_alert
+
 
 ALERT_LOG_PATH = Path("history/alerts.log")
 
@@ -36,21 +38,25 @@ def emit_alert(event: dict, profile: dict) -> str:
 
     if not live:
         log_only(msg)
+        record_alert(event, profile)
         return msg
 
     if level == "strict":
         rendered = f"[!!! OMEGA ALERT !!!] {msg}"
         print(f"\n{rendered}")
         log_only(rendered)
+        record_alert(event, profile)
         return rendered
 
     if level == "audit":
         rendered = f"[AUDIT] {msg}"
         print(rendered)
         log_only(rendered)
+        record_alert(event, profile)
         return rendered
 
     rendered = f"[ALERT] {msg}"
     print(rendered)
     log_only(rendered)
+    record_alert(event, profile)
     return rendered
