@@ -567,11 +567,41 @@ def _open_report_path(path, empty_message: str):
     pause()
 
 
+def _apply_post_scan_open_mode(paths: dict, mode: str) -> bool:
+    dashboard_path = paths.get("html")
+    operator_panel_path = paths.get("operator_panel_html")
+    mode = str(mode or "ask").strip().lower()
+
+    if mode == "dashboard" and dashboard_path:
+        open_html_report(dashboard_path)
+        return True
+
+    if mode == "operator_panel" and operator_panel_path:
+        open_html_report(operator_panel_path)
+        return True
+
+    if mode == "both" and dashboard_path and operator_panel_path:
+        open_html_report(dashboard_path)
+        open_html_report(operator_panel_path)
+        return True
+
+    if mode == "none":
+        return True
+
+    return False
+
+
 def maybe_open_post_scan_report(paths: dict):
+    from ble_radar.post_scan_preferences import get_post_scan_open_mode
+
     dashboard_path = paths.get("html")
     operator_panel_path = paths.get("operator_panel_html")
 
     if not dashboard_path and not operator_panel_path:
+        return
+
+    preferred_mode = get_post_scan_open_mode()
+    if _apply_post_scan_open_mode(paths, preferred_mode):
         return
 
     print()
@@ -4396,13 +4426,11 @@ def live_radar():
         pause()
 
 
-
 CURRENT_OPERATOR_PROFILE = "balanced"
 
 
 def get_active_operator_profile():
     return get_operator_profile(CURRENT_OPERATOR_PROFILE)
-
 
 
 def emit_demo_profile_alert():
