@@ -3883,15 +3883,12 @@ ul {{ margin:0; padding-left:18px; }}
   <div class="grid2">
     <div class="panel">
       <h2>Cas d'investigation récents</h2>
-      <ul>{"".join(case_list) if case_list else '<li class="muted">Aucun cas récent</li>'}</ul>
+      <ul>{
+        "".join(case_list)
+        if case_list
+        else '<li class="muted">Aucun cas récent</li>'
+      }</ul>
     </div>
-    <div class="panel">
-      <h2>Top appareils chauds</h2>
-      <ul>{"".join(hot_list) if hot_list else '<li class="muted">Aucun</li>'}</ul>
-    </div>
-  </div>
-
-  <div class="grid2">
     <div class="panel">
       <h2>Top trackers probables ({len(top_trackers)})</h2>
       <ul>{"".join(tracker_list) if tracker_list else '<li class="muted">Aucun</li>'}</ul>
