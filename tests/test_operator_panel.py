@@ -40,3 +40,11 @@ def test_operator_panel_empty_state():
 
     assert "Aucun appareil à afficher." in html
     assert "Aucun événement." in html
+
+
+def test_operator_panel_contains_security_audit_jump():
+    html = render_operator_panel_html([], "2026-04-22_16-55-00", events=[])
+
+    assert "Open security audit view" in html
+    assert 'href="scan_2026-04-22_16-55-00.html#security-audit-dedicated-view"' in html
+    assert "bleRadarSecurityAuditFilter" in html
