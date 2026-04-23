@@ -1099,3 +1099,49 @@ def test_render_security_audit_dedicated_view_summary_card_counts_filtered_event
     assert f'Allowed: <strong>{allowed}</strong>' in html
     assert f'Denied: <strong>{denied}</strong>' in html
     assert f'Timeout: <strong>{timeout}</strong>' in html
+
+
+def test_render_security_audit_dedicated_view_comparison_card_counts_filtered_vs_global():
+    html = dashboard.render_security_audit_dedicated_view(
+        SAMPLE_SECURITY_AUDIT_EVENTS,
+        stamp="2026-04-22_21-00-00",
+        active_filter="denied",
+    )
+
+    security_events = [
+        event
+        for event in SAMPLE_SECURITY_AUDIT_EVENTS
+        if str(event.get("kind", "")).startswith("security.")
+    ]
+    filtered = [
+        event
+        for event in security_events
+        if dashboard._security_audit_filter_key(event) == "denied"
+    ]
+
+    total_allowed = sum(
+        1 for event in security_events if dashboard._security_audit_filter_key(event) == "allowed"
+    )
+    total_denied = sum(
+        1 for event in security_events if dashboard._security_audit_filter_key(event) == "denied"
+    )
+    total_timeout = sum(
+        1 for event in security_events if dashboard._security_audit_filter_key(event) == "timeout"
+    )
+
+    filtered_allowed = sum(
+        1 for event in filtered if dashboard._security_audit_filter_key(event) == "allowed"
+    )
+    filtered_denied = sum(
+        1 for event in filtered if dashboard._security_audit_filter_key(event) == "denied"
+    )
+    filtered_timeout = sum(
+        1 for event in filtered if dashboard._security_audit_filter_key(event) == "timeout"
+    )
+
+    assert 'data-security-audit-comparison-card="global-total"' in html
+    assert f'All security events: <strong>{len(security_events)}</strong>' in html
+    assert f'Active filter events: <strong>{len(filtered)}</strong>' in html
+    assert f'Allowed delta: <strong>{filtered_allowed - total_allowed:+d}</strong>' in html
+    assert f'Denied delta: <strong>{filtered_denied - total_denied:+d}</strong>' in html
+    assert f'Timeout delta: <strong>{filtered_timeout - total_timeout:+d}</strong>' in html

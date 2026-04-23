@@ -2638,6 +2638,18 @@ def render_security_audit_dedicated_view(
         if active_filter == "all" or _security_audit_filter_key(event) == active_filter
     ]
 
+    total_counts = {
+        "total": len(security_events),
+        "allowed": sum(
+            1 for event in security_events if _security_audit_filter_key(event) == "allowed"
+        ),
+        "denied": sum(
+            1 for event in security_events if _security_audit_filter_key(event) == "denied"
+        ),
+        "timeout": sum(
+            1 for event in security_events if _security_audit_filter_key(event) == "timeout"
+        ),
+    }
     summary_counts = {
         "total": len(filtered_events),
         "allowed": sum(
@@ -2656,6 +2668,15 @@ def render_security_audit_dedicated_view(
         f'<div data-security-audit-summary-card="allowed" style="padding:10px 12px;border-radius:12px;border:1px solid rgba(125,245,163,.18);background:rgba(125,245,163,.08);">Allowed: <strong>{summary_counts["allowed"]}</strong></div>'
         f'<div data-security-audit-summary-card="denied" style="padding:10px 12px;border-radius:12px;border:1px solid rgba(255,107,107,.18);background:rgba(255,107,107,.08);">Denied: <strong>{summary_counts["denied"]}</strong></div>'
         f'<div data-security-audit-summary-card="timeout" style="padding:10px 12px;border-radius:12px;border:1px solid rgba(255,196,87,.18);background:rgba(255,196,87,.08);">Timeout: <strong>{summary_counts["timeout"]}</strong></div>'
+        "</div>"
+    )
+    comparison_html = (
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-top:4px;margin-bottom:10px;">'
+        f'<div data-security-audit-comparison-card="global-total" style="padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);">All security events: <strong>{total_counts["total"]}</strong></div>'
+        f'<div data-security-audit-comparison-card="filtered-total" style="padding:10px 12px;border-radius:12px;border:1px solid rgba(91,157,255,.18);background:rgba(91,157,255,.08);">Active filter events: <strong>{summary_counts["total"]}</strong></div>'
+        f'<div data-security-audit-comparison-card="allowed-delta" style="padding:10px 12px;border-radius:12px;border:1px solid rgba(125,245,163,.18);background:rgba(125,245,163,.08);">Allowed delta: <strong>{summary_counts["allowed"] - total_counts["allowed"]:+d}</strong></div>'
+        f'<div data-security-audit-comparison-card="denied-delta" style="padding:10px 12px;border-radius:12px;border:1px solid rgba(255,107,107,.18);background:rgba(255,107,107,.08);">Denied delta: <strong>{summary_counts["denied"] - total_counts["denied"]:+d}</strong></div>'
+        f'<div data-security-audit-comparison-card="timeout-delta" style="padding:10px 12px;border-radius:12px;border:1px solid rgba(255,196,87,.18);background:rgba(255,196,87,.08);">Timeout delta: <strong>{summary_counts["timeout"] - total_counts["timeout"]:+d}</strong></div>'
         "</div>"
     )
 
@@ -2729,6 +2750,7 @@ def render_security_audit_dedicated_view(
         </div>
         '''
         f'{summary_html}'
+        f'{comparison_html}'
         f'<div class="muted" style="margin-top:8px;">Showing up to 40 recent security audit entries.</div>'
         f"</div>{body}"
     )
