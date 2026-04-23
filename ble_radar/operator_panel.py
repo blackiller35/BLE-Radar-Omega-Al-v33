@@ -220,6 +220,11 @@ def _render_events(events: list[dict]) -> str:
     return "\n".join(parts)
 
 
+def _paired_dashboard_audit_href(stamp: str) -> str:
+    safe_stamp = str(stamp).strip()
+    return f"scan_{safe_stamp}.html#security-audit-dedicated-view"
+
+
 def render_operator_panel_html(
     devices: list[dict], stamp: str, events: list[dict] | None = None
 ) -> str:
@@ -526,6 +531,14 @@ body {{
       <div class="omega-label">OMEGA / Operator Panel Foundation</div>
       <h1>BLE Radar Omega AI</h1>
       <p>Separate operator panel foundation with device profile cards, front/back flip, selected details, and event journal.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+        <a
+          class="omega-btn"
+          href="{escape(_paired_dashboard_audit_href(stamp))}"
+          onclick="try{{window.localStorage.setItem('bleRadarSecurityAuditFilter','all')}}catch(_err){{}}"
+          style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;"
+        >Open security audit view</a>
+      </div>
       <div class="top-stamp">Generated at: {escape(stamp)}</div>
     </section>
 
