@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BLE Radar Omega AI — Operator Panel</title>
+<style>
+:root {
+  --bg:#071018;
+  --panel:#0d1824;
+  --panel-2:#0f1d2b;
+  --line:rgba(120,194,255,.18);
+  --text:#d9efff;
+  --muted:#86a3b9;
+  --accent:#59d7ff;
+  --low:#39ffb6;
+  --medium:#ffb84d;
+  --high:#ff6d6d;
+  --critical:#ff3f88;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  font-family:Inter,system-ui,sans-serif;
+  color:var(--text);
+  background:linear-gradient(180deg,#03070c 0%,#071018 55%,#08131d 100%);
+}
+.app {
+  width:min(1500px, calc(100% - 28px));
+  margin:20px auto 32px;
+}
+.panel {
+  background:linear-gradient(180deg, rgba(13,24,36,.94), rgba(9,17,26,.94));
+  border:1px solid var(--line);
+  border-radius:22px;
+  box-shadow:0 18px 44px rgba(0,0,0,.35);
+}
+.topbar {
+  padding:20px;
+  margin-bottom:18px;
+}
+.topbar h1 {
+  margin:0 0 8px;
+  font-size:2rem;
+}
+.topbar p {
+  margin:0;
+  color:var(--muted);
+}
+.top-stamp {
+  margin-top:12px;
+  font-size:.9rem;
+  color:var(--accent);
+}
+.layout {
+  display:grid;
+  grid-template-columns:1.65fr 1fr;
+  gap:18px;
+}
+.cards,
+.sidebar {
+  padding:18px;
+}
+.cards-head,
+.side-head {
+  margin-bottom:14px;
+}
+.cards-head h2,
+.side-head h2 {
+  margin:0 0 6px;
+  font-size:1.08rem;
+}
+.cards-head p,
+.side-head p {
+  margin:0;
+  color:var(--muted);
+}
+.cards-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));
+  gap:16px;
+}
+.omega-card {
+  min-height:360px;
+  perspective:1200px;
+}
+.omega-card-inner {
+  position:relative;
+  min-height:360px;
+  transform-style:preserve-3d;
+  transition:transform .6s ease;
+}
+.omega-card.is-flipped .omega-card-inner {
+  transform:rotateY(180deg);
+}
+.omega-face {
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  padding:18px;
+  border-radius:18px;
+  border:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(15,29,43,.96), rgba(8,18,28,.96));
+  backface-visibility:hidden;
+}
+.omega-back {
+  transform:rotateY(180deg);
+}
+.omega-top {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+}
+.omega-top h3 {
+  margin:4px 0 0;
+  font-size:1.1rem;
+}
+.omega-label {
+  font-size:.74rem;
+  text-transform:uppercase;
+  letter-spacing:.14em;
+  color:var(--accent);
+}
+.omega-sub {
+  margin:6px 0 0;
+  color:var(--muted);
+  font-size:.9rem;
+}
+.omega-badge {
+  padding:8px 10px;
+  border-radius:999px;
+  font-size:.74rem;
+  font-weight:800;
+  border:1px solid currentColor;
+}
+.omega-score {
+  padding:14px;
+  border-radius:16px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.06);
+}
+.omega-score strong {
+  display:block;
+  font-size:2rem;
+  line-height:1;
+}
+.omega-score span,
+.omega-row span,
+.omega-detail-grid span {
+  color:var(--muted);
+}
+.omega-row {
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 14px;
+  border-radius:14px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.06);
+}
+.omega-summary {
+  margin:0;
+  color:#d9e7f4;
+  line-height:1.5;
+  font-size:.93rem;
+}
+.omega-pills {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.omega-pills-flags .pill {
+  margin-right:2px;
+}
+.pill {
+  padding:8px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.04);
+  font-size:.8rem;
+}
+.pill-alert {
+  background:rgba(255,109,109,.08);
+  border-color:rgba(255,109,109,.22);
+}
+.level-low .omega-face {
+  box-shadow: inset 0 0 0 1px rgba(57,255,182,.05);
+}
+.level-medium .omega-face {
+  box-shadow: inset 0 0 0 1px rgba(255,184,77,.08), 0 0 18px rgba(255,184,77,.06);
+}
+.level-high .omega-face {
+  box-shadow: inset 0 0 0 1px rgba(255,109,109,.10), 0 0 22px rgba(255,109,109,.10);
+}
+.level-critical .omega-face {
+  box-shadow: inset 0 0 0 1px rgba(255,63,136,.14), 0 0 26px rgba(255,63,136,.14);
+}
+.omega-card.is-selected .omega-face {
+  border-color: rgba(89,215,255,.45);
+  box-shadow: 0 0 0 2px rgba(89,215,255,.10), 0 0 28px rgba(89,215,255,.14);
+}
+.muted {
+  color:var(--muted);
+}
+.omega-actions {
+  display:flex;
+  gap:10px;
+  margin-top:auto;
+}
+.omega-btn {
+  flex:1;
+  padding:11px 12px;
+  border-radius:14px;
+  border:1px solid var(--line);
+  background:rgba(8,19,28,.84);
+  color:var(--text);
+  cursor:pointer;
+}
+.omega-btn-primary {
+  background:linear-gradient(135deg, rgba(89,215,255,.20), rgba(111,124,255,.16));
+}
+.omega-detail-box {
+  padding:16px;
+  border-radius:18px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.06);
+}
+.omega-detail-box h3 {
+  margin:4px 0 0;
+}
+.omega-detail-grid {
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:10px;
+  margin:14px 0;
+}
+.omega-detail-grid > div {
+  padding:12px;
+  border-radius:14px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.06);
+}
+.omega-detail-grid strong {
+  display:block;
+  margin-top:6px;
+}
+.omega-columns {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.omega-columns ul {
+  margin:8px 0 0;
+  padding-left:18px;
+  color:#d9e7f4;
+}
+.omega-events {
+  margin-top:18px;
+}
+.omega-event {
+  padding:12px 14px;
+  border-radius:14px;
+  margin-bottom:10px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.06);
+}
+.omega-event strong {
+  display:block;
+  margin-bottom:4px;
+}
+.omega-event p {
+  margin:0;
+  color:var(--muted);
+}
+.omega-empty {
+  padding:24px;
+  border-radius:18px;
+  border:1px dashed rgba(255,255,255,.12);
+  color:var(--muted);
+  text-align:center;
+}
+.level-low .omega-badge,
+.omega-event.level-low { color:var(--low); }
+.level-medium .omega-badge,
+.omega-event.level-medium { color:var(--medium); }
+.level-high .omega-badge,
+.omega-event.level-high { color:var(--high); }
+.level-critical .omega-badge,
+.omega-event.level-critical { color:var(--critical); }
+@media (max-width: 1100px) {
+  .layout { grid-template-columns:1fr; }
+}
+@media (max-width: 720px) {
+  .omega-detail-grid,
+  .omega-columns { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+  <main class="app">
+    <section class="panel topbar">
+      <div class="omega-label">OMEGA / Operator Panel Foundation</div>
+      <h1>BLE Radar Omega AI</h1>
+      <p>Separate operator panel foundation with device profile cards, front/back flip, selected details, and event journal.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+        <a
+          class="omega-btn"
+          href="@@AUDIT_HREF@@"
+          onclick="try{window.localStorage.setItem('bleRadarSecurityAuditFilter','all')}catch(_err){}"
+          style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;"
+        >Open security audit view</a>
+      </div>
+      <div class="top-stamp">Generated at: @@STAMP@@</div>
+    </section>
+
+    <section class="layout">
+      <section class="panel cards">
+        <div class="cards-head">
+          <h2>Device Profiles</h2>
+          <p>Safe standalone foundation for later live BLE data integration.</p>
+        </div>
+        <div class="cards-grid">
+          @@CARDS_HTML@@
+        </div>
+      </section>
+
+      <aside>
+        <section class="panel sidebar">
+          <div class="side-head">
+            <h2>Selected Device</h2>
+            <p>Right-side context panel.</p>
+          </div>
+          <div id="omega-details">@@DETAILS_HTML@@</div>
+        </section>
+
+        <section class="panel sidebar omega-events">
+          <div class="side-head">
+            <h2>Event Journal</h2>
+            <p>Simple operator event stream.</p>
+          </div>
+          <div id="omega-events">@@EVENTS_HTML@@</div>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+<script>
+window.BleRadarOmegaUI = {
+  devices: @@DEVICES_JSON@@,
+  events: @@EVENTS_JSON@@,
+  stamp: @@STAMP_JSON@@
+};
+
+(function () {
+  const detailsEl = document.getElementById("omega-details");
+  const cards = document.querySelectorAll(".omega-card");
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function renderDetails(device) {
+    if (!device) {
+      detailsEl.innerHTML = '<div class="omega-empty">Aucun appareil sélectionné.</div>';
+      return;
+    }
+
+    const services = (device.services || []).length
+      ? device.services.map(service => `<li>${escapeHtml(service)}</li>`).join("")
+      : "<li>No services</li>";
+
+    const flags = (device.flags || []).length
+      ? device.flags.map(flag => `<li>${escapeHtml(flag)}</li>`).join("")
+      : "<li>No flags</li>";
+
+    detailsEl.innerHTML = `
+      <div class="omega-detail-box">
+        <div class="omega-label">Selected device</div>
+        <h3>${escapeHtml(device.name)}</h3>
+        <p class="omega-sub">${escapeHtml(device.address)} · ${escapeHtml(device.vendor)}</p>
+
+        <div class="omega-detail-grid">
+          <div><span>Risk</span><strong>${escapeHtml(String(device.level).toUpperCase())}</strong></div>
+          <div><span>Score</span><strong>${escapeHtml(String(device.score))}</strong></div>
+          <div><span>RSSI</span><strong>${escapeHtml(String(device.rssi))}</strong></div>
+          <div><span>Services</span><strong>${escapeHtml(String((device.services || []).length))}</strong></div>
+        </div>
+
+        <div class="omega-label">Summary</div>
+        <p class="omega-summary">${escapeHtml(device.summary)}</p>
+
+        <div class="omega-columns">
+          <div>
+            <div class="omega-label">Services</div>
+            <ul>${services}</ul>
+          </div>
+          <div>
+            <div class="omega-label">Flags</div>
+            <ul>${flags}</ul>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function selectDevice(id) {
+    const device = (window.BleRadarOmegaUI.devices || []).find(item => item.id === id);
+    cards.forEach(card => {
+      card.classList.toggle("is-selected", card.dataset.deviceId === id);
+    });
+    renderDetails(device || null);
+  }
+
+  cards.forEach(card => {
+    const deviceId = card.dataset.deviceId;
+
+    card.querySelectorAll(".js-flip").forEach(button => {
+      button.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        card.classList.toggle("is-flipped");
+      });
+    });
+
+    card.querySelectorAll(".js-select").forEach(button => {
+      button.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        selectDevice(deviceId);
+      });
+    });
+
+    card.addEventListener("click", function (event) {
+      if (event.target.closest("button")) {
+        return;
+      }
+      selectDevice(deviceId);
+    });
+  });
+})();
+</script>
+</body>
+</html>

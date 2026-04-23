@@ -1,3 +1,4 @@
+import json
 from ble_radar.alert_history import get_recent_alerts
 from ble_radar.bluehood_layer import enrich_devices_for_session
 from datetime import datetime
@@ -114,6 +115,50 @@ from ble_radar.eventlog import read_events
 from ble_radar.session.session_movement import build_session_movement
 from ble_radar.security import build_security_context
 from ble_radar.state import load_last_scan, load_scan_history
+from pathlib import Path
+from ble_radar.intel.risk_tags import build_risk_tags, risk_level_from_tags
+
+
+def load_pcap_intel() -> list[dict]:
+    path = Path("reports/pcap_intel_summary.json")
+    if not path.exists():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        return payload.get("devices", [])
+    except Exception:
+        return []
+
+
+def render_ble_intel_panel(devices: list[dict]) -> str:
+    if not devices:
+        return '<div class="omega-empty">No BLE intel data.</div>'
+
+    rows = []
+    for device in devices[:10]:
+        address = escape(str(device.get("address", "?"))).upper()
+        hits = int(device.get("hits", 0) or 0)
+
+        tags = build_risk_tags(device)
+        level = risk_level_from_tags(tags)
+
+        tags_html = (
+            " ".join(
+                f'<span class="omega-tag omega-tag-{level}">{escape(tag)}</span>'
+                for tag in tags
+            )
+            or '<span class="muted">No tags</span>'
+        )
+
+        rows.append(f"""
+        <article class="omega-event level-{level}">
+            <strong>{address}</strong><br>
+            Hits: {hits}<br>
+            <div class="risk-tags">{tags_html}</div>
+        </article>
+        """)
+
+    return "\n".join(rows)
 
 
 def _safe_int(value, default=0):
@@ -1678,6 +1723,7 @@ def render_operator_post_closure_monitoring_policy_panel(summary: dict) -> str:
 
     return f"<ul>{''.join(lines)}</ul>"
 
+
 def render_operator_reopen_policy_panel(summary: dict) -> str:
     """Render compact operator controlled reopen policy panel."""
     if not summary:
@@ -2641,25 +2687,37 @@ def render_security_audit_dedicated_view(
     total_counts = {
         "total": len(security_events),
         "allowed": sum(
-            1 for event in security_events if _security_audit_filter_key(event) == "allowed"
+            1
+            for event in security_events
+            if _security_audit_filter_key(event) == "allowed"
         ),
         "denied": sum(
-            1 for event in security_events if _security_audit_filter_key(event) == "denied"
+            1
+            for event in security_events
+            if _security_audit_filter_key(event) == "denied"
         ),
         "timeout": sum(
-            1 for event in security_events if _security_audit_filter_key(event) == "timeout"
+            1
+            for event in security_events
+            if _security_audit_filter_key(event) == "timeout"
         ),
     }
     summary_counts = {
         "total": len(filtered_events),
         "allowed": sum(
-            1 for event in filtered_events if _security_audit_filter_key(event) == "allowed"
+            1
+            for event in filtered_events
+            if _security_audit_filter_key(event) == "allowed"
         ),
         "denied": sum(
-            1 for event in filtered_events if _security_audit_filter_key(event) == "denied"
+            1
+            for event in filtered_events
+            if _security_audit_filter_key(event) == "denied"
         ),
         "timeout": sum(
-            1 for event in filtered_events if _security_audit_filter_key(event) == "timeout"
+            1
+            for event in filtered_events
+            if _security_audit_filter_key(event) == "timeout"
         ),
     }
     summary_html = (
@@ -2683,10 +2741,15 @@ def render_security_audit_dedicated_view(
     reason_counts = {}
     for event in filtered_events:
         data = event.get("data", {}) if isinstance(event.get("data"), dict) else {}
-        reason = str(data.get("reason") or event.get("message") or "unknown").strip() or "unknown"
+        reason = (
+            str(data.get("reason") or event.get("message") or "unknown").strip()
+            or "unknown"
+        )
         reason_counts[reason] = reason_counts.get(reason, 0) + 1
 
-    top_reasons = sorted(reason_counts.items(), key=lambda item: (-item[1], item[0]))[:3]
+    top_reasons = sorted(reason_counts.items(), key=lambda item: (-item[1], item[0]))[
+        :3
+    ]
     if top_reasons:
         reason_items = "".join(
             f'<li data-security-audit-reason-item="{escape(reason)}">{escape(reason)} <strong>×{count}</strong></li>'
@@ -2696,13 +2759,13 @@ def render_security_audit_dedicated_view(
             '<div data-security-audit-reason-breakdown="true" style="margin-top:6px;margin-bottom:10px;">'
             '<div class="muted" style="margin-bottom:6px;">Top audit reasons</div>'
             f'<ul style="margin:0;padding-left:18px;">{reason_items}</ul>'
-            '</div>'
+            "</div>"
         )
     else:
         reason_html = (
             '<div data-security-audit-reason-breakdown="true" style="margin-top:6px;margin-bottom:10px;">'
             '<div class="muted">No audit reasons available for the active filter.</div>'
-            '</div>'
+            "</div>"
         )
 
     chip_base = (
@@ -2755,7 +2818,7 @@ def render_security_audit_dedicated_view(
         f'<strong data-security-audit-view-active-label="{escape(active_filter)}">{escape(active_filter)}</strong>'
         f"</div>"
         f'<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">{controls} {reset_control}</div>'
-        f'''
+        f"""
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
           <button
             type="button"
@@ -2773,10 +2836,10 @@ def render_security_audit_dedicated_view(
             style="padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:var(--fg);font-weight:600;cursor:pointer;"
           >Copy TXT link</button>
         </div>
-        '''
-        f'{summary_html}'
-        f'{comparison_html}'
-        f'{reason_html}'
+        """
+        f"{summary_html}"
+        f"{comparison_html}"
+        f"{reason_html}"
         f'<div class="muted" style="margin-top:8px;">Showing up to 40 recent security audit entries.</div>'
         f"</div>{body}"
     )
@@ -2909,7 +2972,13 @@ def device_risk_badge(score: int) -> str:
         f"</span>"
     )
 
+
+pcap_intel_devices = load_pcap_intel()
+pcap_intel_html = render_ble_intel_panel(pcap_intel_devices)
+
+
 def render_dashboard_html(devices, stamp: str) -> str:
+
     try:
         bluehood_summary = render_bluehood_summary(devices)
     except Exception:
@@ -3752,22 +3821,33 @@ def render_dashboard_html(devices, stamp: str) -> str:
             f"<td>{_safe_int(row.get('medium', 0))}</td></tr>"
         )
 
+    normalized_vendor_counts = []
+    for item in vendor_counts:
+        if isinstance(item, dict):
+            name = str(item.get("vendor", "Unknown"))
+            count = int(item.get("count", 0) or 0)
+        else:
+            name = str(item[0])
+            count = int(item[1] or 0)
+        normalized_vendor_counts.append((name, count))
+
     vendor_bars = []
-    max_vendor = vendor_counts[0][1] if vendor_counts else 1
-    for name, count in vendor_counts:
+    max_vendor = normalized_vendor_counts[0][1] if normalized_vendor_counts else 1
+
+    for name, count in normalized_vendor_counts:
         pct = int((count / max_vendor) * 100) if max_vendor else 0
         vendor_bars.append(
             f"""
-        <div class="bar-row">
-            <div class="bar-label">{escape(name)}</div>
-            <div class="bar-wrap"><div class="bar-fill" style="width:{pct}%"></div></div>
-            <div class="bar-count">{count}</div>
-        </div>
-        """
+            <div class="bar-row">
+              <div class="bar-label">{escape(str(name))}</div>
+              <div class="bar-wrap"><div class="bar-fill" style="width:{pct}%"></div></div>
+              <div class="bar-count">{count}</div>
+            </div>
+            """
         )
 
-    vendor_options = ['<option value="">Tous les vendors</option>']
-    for name, _ in vendor_counts:
+    vendor_options = ['<option value="">Tous</option>']
+    for name, _ in normalized_vendor_counts:
         vendor_options.append(
             f'<option value="{escape(str(name))}">{escape(str(name))}</option>'
         )
@@ -3775,24 +3855,23 @@ def render_dashboard_html(devices, stamp: str) -> str:
     hot_list = []
     for d in top_hot:
         hot_list.append(
-            f"<li>{escape(str(d.get('name', 'Inconnu')))} | {escape(str(d.get('address', '-')))} | "
-            f"vendor={escape(str(d.get('vendor', 'Unknown')))} | score={_safe_int(d.get('final_score', 0))} | "
-            f"{escape(str(d.get('alert_level', '-')))}</li>"
+            f"<li>{escape(str(d.get('name', 'Inconnu')))} "
+            f"<span class='muted'>{escape(str(d.get('address', '-')))}</span> "
+            f"(score {_safe_int(d.get('final_score', 0))})</li>"
         )
 
     tracker_list = []
     for d in top_trackers:
         tracker_list.append(
-            f"<li>{escape(str(d.get('name', 'Inconnu')))} | {escape(str(d.get('address', '-')))} | "
-            f"follow={_safe_int(d.get('follow_score', 0))} | profile={escape(str(d.get('profile', '-')))}</li>"
+            f"<li>{escape(str(d.get('name', 'Inconnu')))} "
+            f"<span class='muted'>{escape(str(d.get('address', '-')))}</span></li>"
         )
 
     case_list = []
     for case in cases:
         case_list.append(
-            f"<li>{escape(str(case.get('title', 'Untitled Case')))} | "
-            f"status={escape(str(case.get('status', '-')))} | "
-            f"updated={escape(str(case.get('updated_at', '-')))}</li>"
+            f"<li>{escape(str(case.get('title', case.get('address', 'Case'))))} "
+            f"<span class='muted'>status={escape(str(case.get('status', '-')))}</span></li>"
         )
 
     latest_session_lines = [
@@ -4008,6 +4087,8 @@ def render_dashboard_html(devices, stamp: str) -> str:
         )
 
 
+    pcap_intel_devices = load_pcap_intel()
+    pcap_intel_html = render_ble_intel_panel(pcap_intel_devices)
     return f"""<!doctype html>
 <html lang="fr">
 <head>
@@ -4048,6 +4129,12 @@ ul {{ margin:0; padding-left:18px; }}
 </style>
 </head>
 <body>
+<section class="omega-section">
+    <h2>🧠 OMEGA BLE Intel</h2>
+    <div class="omega-grid">
+        {pcap_intel_html}
+    </div>
+</section>
   <h1>BLE Radar Omega AI - Dashboard Pro</h1>
   <h2>Résumé global</h2>
 
@@ -4057,8 +4144,8 @@ ul {{ margin:0; padding-left:18px; }}
     <div class="card"><div>Élevés</div><div class="big">{len(high)}</div></div>
     <div class="card"><div>Moyens</div><div class="big">{len(medium)}</div></div>
     <div class="card"><div>Watchlist Hits</div><div class="big">{
-        len(watch_hits)
-    }</div></div>
+    len(watch_hits)
+}</div></div>
   </div>
 
   <div class="grid2">
@@ -4078,22 +4165,20 @@ ul {{ margin:0; padding-left:18px; }}
     <div class="panel">
       <h2>Cas d'investigation récents</h2>
       <ul>{
-        "".join(case_list) if case_list else '<li class="muted">Aucun cas récent</li>'
-    }</ul>
+    "".join(case_list) if case_list else '<li class="muted">Aucun cas récent</li>'
+}</ul>
     </div>
     <div class="panel">
       <h2>Top trackers probables ({len(top_trackers)})</h2>
       <ul>{
-        "".join(tracker_list) if tracker_list else '<li class="muted">Aucun</li>'
-    }</ul>
+    "".join(tracker_list) if tracker_list else '<li class="muted">Aucun</li>'
+}</ul>
     </div>
     <div class="panel">
       <h2>Répartition vendors</h2>
       {
-        "".join(vendor_bars)
-        if vendor_bars
-        else '<div class="muted">Aucune donnée</div>'
-    }
+    "".join(vendor_bars) if vendor_bars else '<div class="muted">Aucune donnée</div>'
+}
     </div>
   </div>
 
@@ -4117,10 +4202,10 @@ ul {{ margin:0; padding-left:18px; }}
     <div class="panel">
       <h2>Sessions récentes</h2>
       <ul>{
-        "".join(recent_session_lines)
-        if recent_session_lines
-        else '<li class="muted">Aucune session récente</li>'
-    }</ul>
+    "".join(recent_session_lines)
+    if recent_session_lines
+    else '<li class="muted">Aucune session récente</li>'
+}</ul>
     </div>
   </div>
 
@@ -4148,18 +4233,18 @@ ul {{ margin:0; padding-left:18px; }}
         <div class="muted">Dedicated operator security audit inspection view.</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
           <a
-            href="{escape(f'scan_{stamp}.json')}"
+            href="{escape(f"scan_{stamp}.json")}"
             style="display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid rgba(125,245,163,.25);background:rgba(125,245,163,.08);color:var(--fg);text-decoration:none;font-weight:600;"
           >Open audit JSON artifact</a>
           <a
-            href="{escape(f'scan_{stamp}.txt')}"
+            href="{escape(f"scan_{stamp}.txt")}"
             download
             style="display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid rgba(91,157,255,.25);background:rgba(91,157,255,.08);color:var(--fg);text-decoration:none;font-weight:600;"
           >Export audit TXT artifact</a>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
           <a
-            href="{escape(f'operator_panel_{stamp}.html')}"
+            href="{escape(f"operator_panel_{stamp}.html")}"
             style="display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid rgba(125,245,163,.25);background:rgba(125,245,163,.08);color:var(--fg);text-decoration:none;font-weight:600;"
           >Open paired operator panel</a>
           <button
@@ -4173,10 +4258,10 @@ ul {{ margin:0; padding-left:18px; }}
   <div class="panel" style="margin-bottom:18px;">
     <h2>Device registry snapshot</h2>
     <ul>{
-        "".join(registry_lines)
-        if registry_lines
-        else '<li class="muted">Aucune donnée registry disponible</li>'
-    }</ul>
+    "".join(registry_lines)
+    if registry_lines
+    else '<li class="muted">Aucune donnée registry disponible</li>'
+}</ul>
     <div class="muted">Aperçu local des appareils du scan courant (top 10).</div>
   </div>
 
@@ -4384,10 +4469,10 @@ ul {{ margin:0; padding-left:18px; }}
         </thead>
         <tbody>
           {
-        "".join(trend_rows)
-        if trend_rows
-        else '<tr><td colspan="5" class="muted">Aucun historique</td></tr>'
-    }
+    "".join(trend_rows)
+    if trend_rows
+    else '<tr><td colspan="5" class="muted">Aucun historique</td></tr>'
+}
         </tbody>
       </table>
     </div>
