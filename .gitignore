@@ -1,14 +1,15 @@
-.venv/
+# Python
 __pycache__/
 *.pyc
-.pytest_cache/
-logs/
-.vscode/
-backups_old/
+.venv/
 
-reports/
-snapshots/
-ble_radar/config.json
-config/security.local.json
-config/secrets.local.json
-runtime/yubikey.token
+# BLE Radar runtime
+history/*.json
+captures/
+*.pcapng
+
+# logs
+*.log
+
+# temp
+*.tmp
