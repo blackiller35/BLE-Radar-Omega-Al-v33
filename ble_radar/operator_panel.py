@@ -428,6 +428,11 @@ body {{
   background:rgba(255,109,109,.08);
   border-color:rgba(255,109,109,.22);
 }}
+
+.omega-card.is-selected .omega-face {{
+  border-color: rgba(89,215,255,.45);
+  box-shadow: 0 0 0 2px rgba(89,215,255,.10), 0 0 28px rgba(89,215,255,.14);
+}}
 .muted {{
   color:var(--muted);
 }}
@@ -639,6 +644,9 @@ window.BleRadarOmegaUI = {{
 
   function selectDevice(id) {{
     const device = (window.BleRadarOmegaUI.devices || []).find(item => item.id === id);
+    cards.forEach(card => {{
+      card.classList.toggle("is-selected", card.dataset.deviceId === id);
+    }});
     renderDetails(device || null);
   }}
 

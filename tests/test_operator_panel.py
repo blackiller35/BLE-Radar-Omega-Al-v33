@@ -48,3 +48,25 @@ def test_operator_panel_contains_security_audit_jump():
     assert "Open security audit view" in html
     assert 'href="scan_2026-04-22_16-55-00.html#security-audit-dedicated-view"' in html
     assert "bleRadarSecurityAuditFilter" in html
+
+
+def test_operator_panel_contains_selected_card_ui():
+    html = render_operator_panel_html(
+        [
+            {
+                "address": "AA:BB:CC:DD:EE:FF",
+                "name": "Beacon A17",
+                "vendor": "Nordic",
+                "rssi": -48,
+                "risk_score": 91,
+                "services": ["iBeacon", "Telemetry"],
+                "flags": ["Spoofing suspect"],
+                "summary": "High confidence anomaly.",
+            }
+        ],
+        "2026-04-22 16:55",
+        events=[],
+    )
+
+    assert '.omega-card.is-selected .omega-face' in html
+    assert 'card.classList.toggle("is-selected", card.dataset.deviceId === id);' in html

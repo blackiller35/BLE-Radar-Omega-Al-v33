@@ -1678,6 +1678,7 @@ def render_operator_post_closure_monitoring_policy_panel(summary: dict) -> str:
 
     return f"<ul>{''.join(lines)}</ul>"
 
+
 def render_operator_reopen_policy_panel(summary: dict) -> str:
     """Render compact operator controlled reopen policy panel."""
     if not summary:
@@ -2641,25 +2642,37 @@ def render_security_audit_dedicated_view(
     total_counts = {
         "total": len(security_events),
         "allowed": sum(
-            1 for event in security_events if _security_audit_filter_key(event) == "allowed"
+            1
+            for event in security_events
+            if _security_audit_filter_key(event) == "allowed"
         ),
         "denied": sum(
-            1 for event in security_events if _security_audit_filter_key(event) == "denied"
+            1
+            for event in security_events
+            if _security_audit_filter_key(event) == "denied"
         ),
         "timeout": sum(
-            1 for event in security_events if _security_audit_filter_key(event) == "timeout"
+            1
+            for event in security_events
+            if _security_audit_filter_key(event) == "timeout"
         ),
     }
     summary_counts = {
         "total": len(filtered_events),
         "allowed": sum(
-            1 for event in filtered_events if _security_audit_filter_key(event) == "allowed"
+            1
+            for event in filtered_events
+            if _security_audit_filter_key(event) == "allowed"
         ),
         "denied": sum(
-            1 for event in filtered_events if _security_audit_filter_key(event) == "denied"
+            1
+            for event in filtered_events
+            if _security_audit_filter_key(event) == "denied"
         ),
         "timeout": sum(
-            1 for event in filtered_events if _security_audit_filter_key(event) == "timeout"
+            1
+            for event in filtered_events
+            if _security_audit_filter_key(event) == "timeout"
         ),
     }
     summary_html = (
@@ -2683,10 +2696,15 @@ def render_security_audit_dedicated_view(
     reason_counts = {}
     for event in filtered_events:
         data = event.get("data", {}) if isinstance(event.get("data"), dict) else {}
-        reason = str(data.get("reason") or event.get("message") or "unknown").strip() or "unknown"
+        reason = (
+            str(data.get("reason") or event.get("message") or "unknown").strip()
+            or "unknown"
+        )
         reason_counts[reason] = reason_counts.get(reason, 0) + 1
 
-    top_reasons = sorted(reason_counts.items(), key=lambda item: (-item[1], item[0]))[:3]
+    top_reasons = sorted(reason_counts.items(), key=lambda item: (-item[1], item[0]))[
+        :3
+    ]
     if top_reasons:
         reason_items = "".join(
             f'<li data-security-audit-reason-item="{escape(reason)}">{escape(reason)} <strong>×{count}</strong></li>'
@@ -2696,13 +2714,13 @@ def render_security_audit_dedicated_view(
             '<div data-security-audit-reason-breakdown="true" style="margin-top:6px;margin-bottom:10px;">'
             '<div class="muted" style="margin-bottom:6px;">Top audit reasons</div>'
             f'<ul style="margin:0;padding-left:18px;">{reason_items}</ul>'
-            '</div>'
+            "</div>"
         )
     else:
         reason_html = (
             '<div data-security-audit-reason-breakdown="true" style="margin-top:6px;margin-bottom:10px;">'
             '<div class="muted">No audit reasons available for the active filter.</div>'
-            '</div>'
+            "</div>"
         )
 
     chip_base = (
@@ -2755,7 +2773,7 @@ def render_security_audit_dedicated_view(
         f'<strong data-security-audit-view-active-label="{escape(active_filter)}">{escape(active_filter)}</strong>'
         f"</div>"
         f'<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">{controls} {reset_control}</div>'
-        f'''
+        f"""
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
           <button
             type="button"
@@ -2773,10 +2791,10 @@ def render_security_audit_dedicated_view(
             style="padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:var(--fg);font-weight:600;cursor:pointer;"
           >Copy TXT link</button>
         </div>
-        '''
-        f'{summary_html}'
-        f'{comparison_html}'
-        f'{reason_html}'
+        """
+        f"{summary_html}"
+        f"{comparison_html}"
+        f"{reason_html}"
         f'<div class="muted" style="margin-top:8px;">Showing up to 40 recent security audit entries.</div>'
         f"</div>{body}"
     )
@@ -2908,6 +2926,7 @@ def device_risk_badge(score: int) -> str:
         f"{level} ({score})"
         f"</span>"
     )
+
 
 def render_dashboard_html(devices, stamp: str) -> str:
     try:
@@ -3752,22 +3771,33 @@ def render_dashboard_html(devices, stamp: str) -> str:
             f"<td>{_safe_int(row.get('medium', 0))}</td></tr>"
         )
 
+    normalized_vendor_counts = []
+    for item in vendor_counts:
+        if isinstance(item, dict):
+            name = str(item.get("vendor", "Unknown"))
+            count = int(item.get("count", 0) or 0)
+        else:
+            name = str(item[0])
+            count = int(item[1] or 0)
+        normalized_vendor_counts.append((name, count))
+
     vendor_bars = []
-    max_vendor = vendor_counts[0][1] if vendor_counts else 1
-    for name, count in vendor_counts:
+    max_vendor = normalized_vendor_counts[0][1] if normalized_vendor_counts else 1
+
+    for name, count in normalized_vendor_counts:
         pct = int((count / max_vendor) * 100) if max_vendor else 0
         vendor_bars.append(
             f"""
-        <div class="bar-row">
-            <div class="bar-label">{escape(name)}</div>
-            <div class="bar-wrap"><div class="bar-fill" style="width:{pct}%"></div></div>
-            <div class="bar-count">{count}</div>
-        </div>
-        """
+            <div class="bar-row">
+              <div class="bar-label">{escape(str(name))}</div>
+              <div class="bar-wrap"><div class="bar-fill" style="width:{pct}%"></div></div>
+              <div class="bar-count">{count}</div>
+            </div>
+            """
         )
 
-    vendor_options = ['<option value="">Tous les vendors</option>']
-    for name, _ in vendor_counts:
+    vendor_options = ['<option value="">Tous</option>']
+    for name, _ in normalized_vendor_counts:
         vendor_options.append(
             f'<option value="{escape(str(name))}">{escape(str(name))}</option>'
         )
@@ -3775,24 +3805,23 @@ def render_dashboard_html(devices, stamp: str) -> str:
     hot_list = []
     for d in top_hot:
         hot_list.append(
-            f"<li>{escape(str(d.get('name', 'Inconnu')))} | {escape(str(d.get('address', '-')))} | "
-            f"vendor={escape(str(d.get('vendor', 'Unknown')))} | score={_safe_int(d.get('final_score', 0))} | "
-            f"{escape(str(d.get('alert_level', '-')))}</li>"
+            f"<li>{escape(str(d.get('name', 'Inconnu')))} "
+            f"<span class='muted'>{escape(str(d.get('address', '-')))}</span> "
+            f"(score {_safe_int(d.get('final_score', 0))})</li>"
         )
 
     tracker_list = []
     for d in top_trackers:
         tracker_list.append(
-            f"<li>{escape(str(d.get('name', 'Inconnu')))} | {escape(str(d.get('address', '-')))} | "
-            f"follow={_safe_int(d.get('follow_score', 0))} | profile={escape(str(d.get('profile', '-')))}</li>"
+            f"<li>{escape(str(d.get('name', 'Inconnu')))} "
+            f"<span class='muted'>{escape(str(d.get('address', '-')))}</span></li>"
         )
 
     case_list = []
     for case in cases:
         case_list.append(
-            f"<li>{escape(str(case.get('title', 'Untitled Case')))} | "
-            f"status={escape(str(case.get('status', '-')))} | "
-            f"updated={escape(str(case.get('updated_at', '-')))}</li>"
+            f"<li>{escape(str(case.get('title', case.get('address', 'Case'))))} "
+            f"<span class='muted'>status={escape(str(case.get('status', '-')))}</span></li>"
         )
 
     latest_session_lines = [
@@ -4007,7 +4036,6 @@ def render_dashboard_html(devices, stamp: str) -> str:
         """
         )
 
-
     return f"""<!doctype html>
 <html lang="fr">
 <head>
@@ -4148,18 +4176,18 @@ ul {{ margin:0; padding-left:18px; }}
         <div class="muted">Dedicated operator security audit inspection view.</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
           <a
-            href="{escape(f'scan_{stamp}.json')}"
+            href="{escape(f"scan_{stamp}.json")}"
             style="display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid rgba(125,245,163,.25);background:rgba(125,245,163,.08);color:var(--fg);text-decoration:none;font-weight:600;"
           >Open audit JSON artifact</a>
           <a
-            href="{escape(f'scan_{stamp}.txt')}"
+            href="{escape(f"scan_{stamp}.txt")}"
             download
             style="display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid rgba(91,157,255,.25);background:rgba(91,157,255,.08);color:var(--fg);text-decoration:none;font-weight:600;"
           >Export audit TXT artifact</a>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
           <a
-            href="{escape(f'operator_panel_{stamp}.html')}"
+            href="{escape(f"operator_panel_{stamp}.html")}"
             style="display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid rgba(125,245,163,.25);background:rgba(125,245,163,.08);color:var(--fg);text-decoration:none;font-weight:600;"
           >Open paired operator panel</a>
           <button
