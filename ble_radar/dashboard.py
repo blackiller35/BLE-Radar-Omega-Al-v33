@@ -2680,6 +2680,31 @@ def render_security_audit_dedicated_view(
         "</div>"
     )
 
+    reason_counts = {}
+    for event in filtered_events:
+        data = event.get("data", {}) if isinstance(event.get("data"), dict) else {}
+        reason = str(data.get("reason") or event.get("message") or "unknown").strip() or "unknown"
+        reason_counts[reason] = reason_counts.get(reason, 0) + 1
+
+    top_reasons = sorted(reason_counts.items(), key=lambda item: (-item[1], item[0]))[:3]
+    if top_reasons:
+        reason_items = "".join(
+            f'<li data-security-audit-reason-item="{escape(reason)}">{escape(reason)} <strong>×{count}</strong></li>'
+            for reason, count in top_reasons
+        )
+        reason_html = (
+            '<div data-security-audit-reason-breakdown="true" style="margin-top:6px;margin-bottom:10px;">'
+            '<div class="muted" style="margin-bottom:6px;">Top audit reasons</div>'
+            f'<ul style="margin:0;padding-left:18px;">{reason_items}</ul>'
+            '</div>'
+        )
+    else:
+        reason_html = (
+            '<div data-security-audit-reason-breakdown="true" style="margin-top:6px;margin-bottom:10px;">'
+            '<div class="muted">No audit reasons available for the active filter.</div>'
+            '</div>'
+        )
+
     chip_base = (
         "padding:4px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.16);"
         "background:rgba(255,255,255,.05);color:var(--text);font-size:11px;margin-right:4px;"
@@ -2751,6 +2776,7 @@ def render_security_audit_dedicated_view(
         '''
         f'{summary_html}'
         f'{comparison_html}'
+        f'{reason_html}'
         f'<div class="muted" style="margin-top:8px;">Showing up to 40 recent security audit entries.</div>'
         f"</div>{body}"
     )

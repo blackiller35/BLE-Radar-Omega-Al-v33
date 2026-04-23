@@ -1145,3 +1145,31 @@ def test_render_security_audit_dedicated_view_comparison_card_counts_filtered_vs
     assert f'Allowed delta: <strong>{filtered_allowed - total_allowed:+d}</strong>' in html
     assert f'Denied delta: <strong>{filtered_denied - total_denied:+d}</strong>' in html
     assert f'Timeout delta: <strong>{filtered_timeout - total_timeout:+d}</strong>' in html
+
+
+def test_render_security_audit_dedicated_view_reason_breakdown_renders_top_reasons():
+    html = dashboard.render_security_audit_dedicated_view(
+        SAMPLE_SECURITY_AUDIT_EVENTS,
+        stamp="2026-04-22_21-10-00",
+        active_filter="all",
+    )
+
+    filtered = [
+        event
+        for event in SAMPLE_SECURITY_AUDIT_EVENTS
+        if str(event.get("kind", "")).startswith("security.")
+    ]
+
+    reason_counts = {}
+    for event in filtered:
+        data = event.get("data", {}) if isinstance(event.get("data"), dict) else {}
+        reason = str(data.get("reason") or event.get("message") or "unknown").strip() or "unknown"
+        reason_counts[reason] = reason_counts.get(reason, 0) + 1
+
+    top_reasons = sorted(reason_counts.items(), key=lambda item: (-item[1], item[0]))[:3]
+
+    assert 'data-security-audit-reason-breakdown="true"' in html
+    assert "Top audit reasons" in html
+
+    for reason, count in top_reasons:
+        assert f'{dashboard.escape(reason)} <strong>×{count}</strong>' in html
