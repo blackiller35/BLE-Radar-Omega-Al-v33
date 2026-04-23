@@ -2612,7 +2612,7 @@ def render_security_audit_events_panel(
 
 
 def render_security_audit_dedicated_view(
-    events: list[dict] | None, active_filter: str = "all"
+    events: list[dict] | None, stamp: str = "", active_filter: str = "all"
 ) -> str:
     """Render dedicated security audit view with deeper recent history."""
     active_filter = str(active_filter or "all").strip().lower()
@@ -2688,6 +2688,25 @@ def render_security_audit_dedicated_view(
         f'<strong data-security-audit-view-active-label="{escape(active_filter)}">{escape(active_filter)}</strong>'
         f"</div>"
         f'<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">{controls} {reset_control}</div>'
+        f'''
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+          <button
+            type="button"
+            onclick="copySecurityAuditLink(window.location.href.split('#')[0] + '#security-audit-dedicated-view', 'Security audit view link copied')"
+            style="padding:8px 12px;border-radius:10px;border:1px solid rgba(125,245,163,.25);background:rgba(125,245,163,.08);color:var(--fg);font-weight:600;cursor:pointer;"
+          >Copy audit view link</button>
+          <button
+            type="button"
+            onclick="copySecurityAuditLink('scan_{stamp}.json', 'Audit JSON link copied')"
+            style="padding:8px 12px;border-radius:10px;border:1px solid rgba(91,157,255,.25);background:rgba(91,157,255,.08);color:var(--fg);font-weight:600;cursor:pointer;"
+          >Copy JSON link</button>
+          <button
+            type="button"
+            onclick="copySecurityAuditLink('scan_{stamp}.txt', 'Audit TXT link copied')"
+            style="padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:var(--fg);font-weight:600;cursor:pointer;"
+          >Copy TXT link</button>
+        </div>
+        '''
         f'<div class="muted" style="margin-top:8px;">Showing up to 40 recent security audit entries.</div>'
         f"</div>{body}"
     )
@@ -4055,7 +4074,7 @@ ul {{ margin:0; padding-left:18px; }}
 
     <div class="panel" id="security-audit-dedicated-view" style="margin-bottom:18px;">
         <h2>Security audit view (dedicated)</h2>
-        {render_security_audit_dedicated_view(security_audit_events)}
+        {render_security_audit_dedicated_view(security_audit_events, stamp)}
         <div class="muted">Dedicated operator security audit inspection view.</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
           <a
@@ -4444,6 +4463,39 @@ function syncSecurityAuditFilterUi(mode) {{
 
 function setSecurityAuditFilter(mode) {{
     syncSecurityAuditFilterUi(persistSecurityAuditFilter(mode));
+}}
+
+function copySecurityAuditLink(target, label) {{
+    let absoluteHref = String(target);
+    try {{
+        absoluteHref = new URL(target, window.location.href).href;
+    }} catch (_err) {{}}
+
+    try {{
+        if (navigator.clipboard && navigator.clipboard.writeText) {{
+            navigator.clipboard.writeText(absoluteHref);
+            if (typeof showSecurityActionFeedback === 'function') {{
+                showSecurityActionFeedback(label || 'Audit link copied', 'audit-link-copied');
+            }}
+            return;
+        }}
+    }} catch (_err) {{}}
+
+    const textarea = document.createElement('textarea');
+    textarea.value = absoluteHref;
+    textarea.setAttribute('readonly', 'readonly');
+    textarea.style.position = 'absolute';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {{
+        document.execCommand('copy');
+        if (typeof showSecurityActionFeedback === 'function') {{
+            showSecurityActionFeedback(label || 'Audit link copied', 'audit-link-copied');
+        }}
+    }} finally {{
+        document.body.removeChild(textarea);
+    }}
 }}
 
 function setSecurityAuditViewFilter(mode) {{
