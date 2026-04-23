@@ -4,6 +4,7 @@ import json
 from html import escape
 from pathlib import Path
 
+from ble_radar.intel.risk_tags import build_risk_tags as compute_risk_tags
 
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 OPERATOR_PANEL_TEMPLATE = TEMPLATES_DIR / "operator_panel.html"
@@ -94,8 +95,10 @@ def _normalize_device(device: dict) -> dict:
         display_score = int(float(display_score))
     except (TypeError, ValueError):
         display_score = score
+    risk_tags = compute_risk_tags(device)
 
     return {
+        "risk_tags": risk_tags,
         "id": str(_pick(device, "id", "address", "mac", default="unknown-device")),
         "name": str(_pick(device, "name", "display_name", default="Unknown device")),
         "address": str(_pick(device, "address", "mac", default="-")),
@@ -322,6 +325,12 @@ def render_operator_panel_html(
     events_html = _render_events(normalized_events)
 
     html = OPERATOR_PANEL_TEMPLATE.read_text(encoding="utf-8")
+
+    risk_tags_html = "".join(
+    f'<span class="omega-tag">{escape(str(tag))}</span>'
+    for tag in normalized_devices[0].get("risk_tags", [])
+) if normalized_devices else ""
+
     replacements = {
         "@@CARDS_HTML@@": cards_html,
         "@@DETAILS_HTML@@": details_html,

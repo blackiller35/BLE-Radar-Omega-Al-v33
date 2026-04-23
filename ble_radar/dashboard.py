@@ -1,3 +1,4 @@
+import json
 from ble_radar.alert_history import get_recent_alerts
 from ble_radar.bluehood_layer import enrich_devices_for_session
 from datetime import datetime
@@ -114,6 +115,50 @@ from ble_radar.eventlog import read_events
 from ble_radar.session.session_movement import build_session_movement
 from ble_radar.security import build_security_context
 from ble_radar.state import load_last_scan, load_scan_history
+from pathlib import Path
+from ble_radar.intel.risk_tags import build_risk_tags, risk_level_from_tags
+
+
+def load_pcap_intel() -> list[dict]:
+    path = Path("reports/pcap_intel_summary.json")
+    if not path.exists():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        return payload.get("devices", [])
+    except Exception:
+        return []
+
+
+def render_ble_intel_panel(devices: list[dict]) -> str:
+    if not devices:
+        return '<div class="omega-empty">No BLE intel data.</div>'
+
+    rows = []
+    for device in devices[:10]:
+        address = escape(str(device.get("address", "?"))).upper()
+        hits = int(device.get("hits", 0) or 0)
+
+        tags = build_risk_tags(device)
+        level = risk_level_from_tags(tags)
+
+        tags_html = (
+            " ".join(
+                f'<span class="omega-tag omega-tag-{level}">{escape(tag)}</span>'
+                for tag in tags
+            )
+            or '<span class="muted">No tags</span>'
+        )
+
+        rows.append(f"""
+        <article class="omega-event level-{level}">
+            <strong>{address}</strong><br>
+            Hits: {hits}<br>
+            <div class="risk-tags">{tags_html}</div>
+        </article>
+        """)
+
+    return "\n".join(rows)
 
 
 def _safe_int(value, default=0):
@@ -2928,7 +2973,12 @@ def device_risk_badge(score: int) -> str:
     )
 
 
+pcap_intel_devices = load_pcap_intel()
+pcap_intel_html = render_ble_intel_panel(pcap_intel_devices)
+
+
 def render_dashboard_html(devices, stamp: str) -> str:
+
     try:
         bluehood_summary = render_bluehood_summary(devices)
     except Exception:
@@ -4036,6 +4086,9 @@ def render_dashboard_html(devices, stamp: str) -> str:
         """
         )
 
+
+    pcap_intel_devices = load_pcap_intel()
+    pcap_intel_html = render_ble_intel_panel(pcap_intel_devices)
     return f"""<!doctype html>
 <html lang="fr">
 <head>
@@ -4076,6 +4129,12 @@ ul {{ margin:0; padding-left:18px; }}
 </style>
 </head>
 <body>
+<section class="omega-section">
+    <h2>🧠 OMEGA BLE Intel</h2>
+    <div class="omega-grid">
+        {pcap_intel_html}
+    </div>
+</section>
   <h1>BLE Radar Omega AI - Dashboard Pro</h1>
   <h2>Résumé global</h2>
 
@@ -4085,8 +4144,8 @@ ul {{ margin:0; padding-left:18px; }}
     <div class="card"><div>Élevés</div><div class="big">{len(high)}</div></div>
     <div class="card"><div>Moyens</div><div class="big">{len(medium)}</div></div>
     <div class="card"><div>Watchlist Hits</div><div class="big">{
-        len(watch_hits)
-    }</div></div>
+    len(watch_hits)
+}</div></div>
   </div>
 
   <div class="grid2">
@@ -4106,22 +4165,20 @@ ul {{ margin:0; padding-left:18px; }}
     <div class="panel">
       <h2>Cas d'investigation récents</h2>
       <ul>{
-        "".join(case_list) if case_list else '<li class="muted">Aucun cas récent</li>'
-    }</ul>
+    "".join(case_list) if case_list else '<li class="muted">Aucun cas récent</li>'
+}</ul>
     </div>
     <div class="panel">
       <h2>Top trackers probables ({len(top_trackers)})</h2>
       <ul>{
-        "".join(tracker_list) if tracker_list else '<li class="muted">Aucun</li>'
-    }</ul>
+    "".join(tracker_list) if tracker_list else '<li class="muted">Aucun</li>'
+}</ul>
     </div>
     <div class="panel">
       <h2>Répartition vendors</h2>
       {
-        "".join(vendor_bars)
-        if vendor_bars
-        else '<div class="muted">Aucune donnée</div>'
-    }
+    "".join(vendor_bars) if vendor_bars else '<div class="muted">Aucune donnée</div>'
+}
     </div>
   </div>
 
@@ -4145,10 +4202,10 @@ ul {{ margin:0; padding-left:18px; }}
     <div class="panel">
       <h2>Sessions récentes</h2>
       <ul>{
-        "".join(recent_session_lines)
-        if recent_session_lines
-        else '<li class="muted">Aucune session récente</li>'
-    }</ul>
+    "".join(recent_session_lines)
+    if recent_session_lines
+    else '<li class="muted">Aucune session récente</li>'
+}</ul>
     </div>
   </div>
 
@@ -4201,10 +4258,10 @@ ul {{ margin:0; padding-left:18px; }}
   <div class="panel" style="margin-bottom:18px;">
     <h2>Device registry snapshot</h2>
     <ul>{
-        "".join(registry_lines)
-        if registry_lines
-        else '<li class="muted">Aucune donnée registry disponible</li>'
-    }</ul>
+    "".join(registry_lines)
+    if registry_lines
+    else '<li class="muted">Aucune donnée registry disponible</li>'
+}</ul>
     <div class="muted">Aperçu local des appareils du scan courant (top 10).</div>
   </div>
 
@@ -4412,10 +4469,10 @@ ul {{ margin:0; padding-left:18px; }}
         </thead>
         <tbody>
           {
-        "".join(trend_rows)
-        if trend_rows
-        else '<tr><td colspan="5" class="muted">Aucun historique</td></tr>'
-    }
+    "".join(trend_rows)
+    if trend_rows
+    else '<tr><td colspan="5" class="muted">Aucun historique</td></tr>'
+}
         </tbody>
       </table>
     </div>
