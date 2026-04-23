@@ -4059,6 +4059,17 @@ ul {{ margin:0; padding-left:18px; }}
         <div class="muted">Dedicated operator security audit inspection view.</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
           <a
+            href="{escape(f'scan_{stamp}.json')}"
+            style="display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid rgba(125,245,163,.25);background:rgba(125,245,163,.08);color:var(--fg);text-decoration:none;font-weight:600;"
+          >Open audit JSON artifact</a>
+          <a
+            href="{escape(f'scan_{stamp}.txt')}"
+            download
+            style="display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid rgba(91,157,255,.25);background:rgba(91,157,255,.08);color:var(--fg);text-decoration:none;font-weight:600;"
+          >Export audit TXT artifact</a>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+          <a
             href="{escape(f'operator_panel_{stamp}.html')}"
             style="display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid rgba(125,245,163,.25);background:rgba(125,245,163,.08);color:var(--fg);text-decoration:none;font-weight:600;"
           >Open paired operator panel</a>
