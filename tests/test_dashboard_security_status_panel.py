@@ -1074,3 +1074,28 @@ def test_dashboard_html_contains_security_audit_copy_link_actions(monkeypatch):
     assert "copySecurityAuditLink(" in html
     assert "Audit JSON link copied" in html
     assert "Audit TXT link copied" in html
+
+
+def test_render_security_audit_dedicated_view_summary_card_counts_filtered_events():
+    html = dashboard.render_security_audit_dedicated_view(SAMPLE_SECURITY_AUDIT_EVENTS)
+
+    filtered = [
+        event
+        for event in SAMPLE_SECURITY_AUDIT_EVENTS
+        if str(event.get("kind", "")).startswith("security.")
+    ]
+    allowed = sum(
+        1 for event in filtered if dashboard._security_audit_filter_key(event) == "allowed"
+    )
+    denied = sum(
+        1 for event in filtered if dashboard._security_audit_filter_key(event) == "denied"
+    )
+    timeout = sum(
+        1 for event in filtered if dashboard._security_audit_filter_key(event) == "timeout"
+    )
+
+    assert 'data-security-audit-summary-card="total"' in html
+    assert f'Total shown: <strong>{len(filtered)}</strong>' in html
+    assert f'Allowed: <strong>{allowed}</strong>' in html
+    assert f'Denied: <strong>{denied}</strong>' in html
+    assert f'Timeout: <strong>{timeout}</strong>' in html
