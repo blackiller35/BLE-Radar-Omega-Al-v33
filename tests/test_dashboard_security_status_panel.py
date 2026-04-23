@@ -1048,3 +1048,29 @@ def test_dashboard_html_contains_security_audit_artifact_actions(monkeypatch):
     assert "Export audit TXT artifact" in html
     assert 'href="scan_2026-04-22_20-30-00.txt"' in html
     assert "download" in html
+
+
+def test_dashboard_html_contains_security_audit_copy_link_actions(monkeypatch):
+    monkeypatch.setattr(dashboard, "load_scan_history", lambda: [])
+    monkeypatch.setattr(dashboard, "load_registry", lambda: {})
+    monkeypatch.setattr(dashboard, "get_vendor_summary", lambda devices: [("TestVendor", 1)])
+    monkeypatch.setattr(dashboard, "get_tracker_candidates", lambda devices: devices)
+    monkeypatch.setattr(
+        dashboard,
+        "build_security_context",
+        lambda: _operator_locked_context(),
+    )
+    monkeypatch.setattr(
+        dashboard,
+        "read_events",
+        lambda limit=25: SAMPLE_SECURITY_AUDIT_EVENTS,
+    )
+
+    html = dashboard.render_dashboard_html(SAMPLE_DEVICES, "2026-04-22_20-45-00")
+
+    assert "Copy audit view link" in html
+    assert "Copy JSON link" in html
+    assert "Copy TXT link" in html
+    assert "copySecurityAuditLink(" in html
+    assert "Audit JSON link copied" in html
+    assert "Audit TXT link copied" in html
