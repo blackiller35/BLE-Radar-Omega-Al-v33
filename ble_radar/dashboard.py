@@ -15,11 +15,14 @@ from ble_radar.history.device_scoring import compute_device_score
 from ble_radar.history.cases import load_cases as load_watch_cases
 from ble_radar.history.case_workflow import case_workflow_summary, next_action
 from ble_radar.history.investigation_workspace import build_investigation_profile
+from ble_radar.intel.threat_context import build_threat_contexts
+
 from ble_radar.history.operator_alerting import (
     build_operator_alerts,
     load_alert_log,
     summarize_alerts,
 )
+
 from ble_radar.history.operator_briefing import build_operator_briefing
 from ble_radar.history.operator_campaign_tracking import (
     build_campaign_lifecycle,
@@ -4086,7 +4089,6 @@ def render_dashboard_html(devices, stamp: str) -> str:
         """
         )
 
-
     pcap_intel_devices = load_pcap_intel()
     pcap_intel_html = render_ble_intel_panel(pcap_intel_devices)
     return f"""<!doctype html>
@@ -4144,8 +4146,8 @@ ul {{ margin:0; padding-left:18px; }}
     <div class="card"><div>Élevés</div><div class="big">{len(high)}</div></div>
     <div class="card"><div>Moyens</div><div class="big">{len(medium)}</div></div>
     <div class="card"><div>Watchlist Hits</div><div class="big">{
-    len(watch_hits)
-}</div></div>
+        len(watch_hits)
+    }</div></div>
   </div>
 
   <div class="grid2">
@@ -4165,20 +4167,22 @@ ul {{ margin:0; padding-left:18px; }}
     <div class="panel">
       <h2>Cas d'investigation récents</h2>
       <ul>{
-    "".join(case_list) if case_list else '<li class="muted">Aucun cas récent</li>'
-}</ul>
+        "".join(case_list) if case_list else '<li class="muted">Aucun cas récent</li>'
+    }</ul>
     </div>
     <div class="panel">
       <h2>Top trackers probables ({len(top_trackers)})</h2>
       <ul>{
-    "".join(tracker_list) if tracker_list else '<li class="muted">Aucun</li>'
-}</ul>
+        "".join(tracker_list) if tracker_list else '<li class="muted">Aucun</li>'
+    }</ul>
     </div>
     <div class="panel">
       <h2>Répartition vendors</h2>
       {
-    "".join(vendor_bars) if vendor_bars else '<div class="muted">Aucune donnée</div>'
-}
+        "".join(vendor_bars)
+        if vendor_bars
+        else '<div class="muted">Aucune donnée</div>'
+    }
     </div>
   </div>
 
@@ -4202,10 +4206,10 @@ ul {{ margin:0; padding-left:18px; }}
     <div class="panel">
       <h2>Sessions récentes</h2>
       <ul>{
-    "".join(recent_session_lines)
-    if recent_session_lines
-    else '<li class="muted">Aucune session récente</li>'
-}</ul>
+        "".join(recent_session_lines)
+        if recent_session_lines
+        else '<li class="muted">Aucune session récente</li>'
+    }</ul>
     </div>
   </div>
 
@@ -4258,10 +4262,10 @@ ul {{ margin:0; padding-left:18px; }}
   <div class="panel" style="margin-bottom:18px;">
     <h2>Device registry snapshot</h2>
     <ul>{
-    "".join(registry_lines)
-    if registry_lines
-    else '<li class="muted">Aucune donnée registry disponible</li>'
-}</ul>
+        "".join(registry_lines)
+        if registry_lines
+        else '<li class="muted">Aucune donnée registry disponible</li>'
+    }</ul>
     <div class="muted">Aperçu local des appareils du scan courant (top 10).</div>
   </div>
 
@@ -4469,10 +4473,10 @@ ul {{ margin:0; padding-left:18px; }}
         </thead>
         <tbody>
           {
-    "".join(trend_rows)
-    if trend_rows
-    else '<tr><td colspan="5" class="muted">Aucun historique</td></tr>'
-}
+        "".join(trend_rows)
+        if trend_rows
+        else '<tr><td colspan="5" class="muted">Aucun historique</td></tr>'
+    }
         </tbody>
       </table>
     </div>
