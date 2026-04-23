@@ -4057,6 +4057,17 @@ ul {{ margin:0; padding-left:18px; }}
         <h2>Security audit view (dedicated)</h2>
         {render_security_audit_dedicated_view(security_audit_events)}
         <div class="muted">Dedicated operator security audit inspection view.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+          <a
+            href="{escape(f'operator_panel_{stamp}.html')}"
+            style="display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;border:1px solid rgba(125,245,163,.25);background:rgba(125,245,163,.08);color:var(--fg);text-decoration:none;font-weight:600;"
+          >Open paired operator panel</a>
+          <button
+            type="button"
+            onclick="setSecurityAuditViewFilter('all')"
+            style="padding:8px 12px;border-radius:10px;border:1px solid rgba(91,157,255,.25);background:rgba(91,157,255,.08);color:var(--fg);font-weight:600;cursor:pointer;"
+          >Reset audit filter</button>
+        </div>
     </div>
 
   <div class="panel" style="margin-bottom:18px;">
