@@ -131,6 +131,36 @@ def load_pcap_intel() -> list[dict]:
         return []
 
 
+
+def render_omega_core_panel(rows: list[dict]) -> str:
+    """Render a safe OMEGA CORE panel without touching dashboard flow."""
+    if not rows:
+        return '<div class="muted">No OMEGA CORE data.</div>'
+
+    cards = []
+    for row in rows[:10]:
+        level = escape(str(row.get("threat_level", "low")).lower())
+        name = escape(str(row.get("name", "Unknown")))
+        address = escape(str(row.get("address", "")))
+        confidence = round(float(row.get("confidence", 0)) * 100, 2)
+        live = "YES" if row.get("has_live_alert") else "NO"
+
+        cards.append(f"""
+        <div class="card omega-core-card level-{level}">
+            <strong>{name}</strong><br>
+            <code>{address}</code><br>
+            <small>
+            Level: {level.upper()} |
+            Confidence: {confidence}% |
+            Live: {live}
+            </small>
+        </div>
+        """)
+
+    return "\n".join(cards)
+
+
+
 def render_ble_intel_panel(devices: list[dict]) -> str:
     if not devices:
         return '<div class="omega-empty">No BLE intel data.</div>'
