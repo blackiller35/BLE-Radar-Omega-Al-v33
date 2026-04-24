@@ -13,3 +13,11 @@ captures/
 
 # temp
 *.tmp
+
+# Local/generated OMEGA files
+.vscode/
+backups_old/
+config/
+history/event_log.jsonl
+reports/
+snapshots/
