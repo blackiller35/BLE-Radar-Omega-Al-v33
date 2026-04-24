@@ -117,6 +117,7 @@ from ble_radar.security import build_security_context
 from ble_radar.state import load_last_scan, load_scan_history
 from pathlib import Path
 from ble_radar.intel.risk_tags import build_risk_tags, risk_level_from_tags
+from ble_radar.intel.ble_fingerprint import classify_ble_device
 
 
 def load_pcap_intel() -> list[dict]:
@@ -135,7 +136,14 @@ def render_ble_intel_panel(devices: list[dict]) -> str:
         return '<div class="omega-empty">No BLE intel data.</div>'
 
     rows = []
+
     for device in devices[:10]:
+        fingerprint = classify_ble_device(device)
+        device["omega_category"] = fingerprint["category"]
+        device["omega_tags"] = fingerprint["tags"]
+        device["omega_confidence"] = fingerprint["confidence"]
+        device["omega_summary"] = fingerprint["summary"]
+
         address = escape(str(device.get("address", "?"))).upper()
         hits = int(device.get("hits", 0) or 0)
 
@@ -157,6 +165,7 @@ def render_ble_intel_panel(devices: list[dict]) -> str:
             <div class="risk-tags">{tags_html}</div>
         </article>
         """)
+
 
     return "\n".join(rows)
 
