@@ -4965,3 +4965,51 @@ def render_omega_firmware_intel_panel(reports=None):
       </div>
     </section>
     """
+
+def render_omega_live_firmware_alert_panel(triggers=None):
+    """Render live firmware trigger alerts for the OMEGA dashboard."""
+    from html import escape
+
+    triggers = triggers or []
+    active = [trigger for trigger in triggers if trigger.get("triggered")]
+
+    if not active:
+        return """
+        <section class="omega-section">
+          <h2>🚨 OMEGA Live Firmware Alerts</h2>
+          <div class="card">
+            <strong>No active firmware alerts</strong><br>
+            <small>Live BLE devices are currently within baseline firmware-review thresholds.</small>
+          </div>
+        </section>
+        """
+
+    cards = []
+    for trigger in active:
+        device = trigger.get("device", {})
+        reasons = trigger.get("reasons", [])
+        reasons_html = "".join(
+            f"<li>{escape(str(reason))}</li>"
+            for reason in reasons[:8]
+        ) or "<li>No reason provided</li>"
+
+        cards.append(f"""
+        <div class="card omega-live-firmware-alert">
+          <strong>🚨 {escape(str(device.get("name", "Unknown")))}</strong><br>
+          <small>{escape(str(device.get("address", "")))} | {escape(str(device.get("vendor", "Unknown")))}</small>
+          <p><strong>Action:</strong> {escape(str(trigger.get("recommended_action", "")))}</p>
+          <details open>
+            <summary>Firmware trigger reasons</summary>
+            <ul>{reasons_html}</ul>
+          </details>
+        </div>
+        """)
+
+    return f"""
+    <section class="omega-section">
+      <h2>🚨 OMEGA Live Firmware Alerts</h2>
+      <div class="omega-grid">
+        {''.join(cards)}
+      </div>
+    </section>
+    """
