@@ -1,46 +1,44 @@
-from __future__ import annotations
-
-
 def build_risk_tags(device: dict) -> list[str]:
-    address = str(device.get("address", "")).strip().lower()
-    hits = int(device.get("hits", 0) or 0)
+    tags = []
 
-    tags: list[str] = []
+    confidence = float(device.get("confidence", 0) or 0)
+    hits = int(device.get("hits", device.get("seen_count", 0)) or 0)
+    name = str(device.get("name", "")).lower()
+    address = str(device.get("address", "")).lower()
 
-    def add(tag: str):
-        if tag not in tags:
-            tags.append(tag)
+    if confidence > 0.8:
+        tags.append("HIGH_CONFIDENCE")
 
-    # Activity levels
     if hits >= 3000:
-        add("PERSISTENT_DEVICE")
-        add("HIGH_ACTIVITY")
-    elif hits >= 1000:
-        add("ACTIVE_DEVICE")
-    elif hits >= 250:
-        add("OBSERVED_DEVICE")
+        tags.append("PERSISTENT_DEVICE")
+        tags.append("HIGH_ACTIVITY")
 
-    # Randomized BLE detection
-    if address:
-        first_byte = address.split(":")[0]
-        if first_byte in {"06", "16", "17", "26", "3e", "4e", "51", "59"}:
-            add("RANDOMIZED_BLE_ADDRESS")
+    if address.startswith(("02:", "06:", "0a:", "0e:", "12:", "16:", "1a:", "1e:", "22:", "26:", "2a:", "2e:", "32:", "36:", "3a:", "3e:")):
+        tags.append("RANDOMIZED_BLE_ADDRESS")
 
-    # Advanced tags
     if "PERSISTENT_DEVICE" in tags and "RANDOMIZED_BLE_ADDRESS" in tags:
-        add("TRACKING_SUSPECT")
+        tags.append("TRACKING_SUSPECT")
+        tags.append("PRIORITY_REVIEW")
 
-    if "HIGH_ACTIVITY" in tags and "RANDOMIZED_BLE_ADDRESS" in tags:
-        add("PRIORITY_REVIEW")
+    if name and "iphone" not in name and "samsung" not in name:
+        tags.append("UNKNOWN_VENDOR")
+
+    if device.get("has_live_alert"):
+        tags.append("LIVE_ALERT")
 
     return tags
 
 
-def risk_level_from_tags(tags: list[str]) -> str:
-    tags_set = set(tags)
+def compute_risk_tags(device: dict) -> list[str]:
+    return build_risk_tags(device)
 
-    if "TRACKING_SUSPECT" in tags_set or "PRIORITY_REVIEW" in tags_set:
+
+def risk_level_from_tags(tags: list[str]) -> str:
+    high_tags = {"HIGH_CONFIDENCE", "LIVE_ALERT", "TRACKING_SUSPECT", "PRIORITY_REVIEW"}
+    medium_tags = {"PERSISTENT_DEVICE", "HIGH_ACTIVITY", "UNKNOWN_VENDOR", "RANDOMIZED_BLE_ADDRESS", "TRACKING_SUSPECT", "PRIORITY_REVIEW"}
+
+    if any(tag in high_tags for tag in tags):
         return "high"
-    if "PERSISTENT_DEVICE" in tags_set or "HIGH_ACTIVITY" in tags_set:
+    if any(tag in medium_tags for tag in tags):
         return "medium"
     return "low"
