@@ -4911,3 +4911,57 @@ def render_alert_history_panel():
 
     html += "</ul></section>"
     return html
+
+def render_omega_firmware_intel_panel(reports=None):
+    """Render OMEGA firmware reverse-analysis dashboard cards."""
+    from html import escape
+
+    reports = reports or []
+    if not reports:
+        return """
+        <section class="omega-section">
+          <h2>🧠 OMEGA Firmware Intel</h2>
+          <div class="card">
+            <strong>No firmware analysis loaded</strong><br>
+            <small>Use ble_radar.reverse.firmware_analysis.analyze_firmware(path) to generate local intel.</small>
+          </div>
+        </section>
+        """
+
+    cards = []
+    for report in reports:
+        risk = report.get("risk", {})
+        hits = risk.get("hits", [])
+        hit_html = "".join(
+            f"<li><strong>{escape(str(hit.get('marker', '')))}</strong> — {escape(str(hit.get('string', '')))}</li>"
+            for hit in hits[:8]
+        ) or "<li>No suspicious strings detected</li>"
+
+        cards.append(f"""
+        <div class="card omega-firmware-card">
+          <strong>{escape(str(report.get("name", "unknown firmware")))}</strong><br>
+          <small>{escape(str(report.get("path", "")))}</small>
+          <p>
+            Level: <strong>{escape(str(risk.get("level", "INFO")))}</strong><br>
+            Score: <strong>{escape(str(risk.get("score", 0)))}/100</strong><br>
+            Size: {escape(str(report.get("size_bytes", 0)))} bytes<br>
+            Strings: {escape(str(report.get("strings_count", 0)))}<br>
+            SHA256: <code>{escape(str(report.get("sha256", "")))[:24]}...</code>
+          </p>
+          <details>
+            <summary>Suspicious firmware markers</summary>
+            <ul>{hit_html}</ul>
+          </details>
+          <small>Ghidra: import file for decompiler/static analysis</small><br>
+          <small>radare2: <code>{escape(str(report.get("tool_hint", {}).get("radare2", "r2 -AA firmware.bin")))}</code></small>
+        </div>
+        """)
+
+    return f"""
+    <section class="omega-section">
+      <h2>🧠 OMEGA Firmware Intel</h2>
+      <div class="omega-grid">
+        {''.join(cards)}
+      </div>
+    </section>
+    """
