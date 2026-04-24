@@ -68,8 +68,9 @@ from ble_radar.router import (
     select_device_interactive,
     investigation_menu,
 )
-from ble_radar.ui import *
+from ble_radar.ui import clear, banner, color, pause, hr, CYAN, RED, GREEN, YELLOW, BLUE
 from ble_radar.fortress import doctor_menu, snapshot_menu, integrity_status_label
+from wifi_radar.omega_wifi import run_wifi_omega_pipeline
 from ble_radar.nexus import (
     search_device_summaries,
     timeline_for_address,
@@ -4521,6 +4522,7 @@ def main_menu():
         print("28) Snapshots / Restore Pro")
         print("29) NEXUS Center Pro")
         print("30) OMEGA-X Center Pro")
+        print("31) 📡 WiFi Radar OMEGA")
         print("31) ARGUS Center Pro")
         print("32) SENTINEL Center Pro")
         print("33) ATLAS Center Pro")
@@ -4593,6 +4595,26 @@ def main_menu():
         elif choice == "29":
             batch39_nexus_center_pro()
         elif choice == "30":
+            omegax_center()
+        elif choice == "31":
+            clear()
+            banner()
+            print(color("\n📡 OMEGA WiFi Radar", CYAN, bold=True))
+            print(hr())
+
+            result = run_wifi_omega_pipeline()
+            summary = result["summary"]
+
+            print(f"Networks found: {len(result['networks'])}")
+            print(f"Known networks: {summary['total_known_networks']}")
+            print(f"Hidden: {summary['hidden_networks']}")
+            print(f"Medium/High: {summary['medium_or_high_risk']}")
+            print(f"Very close: {summary['very_close']}")
+            print()
+            print(f"Scan: {result['scan_path']}")
+            print(f"Dashboard: {result['dashboard_path']}")
+            pause()
+
             batch39_omegax_center_pro()
         elif choice == "31":
             batch40_argus_center_pro()

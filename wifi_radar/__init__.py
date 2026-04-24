@@ -1,0 +1,1 @@
+"""WiFi Radar Omega module."""
