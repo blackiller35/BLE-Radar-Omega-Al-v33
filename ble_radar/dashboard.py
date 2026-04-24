@@ -158,11 +158,22 @@ def render_ble_intel_panel(devices: list[dict]) -> str:
             or '<span class="muted">No tags</span>'
         )
 
+        omega_tags_html = " ".join(
+            f'<span class="omega-tag omega-tag-{level}">{escape(tag)}</span>'
+            for tag in device.get("omega_tags", [])
+        ) or '<span class="muted">No OMEGA tags</span>'
+
         rows.append(f"""
         <article class="omega-event level-{level}">
             <strong>{address}</strong><br>
             Hits: {hits}<br>
             <div class="risk-tags">{tags_html}</div>
+            <div class="omega-summary">
+                <strong>OMEGA:</strong> {escape(str(device.get("omega_category", "unknown_ble")))}
+                | confidence={escape(str(device.get("omega_confidence", 0)))}%
+            </div>
+            <div class="risk-tags">{omega_tags_html}</div>
+            <div class="muted">{escape(str(device.get("omega_summary", "")))}</div>
         </article>
         """)
 
