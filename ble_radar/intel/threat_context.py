@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import time
 from ble_radar.intel.osint_sigint_tools import get_intel_tools
 

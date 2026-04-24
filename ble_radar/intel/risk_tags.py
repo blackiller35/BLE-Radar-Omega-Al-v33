@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 def build_risk_tags(device: dict) -> list[str]:
     tags = []
 

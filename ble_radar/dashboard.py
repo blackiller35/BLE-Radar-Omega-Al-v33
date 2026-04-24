@@ -6,6 +6,7 @@ from html import escape
 
 from ble_radar.device_contract import explain_device, normalize_device
 from ble_radar.intel import get_tracker_candidates, get_vendor_summary
+from ble_radar.intel.omega_intel_map import build_omega_intel_maps
 from ble_radar.investigation import list_cases
 from ble_radar.session_diff import latest_session_diff
 from ble_radar.session_catalog import build_session_catalog, latest_session_overview
@@ -129,6 +130,27 @@ def load_pcap_intel() -> list[dict]:
         return payload.get("devices", [])
     except Exception:
         return []
+
+
+
+
+def omega_intel_map_to_core_row(ctx: dict) -> dict:
+    """Adapt OMEGA Intel Map output to OMEGA Core dashboard row."""
+    risk_level = str(ctx.get("risk", {}).get("level", "low")).lower()
+
+    confidence_by_level = {
+        "high": 0.92,
+        "medium": 0.68,
+        "low": 0.35,
+    }
+
+    return {
+        "name": ctx.get("identity", {}).get("name", "Unknown"),
+        "address": ctx.get("identity", {}).get("address", ""),
+        "threat_level": risk_level,
+        "confidence": confidence_by_level.get(risk_level, 0.35),
+        "has_live_alert": risk_level == "high",
+    }
 
 
 

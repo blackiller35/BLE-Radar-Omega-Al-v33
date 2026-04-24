@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 def get_intel_tools(tags: list[str]) -> list[str]:
     tools = []
 
