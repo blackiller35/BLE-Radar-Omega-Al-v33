@@ -4139,6 +4139,7 @@ def render_dashboard_html(devices, stamp: str) -> str:
 
     pcap_intel_devices = load_pcap_intel()
     pcap_intel_html = render_ble_intel_panel(pcap_intel_devices)
+    omega_core_html = render_omega_core_panel(pcap_intel_devices)
     return f"""<!doctype html>
 <html lang="fr">
 <head>
@@ -4183,6 +4184,13 @@ ul {{ margin:0; padding-left:18px; }}
     <h2>🧠 OMEGA BLE Intel</h2>
     <div class="omega-grid">
         {pcap_intel_html}
+    </div>
+</section>
+
+<section class="omega-section">
+    <h2>🧠 OMEGA CORE (preview)</h2>
+    <div class="omega-grid">
+        {omega_core_html}
     </div>
 </section>
   <h1>BLE Radar Omega AI - Dashboard Pro</h1>
