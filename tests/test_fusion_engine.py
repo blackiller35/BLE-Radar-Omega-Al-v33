@@ -56,3 +56,28 @@ def test_generate_operator_summary_contains_risk_score_and_reasons():
     assert "HIGH" in summary
     assert "85%" in summary
     assert "same vendor" in summary
+
+
+def test_high_fusion_can_escalate_to_critical_threat_context():
+    from ble_radar.fusion.fusion_engine import apply_fusion_threat_boost
+
+    boosted = apply_fusion_threat_boost(
+        {"risk": "medium", "tags": ["PERSISTENT_UNKNOWN"]},
+        [{"risk": "high", "match_score": 90, "reasons": ["same OUI prefix"]}],
+    )
+
+    assert boosted["risk"] == "critical"
+    assert "FUSION_HIGH_CONFIDENCE" in boosted["tags"]
+    assert "MULTI_SIGNAL_CORRELATION" in boosted["tags"]
+
+
+def test_low_fusion_does_not_escalate_threat_context():
+    from ble_radar.fusion.fusion_engine import apply_fusion_threat_boost
+
+    boosted = apply_fusion_threat_boost(
+        {"risk": "medium", "tags": ["PERSISTENT_UNKNOWN"]},
+        [{"risk": "low", "match_score": 20, "reasons": ["weak correlation"]}],
+    )
+
+    assert boosted["risk"] == "medium"
+    assert "FUSION_HIGH_CONFIDENCE" not in boosted["tags"]

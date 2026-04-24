@@ -89,3 +89,35 @@ def correlate_ble_wifi(
             )
 
     return sorted(correlations, key=lambda item: item["match_score"], reverse=True)
+
+
+def apply_fusion_threat_boost(
+    threat_context: dict[str, Any],
+    correlations: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Escalate operator-facing risk when BLE/WiFi fusion is high-confidence."""
+    boosted = dict(threat_context)
+    tags = set(boosted.get("tags") or [])
+
+    high_matches = [
+        item for item in correlations
+        if item.get("risk") == "high" and int(item.get("match_score") or 0) >= 80
+    ]
+
+    if high_matches:
+        boosted["risk"] = "critical"
+        tags.add("FUSION_HIGH_CONFIDENCE")
+        tags.add("MULTI_SIGNAL_CORRELATION")
+        boosted["fusion_boost"] = {
+            "enabled": True,
+            "highest_match_score": max(int(item.get("match_score") or 0) for item in high_matches),
+            "reason": "High-confidence BLE/WiFi correlation escalated operator risk.",
+        }
+    else:
+        boosted["fusion_boost"] = {
+            "enabled": False,
+            "reason": "No high-confidence BLE/WiFi fusion correlation.",
+        }
+
+    boosted["tags"] = sorted(tags)
+    return boosted
