@@ -3758,7 +3758,7 @@ def batch40_argus_center_pro():
     while True:
         clear()
         banner()
-        print(color("\n31) ARGUS Center Pro", CYAN, bold=True))
+        print(color("\n32) ARGUS Center Pro", CYAN, bold=True))
         print(hr())
         print("1) Ouvrir ARGUS Center")
         print("2) Voir les priorités")
@@ -3787,7 +3787,7 @@ def batch40_sentinel_center_pro():
     while True:
         clear()
         banner()
-        print(color("\n32) SENTINEL Center Pro", CYAN, bold=True))
+        print(color("\n33) SENTINEL Center Pro", CYAN, bold=True))
         print(hr())
         print("1) Ouvrir SENTINEL Center")
         print("2) Dashboard de menace")
@@ -3819,7 +3819,7 @@ def batch40_atlas_center_pro():
     while True:
         clear()
         banner()
-        print(color("\n33) ATLAS Center Pro", CYAN, bold=True))
+        print(color("\n34) ATLAS Center Pro", CYAN, bold=True))
         print(hr())
         print("1) Ouvrir ATLAS Center")
         print("2) Hot edges")
@@ -3851,7 +3851,7 @@ def batch40_helios_center_pro():
     while True:
         clear()
         banner()
-        print(color("\n34) HELIOS Center Pro", CYAN, bold=True))
+        print(color("\n35) HELIOS Center Pro", CYAN, bold=True))
         print(hr())
         print("1) Ouvrir HELIOS Center")
         print("2) Executive dashboard")
@@ -3880,7 +3880,7 @@ def batch40_aegis_center_pro():
     while True:
         clear()
         banner()
-        print(color("\n35) AEGIS Center Pro", CYAN, bold=True))
+        print(color("\n36) AEGIS Center Pro", CYAN, bold=True))
         print(hr())
         print("1) Ouvrir AEGIS Center")
         print("2) Dashboard")
@@ -3912,7 +3912,7 @@ def batch41_oracle_center_pro():
     while True:
         clear()
         banner()
-        print(color("\n36) ORACLE Center Pro", CYAN, bold=True))
+        print(color("\n37) ORACLE Center Pro", CYAN, bold=True))
         print(hr())
         print("1) Ouvrir ORACLE Center")
         print("2) Forecast dashboard")
@@ -3938,7 +3938,7 @@ def batch41_nebula_center_pro():
     while True:
         clear()
         banner()
-        print(color("\n37) NEBULA Center Pro", CYAN, bold=True))
+        print(color("\n38) NEBULA Center Pro", CYAN, bold=True))
         print(hr())
         print("1) Ouvrir NEBULA Center")
         print("2) Master dashboard")
@@ -3970,7 +3970,7 @@ def batch41_citadel_center_pro():
     while True:
         clear()
         banner()
-        print(color("\n38) CITADEL Center Pro", CYAN, bold=True))
+        print(color("\n39) CITADEL Center Pro", CYAN, bold=True))
         print(hr())
         print("1) Ouvrir CITADEL Center")
         print("2) Check-up global")
@@ -4005,7 +4005,7 @@ def batch41_commander_center_pro():
     while True:
         clear()
         banner()
-        print(color("\n39) COMMANDER Center Pro", CYAN, bold=True))
+        print(color("\n39A) COMMANDER Center Pro", CYAN, bold=True))
         print(hr())
         print("1) Ouvrir COMMANDER Center")
         print("2) Startup check")
@@ -4523,15 +4523,15 @@ def main_menu():
         print("29) NEXUS Center Pro")
         print("30) OMEGA-X Center Pro")
         print("31) 📡 WiFi Radar OMEGA")
-        print("31) ARGUS Center Pro")
-        print("32) SENTINEL Center Pro")
-        print("33) ATLAS Center Pro")
-        print("34) HELIOS Center Pro")
-        print("35) AEGIS Center Pro")
-        print("36) ORACLE Center Pro")
-        print("37) NEBULA Center Pro")
-        print("38) CITADEL Center Pro")
-        print("39) COMMANDER Center Pro")
+        print("32) ARGUS Center Pro")
+        print("33) SENTINEL Center Pro")
+        print("34) ATLAS Center Pro")
+        print("35) HELIOS Center Pro")
+        print("36) AEGIS Center Pro")
+        print("37) ORACLE Center Pro")
+        print("38) NEBULA Center Pro")
+        print("39) CITADEL Center Pro")
+        print("39A) COMMANDER Center Pro")
         print("40) Quitter Pro")
 
         choice = input("Choix > ").strip()
@@ -4616,23 +4616,23 @@ def main_menu():
             pause()
 
             batch39_omegax_center_pro()
-        elif choice == "31":
-            batch40_argus_center_pro()
         elif choice == "32":
-            batch40_sentinel_center_pro()
+            batch40_argus_center_pro()
         elif choice == "33":
-            batch40_atlas_center_pro()
+            batch40_sentinel_center_pro()
         elif choice == "34":
-            batch40_helios_center_pro()
+            batch40_atlas_center_pro()
         elif choice == "35":
-            batch40_aegis_center_pro()
+            batch40_helios_center_pro()
         elif choice == "36":
-            batch41_oracle_center_pro()
+            batch40_aegis_center_pro()
         elif choice == "37":
-            batch41_nebula_center_pro()
+            batch41_oracle_center_pro()
         elif choice == "38":
-            batch41_citadel_center_pro()
+            batch41_nebula_center_pro()
         elif choice == "39":
+            batch41_citadel_center_pro()
+        elif choice == "39A":
             batch41_commander_center_pro()
         elif choice == "40":
             if batch41_exit_pro():
@@ -5070,7 +5070,7 @@ def batch39_omegax_center_pro():
 
 def batch40_argus_center_pro():
     while True:
-        _batch43_header("31) ARGUS Center Pro")
+        _batch43_header("32) ARGUS Center Pro")
         print("1) Voir les priorités")
         print("2) Ouvrir un case file")
         print("3) Actions recommandées")
@@ -5096,7 +5096,7 @@ def batch40_argus_center_pro():
 
 def batch40_sentinel_center_pro():
     while True:
-        _batch43_header("32) SENTINEL Center Pro")
+        _batch43_header("33) SENTINEL Center Pro")
         print("1) Dashboard de menace")
         print("2) Campaign view")
         print("3) Escalades")
@@ -5125,7 +5125,7 @@ def batch40_sentinel_center_pro():
 
 def batch40_atlas_center_pro():
     while True:
-        _batch43_header("33) ATLAS Center Pro")
+        _batch43_header("34) ATLAS Center Pro")
         print("1) Hot edges")
         print("2) Voisins d'un appareil")
         print("3) Clusters vendor/profile")
@@ -5151,7 +5151,7 @@ def batch40_atlas_center_pro():
 
 def batch40_helios_center_pro():
     while True:
-        _batch43_header("34) HELIOS Center Pro")
+        _batch43_header("35) HELIOS Center Pro")
         print("1) Executive dashboard")
         print("2) Top cibles immédiates")
         print("3) Recommandations fusionnées")
@@ -5177,7 +5177,7 @@ def batch40_helios_center_pro():
 
 def batch40_aegis_center_pro():
     while True:
-        _batch43_header("35) AEGIS Center Pro")
+        _batch43_header("36) AEGIS Center Pro")
         print("1) Dashboard")
         print("2) Incidents composés")
         print("3) Playbooks actifs")
@@ -5203,7 +5203,7 @@ def batch40_aegis_center_pro():
 
 def batch41_oracle_center_pro():
     while True:
-        _batch43_header("36) ORACLE Center Pro")
+        _batch43_header("37) ORACLE Center Pro")
         print("1) Forecast dashboard")
         print("2) Risques à venir")
         print("3) Scan normal + brief")
@@ -5226,7 +5226,7 @@ def batch41_oracle_center_pro():
 
 def batch41_nebula_center_pro():
     while True:
-        _batch43_header("37) NEBULA Center Pro")
+        _batch43_header("38) NEBULA Center Pro")
         print("1) Master dashboard")
         print("2) Résumé de session")
         print("3) Sauvegarder résumé de session")
@@ -5252,7 +5252,7 @@ def batch41_nebula_center_pro():
 
 def batch41_citadel_center_pro():
     while True:
-        _batch43_header("38) CITADEL Center Pro")
+        _batch43_header("39) CITADEL Center Pro")
         print("1) Check-up global")
         print("2) Sauvegarder rapport CITADEL")
         print("3) Export global")
@@ -5281,7 +5281,7 @@ def batch41_citadel_center_pro():
 
 def batch41_commander_center_pro():
     while True:
-        _batch43_header("39) COMMANDER Center Pro")
+        _batch43_header("39A) COMMANDER Center Pro")
         try:
             stable = build_stableplus_report()
             print(
